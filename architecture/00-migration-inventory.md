@@ -15,7 +15,7 @@ Decision labels:
 
 | Current path | Purpose | Active dependencies | Tests | Risks | Decision | Reason |
 | --- | --- | --- | --- | --- | --- | --- |
-| `docs/CONSTELLATION_BIBLE_TEMPLATE.md` | Constellation Bible structure and renderer truth principles | Architecture only | None | File still contains template sections; not a completed Bible | COPY with caveat | Copied as `docs/CONSTELLATION_BIBLE.md` so the clean repo has the governing document, but completion remains unresolved. |
+| `SoulScope_Canon_Foundational_Edition_v1.0 (1).pdf` | SoulScope Canon Foundational Edition v1.0 | Architecture and product governance | None | PDF text extraction preserves content but Markdown formatting needs later cleanup | COPY | Converted into `docs/CONSTELLATION_BIBLE.md` and retained source as `docs/SoulScope_Canon_Foundational_Edition_v1.0.pdf`; the earlier template content was replaced. |
 | `architecture/02-evidence-ledger.md` | Evidence Ledger contract | Canonical pipeline | Existing Phase B/E tests in old repo | Short spec; needs expansion during implementation | COPY | Copied as `architecture/EVIDENCE_LEDGER.md`. |
 | `architecture/03-decision-ledger.md` | Decision Ledger contract | Canonical pipeline | Existing Phase B/E tests in old repo | Short spec; needs schema details during implementation | COPY | Copied as `architecture/DECISION_LEDGER.md`. |
 | `docs/ResonanceSignatureRenderer.md` | Renderer downstream contract and visual truth constraints | Renderer package in old repo | Renderer tests in old repo | Old repo has multiple renderer files and review work; code not copied | COPY | Copied as `architecture/RESONANCE_SIGNATURE.md`; implementation will be rewritten or selectively reviewed later. |
