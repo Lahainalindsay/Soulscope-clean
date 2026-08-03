@@ -1,10 +1,100 @@
 # Constellation Bible Owner Approval Checklist
 
-No owner decision is marked approved in this document. Each decision requires explicit owner response.
+This document records owner decisions. The full Constellation Bible is not implementation-ready unless explicitly stated. Current approval is limited to contract-level use of `@soulscope/canonical-contracts` version `0.1.0`.
+
+## Owner Sign-Off: Canonical Contracts v0.1.0
+
+Approval status: APPROVED FOR CONTRACT-LEVEL USE, with one correction
+Approval date: 2026-08-03
+Approving role: Product Owner
+Approved package: `@soulscope/canonical-contracts`
+Approved version: `0.1.0`
+Approved commit: `94120da59e02bbdbfcea0ebbd6c15163f82bfc0f`
+
+Approved decisions:
+
+| # | Decision | Status |
+| ---: | --- | --- |
+| 1 | Constellation IDs | APPROVED FOR CONTRACT-LEVEL USE |
+| 2 | Dimension IDs and labels | APPROVED FOR CONTRACT-LEVEL USE |
+| 3 | Dimension ordering | APPROVED FOR CONTRACT-LEVEL USE |
+| 4 | Seed-state IDs | APPROVED FOR CONTRACT-LEVEL USE |
+| 5 | Seed-state display names | APPROVED FOR CONTRACT-LEVEL USE |
+| 6 | Evidence Ledger fields | APPROVED FOR CONTRACT-LEVEL USE |
+| 7 | Baseline hierarchy | APPROVED FOR CONTRACT-LEVEL USE |
+| 8 | Processing-stage IDs and order | APPROVED WITH CORRECTION |
+| 9 | Narrative-section IDs and labels | APPROVED FOR CONTRACT-LEVEL USE |
+| 10 | Internal narrative citation requirement | APPROVED FOR CONTRACT-LEVEL USE |
+| 11 | Validation phase-gate IDs and labels | APPROVED FOR CONTRACT-LEVEL USE |
+| 12 | Provenance fields | APPROVED FOR CONTRACT-LEVEL USE |
+| 13 | Version-reference fields | APPROVED FOR CONTRACT-LEVEL USE |
+| 14 | Non-executable package boundary | APPROVED FOR CONTRACT-LEVEL USE |
+| 15 | Package version `0.1.0` | APPROVED FOR CONTRACT-LEVEL USE |
+
+Decision 8 correction:
+
+- The extracted processing-stage identifiers are approved as source-faithful Bible stages.
+- Future canonical implementation must separately preserve `Decision Ledger` and `Immutable Completed Result`.
+- These remain explicit canonical contracts between Pattern Engine and downstream Narrative Engine / Resonance Signature consumers.
+- Their absence from the extracted Bible stage registry must not be interpreted as permission to remove or bypass them.
+- Current documentation cannot prove whether the Bible intentionally treats them as cross-cutting contracts rather than processing stages, or whether the stage registry is incomplete. This remains an unresolved specification gap requiring future Bible amendment or owner clarification before implementation.
+
+Approved scope:
+
+- importing permanent identifiers
+- importing immutable registries
+- structural schema validation
+- provenance enforcement
+- version-reference enforcement
+- contract-level documentation
+- contract-level tests
+- planning future consumers against these stable identifiers
+
+Excluded scope:
+
+- acoustic scoring
+- normalization formulas
+- feature weights
+- confidence formulas
+- posterior intervals
+- dimension scoring
+- constellation-state eligibility
+- constellation-state selection
+- boundary blending
+- publish thresholds
+- contradiction penalties
+- interaction inference
+- pattern inference
+- narrative generation
+- Resonance Signature behavior
+- frontend integration
+- backend integration
+- database integration
+- migration of old implementation behavior
+- production deployment
+
+Owner notes:
+
+- The sixteen seed-state IDs and display names are approved as canonical registry references only.
+- Source-designated reserved/fixed states are `COG-017 — Deliberate Builder`, `REG-022 — Adaptive Recovery`, and `EXP-009 — Guarded Openness`.
+- Remaining seed states retain provisional lifecycle status.
+- Seed-state approval does not authorize candidate eligibility, state scoring, distance calculations, state selection, blending, confidence thresholds, publication rules, narrative templates, or visual profiles.
+- The five narrative-section IDs are approved as Bible-derived internal contract sections and do not need to appear verbatim as user-facing interface labels.
+- A later presentation contract may organize supported reflection content into facets such as inner experience, interactions, holding back, daily functioning, and future access, provided evidence traceability is preserved and canonical reasoning is unchanged.
+- The Evidence Ledger schema is approved as a structural contract only. Schema validity does not imply scientific validity, calibrated confidence, causal support, eligibility for publication, diagnostic meaning, or production readiness.
+- The baseline hierarchy preserves personal reference signature, within-session reference, matched population prior, and no reference. An opening prompt may serve as a within-session reference, but not automatically as a trusted longitudinal personal reference. No reference must not be interpreted as neutral, normal, balanced, average, or healthy.
+
+Next permitted gate: FRONTEND VISUAL FOUNDATION AND NON-SCIENTIFIC APPLICATION SHELL.
+
+The next gate permits design tokens, typography, color system, spacing system, responsive application shell, navigation, accessible base components, scan-screen visual presentation, analyzing-screen presentation, results-page layout, history/profile/settings presentation, loading/empty/error/unresolved states, canonical labels imported from the contract package, clearly labeled mock-data adapters, and non-production visual placeholders.
+
+The next gate does not permit scientific scoring, state inference, generated personal claims, production Resonance Signature mappings, production database integration, or migration of old scientific behavior.
 
 Checkbox options:
 
 - [ ] APPROVED
+- [ ] APPROVED FOR CONTRACT-LEVEL USE
+- [ ] APPROVED WITH CORRECTION
 - [ ] APPROVED AS PROVISIONAL
 - [ ] DEFERRED
 - [ ] REQUIRES SCIENTIFIC REVIEW
@@ -204,4 +294,3 @@ Checkbox options:
   - [ ] REQUIRES SCIENTIFIC REVIEW
   - [ ] REJECTED
 - Owner notes:
-
