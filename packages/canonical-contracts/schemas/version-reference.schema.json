@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soulscope.local/schemas/version-reference.schema.json",
+  "title": "SoulScope Version Reference",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["packageVersion", "registryVersion", "schemaVersion", "sourceVersion"],
+  "properties": {
+    "packageVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "registryVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schemaVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "sourceVersion": { "type": "string", "minLength": 1 }
+  }
+}

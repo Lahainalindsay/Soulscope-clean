@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soulscope.local/schemas/evidence-ledger-record.schema.json",
+  "title": "SoulScope Evidence Ledger Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidence_id",
+    "session_segment",
+    "source_features",
+    "observation",
+    "direction_magnitude",
+    "quality",
+    "baseline",
+    "support_contradiction",
+    "confounds",
+    "confidence",
+    "policy",
+    "timestamp",
+    "provenance",
+    "version"
+  ],
+  "properties": {
+    "evidence_id": { "type": "string", "minLength": 1 },
+    "session_segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session_id", "prompt_id", "start_time", "end_time"],
+      "properties": {
+        "session_id": { "type": "string", "minLength": 1 },
+        "prompt_id": { "type": "string", "minLength": 1 },
+        "start_time": { "type": "number" },
+        "end_time": { "type": "number" }
+      }
+    },
+    "source_features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["feature_id", "extractor_version", "feature_definition_version"],
+        "properties": {
+          "feature_id": { "type": "string", "minLength": 1 },
+          "extractor_version": { "type": "string", "minLength": 1 },
+          "feature_definition_version": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "observation": { "type": "string", "minLength": 1 },
+    "direction_magnitude": { "type": "object" },
+    "quality": { "type": "object" },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference_type", "trust_status", "compatibility"],
+      "properties": {
+        "reference_type": {
+          "enum": [
+            "personal_reference_signature",
+            "within_session_reference",
+            "matched_population_prior",
+            "no_reference"
+          ]
+        },
+        "trust_status": { "type": "string", "minLength": 1 },
+        "compatibility": { "type": "string", "minLength": 1 },
+        "sample_count": { "type": ["integer", "null"] }
+      }
+    },
+    "support_contradiction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["support", "contradiction"],
+      "properties": {
+        "support": { "type": "array", "items": { "type": "string" } },
+        "contradiction": { "type": "array", "items": { "type": "string" } },
+        "relationship_type": { "type": ["string", "null"] }
+      }
+    },
+    "confounds": { "type": "array", "items": { "type": "string" } },
+    "confidence": { "type": "object" },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_inference_tier", "prohibited_use_flags"],
+      "properties": {
+        "allowed_inference_tier": { "enum": ["A", "B", "C", "D"] },
+        "prohibited_use_flags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "timestamp": { "type": "string", "minLength": 1 },
+    "provenance": { "$ref": "provenance.schema.json" },
+    "version": { "$ref": "version-reference.schema.json" }
+  }
+}

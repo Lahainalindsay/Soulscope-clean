@@ -1,0 +1,14 @@
+{
+  "name": "@soulscope/canonical-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Non-executable SoulScope canonical identifiers, registries, schemas, provenance, and version contracts.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "node ./tests/static-typecheck.mjs",
+    "test": "node --test ./tests/*.test.mjs"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soulscope.local/schemas/provenance.schema.json",
+  "title": "SoulScope Provenance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sourceDocument", "sourceVersion", "sourceSection"],
+  "properties": {
+    "sourceDocument": { "type": "string", "minLength": 1 },
+    "sourceVersion": { "type": "string", "minLength": 1 },
+    "sourceSection": { "type": "string", "minLength": 1 },
+    "sourceTable": { "type": "string", "minLength": 1 }
+  }
+}

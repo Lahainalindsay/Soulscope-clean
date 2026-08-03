@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soulscope.local/schemas/canonical-registry-entry.schema.json",
+  "title": "SoulScope Canonical Registry Entry",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id", "registryVersion", "provenance"],
+  "anyOf": [
+    { "required": ["label"] },
+    { "required": ["displayName"] }
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "enum": [
+        "COG",
+        "REG",
+        "CAP",
+        "EXP",
+        "COG-P1",
+        "COG-P2",
+        "COG-P3",
+        "COG-P4",
+        "REG-P1",
+        "REG-P2",
+        "REG-P3",
+        "REG-P4",
+        "CAP-P1",
+        "CAP-P2",
+        "CAP-P3",
+        "CAP-P4",
+        "EXP-P1",
+        "EXP-P2",
+        "EXP-P3",
+        "EXP-P4",
+        "COG-017",
+        "COG-014",
+        "COG-011",
+        "COG-020",
+        "REG-022",
+        "REG-019",
+        "REG-024",
+        "REG-026",
+        "CAP-012",
+        "CAP-016",
+        "CAP-018",
+        "CAP-021",
+        "EXP-009",
+        "EXP-006",
+        "EXP-004",
+        "EXP-012"
+      ]
+    },
+    "label": { "type": "string", "minLength": 1 },
+    "displayName": { "type": "string", "minLength": 1 },
+    "registryVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "provenance": { "$ref": "provenance.schema.json" }
+  }
+}

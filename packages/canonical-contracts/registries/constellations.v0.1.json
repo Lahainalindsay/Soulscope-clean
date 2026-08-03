@@ -1,0 +1,54 @@
+[
+  {
+    "id": "COG",
+    "label": "Cognitive Form",
+    "fourPoints": ["Organization", "Exploration", "Focus Continuity", "Processing Demand"],
+    "questionAnswered": "How is mental work being organized and sustained?",
+    "registryVersion": "0.1.0",
+    "provenance": {
+      "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+      "sourceVersion": "0.1",
+      "sourceSection": "Section 1, The four proposed constellations",
+      "sourceTable": "Table 4"
+    }
+  },
+  {
+    "id": "REG",
+    "label": "Regulatory Motion",
+    "fourPoints": ["Activation", "Stability", "Flexibility", "Recovery"],
+    "questionAnswered": "How is the system responding, adapting, and returning?",
+    "registryVersion": "0.1.0",
+    "provenance": {
+      "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+      "sourceVersion": "0.1",
+      "sourceSection": "Section 1, The four proposed constellations",
+      "sourceTable": "Table 4"
+    }
+  },
+  {
+    "id": "CAP",
+    "label": "Available Capacity",
+    "fourPoints": ["Mobilization", "Reserve", "Effort Cost", "Sustainability"],
+    "questionAnswered": "What resources appear available, and what does current functioning seem to cost?",
+    "registryVersion": "0.1.0",
+    "provenance": {
+      "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+      "sourceVersion": "0.1",
+      "sourceSection": "Section 1, The four proposed constellations",
+      "sourceTable": "Table 4"
+    }
+  },
+  {
+    "id": "EXP",
+    "label": "Expressive Interface",
+    "fourPoints": ["Range", "Openness", "Restraint", "Relational Availability"],
+    "questionAnswered": "How is inner activity being carried into outward expression?",
+    "registryVersion": "0.1.0",
+    "provenance": {
+      "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+      "sourceVersion": "0.1",
+      "sourceSection": "Section 1, The four proposed constellations",
+      "sourceTable": "Table 4"
+    }
+  }
+]
