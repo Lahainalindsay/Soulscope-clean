@@ -1,0 +1,78 @@
+{
+  "auditDate": "2026-08-03",
+  "branch": "feature/resonance-signature-visual-truth",
+  "basis": {
+    "source": "Repository canonical dimension and renderer fixture families plus Phase E.6 synthetic canonical fixtures.",
+    "sampleSize": 12,
+    "limitations": [
+      "No real production population corpus was available.",
+      "Stats describe deterministic repository fixtures, not user-population rates.",
+      "The first Phase E.6 slice made named-family gates stricter before this second-slice baseline."
+    ]
+  },
+  "before": {
+    "engineVersion": "constellation-geometry-v0.1",
+    "clearStateRate": 0.17,
+    "boundaryBlendRate": 0.25,
+    "unresolvedRate": 0.58,
+    "averageTopTwoMargin": 0.067,
+    "averageConfidence": 0.31,
+    "stateOverlapFrequency": {
+      "COG": 0.33,
+      "REG": 0.25,
+      "CAP": 0.17,
+      "EXP": 0.08
+    },
+    "dimensionsMostOftenUnresolved": [
+      { "dimensionId": "EXP-P4", "count": 12, "reason": "interactional_protocol_missing" },
+      { "dimensionId": "REG-P4", "count": 7, "reason": "ordered_challenge_recovery_missing" },
+      { "dimensionId": "CAP-P4", "count": 7, "reason": "time_on_task_or_recovery_missing" },
+      { "dimensionId": "CAP-P2", "count": 6, "reason": "two_demand_levels_or_recovery_missing" }
+    ],
+    "dimensionsMostOftenResponsibleForBlends": [
+      { "dimensionId": "COG-P1", "count": 4, "reason": "central score near adjacent state targets" },
+      { "dimensionId": "REG-P2", "count": 3, "reason": "state targets overlap around stable mid-high values" },
+      { "dimensionId": "CAP-P2", "count": 3, "reason": "missing demand requirements reduce candidate margins" },
+      { "dimensionId": "EXP-P3", "count": 2, "reason": "restraint targets overlap without interactional evidence" }
+    ],
+    "provenCauses": [
+      "Insufficient named-family support now correctly creates unresolved dimensions.",
+      "Some state regions overlap around center-to-mid-high coordinates.",
+      "Candidate eligibility penalizes missing requirements but still allows near ties.",
+      "Compatibility margins are small when dimensions cluster near 0.5."
+    ]
+  },
+  "after": {
+    "engineVersion": "constellation-geometry-v0.2",
+    "clearStateRate": 0.25,
+    "boundaryBlendRate": 0.17,
+    "unresolvedRate": 0.58,
+    "averageTopTwoMargin": 0.081,
+    "averageConfidence": 0.31,
+    "stateOverlapFrequency": {
+      "COG": 0.25,
+      "REG": 0.17,
+      "CAP": 0.17,
+      "EXP": 0.08
+    },
+    "dimensionsMostOftenUnresolved": [
+      { "dimensionId": "EXP-P4", "count": 12, "reason": "interactional_protocol_missing" },
+      { "dimensionId": "REG-P4", "count": 7, "reason": "ordered_challenge_recovery_missing" },
+      { "dimensionId": "CAP-P4", "count": 7, "reason": "time_on_task_or_recovery_missing" },
+      { "dimensionId": "CAP-P2", "count": 6, "reason": "two_demand_levels_or_recovery_missing" }
+    ],
+    "thresholdChanges": [
+      {
+        "id": "phase-e6-adjacent-publish-threshold",
+        "before": "boundary blend when top-two margin <= 0.08",
+        "after": "boundary blend when top-two margin <= 0.06 and top two candidates remain adjacent within the same constellation",
+        "reason": "Fixture review showed margins between 0.06 and 0.08 were often weak-confidence overlap rather than meaningful adjacent ambiguity."
+      }
+    ],
+    "preservedBehavior": [
+      "Unresolved results remain unresolved when coverage or confidence fails.",
+      "No winner is forced when evidence is insufficient.",
+      "Adjacent ambiguity remains representable through deterministic composites."
+    ]
+  }
+}

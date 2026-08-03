@@ -1,0 +1,13 @@
+node_modules/
+.next/
+.git/
+.env*
+*.wav
+*.mp3
+*.webm
+*.tsbuildinfo
+build/
+dist/
+coverage/
+backend/.private_audio/
+.DS_Store

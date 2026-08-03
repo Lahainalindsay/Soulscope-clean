@@ -1,0 +1,71 @@
+{
+  "auditDate": "2026-08-02",
+  "repositoryState": {
+    "branch": "feature/resonance-signature-visual-truth",
+    "cleanMain": false,
+    "limitations": [
+      "The workspace was already dirty with cleanup/archive and renderer changes.",
+      "Statistics are from repository code inspection and local fixtures, not a population sample.",
+      "No real audio fixture corpus was available for this audit."
+    ]
+  },
+  "sampleSize": {
+    "syntheticReportFixtures": 4,
+    "realAudioFixtures": 0,
+    "existingSampleCanonicalResults": 1
+  },
+  "featureCount": 56,
+  "activeFeatureCount": 24,
+  "unusedFeatureCount": 18,
+  "taskIncompatibleFeatureCount": 13,
+  "rejectedFeatureCount": 2,
+  "evidenceRuleCount": 9,
+  "singleFamilyRuleCount": 0,
+  "dimensionCount": 16,
+  "unresolvedDimensionCount": null,
+  "stateCounts": {
+    "measuredFromPopulation": false,
+    "canonicalState": null,
+    "boundaryBlend": null,
+    "unresolved": null
+  },
+  "boundaryBlendRate": null,
+  "unresolvedRate": null,
+  "averageConfidence": null,
+  "duplicateNarrativeSourceCount": 4,
+  "databaseWritesPerScan": {
+    "estimatedMin": 13,
+    "estimatedMax": 15
+  },
+  "payloadBytes": {
+    "sampleCanonicalResultJson": 133928
+  },
+  "deadCodeCandidates": [
+    "backend/corescope/audio/voice_analysis.py",
+    "frontend/components/ResonanceSignature.tsx",
+    "unused perturbation variants outside sustained-vowel developer audit",
+    "spectral slope runtime consumers",
+    "CPP proxy user-facing consumers",
+    "compatibility story candidate surfaces after narrative consolidation"
+  ],
+  "criticalFindings": [
+    {
+      "id": "P0-001",
+      "title": "Task-incompatible jitter/shimmer are encoded as poor generic signal failures",
+      "source": "backend/corescope/audio/acoustic_extractor.py",
+      "safeToFixImmediately": false
+    },
+    {
+      "id": "P0-002",
+      "title": "Client compatibility analyzer can reintroduce connected-speech perturbation features",
+      "source": "frontend/lib/voiceSpectrum.ts",
+      "safeToFixImmediately": false
+    },
+    {
+      "id": "P0-003",
+      "title": "Dimension required families are not explicitly satisfied by named requirements",
+      "source": "frontend/lib/canonicalDimensionEngine.ts",
+      "safeToFixImmediately": false
+    }
+  ]
+}
