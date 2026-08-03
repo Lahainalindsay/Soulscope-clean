@@ -69,3 +69,10 @@ These questions remain open after integrating the correct Constellation Bible so
 - Which visual input fields are required by the Bible but absent from current renderer contracts?
 - How is uncertainty made visible without creating misleading beauty from incomplete evidence?
 - How will the unified signature consume the immutable completed result without pattern selection or meaning inference?
+
+## Fidelity Review Additions
+
+- Should the embedded title image be retained only in the immutable source, or should a Markdown image asset be extracted and tracked later?
+- Should the source header/footer be treated as governance metadata in all generated docs?
+- Are source blueprint numeric ranges normative, provisional engineering priors, or illustrative examples?
+- Which seed-state adjacent-state references are adopted now versus reserved for calibration review?

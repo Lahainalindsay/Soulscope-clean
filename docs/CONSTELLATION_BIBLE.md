@@ -8,6 +8,9 @@ Authority: Operational specification governed by the SoulScope Foundational Cano
 Transcription note: Faithful Markdown transcription with formatting normalization only
 Implementation readiness: NOT YET APPROVED — source audit identifies incomplete calibration, validation, and implementation contracts
 Change control: Substantive changes require explicit owner approval
+Source header: SOULSCOPE™ | CONSTELLATION BIBLE | V0.1
+Source footer: Research & Architecture Foundation • July 28, 2026 • Internal Working Specification
+Embedded title image note: source document contains a title-area image labeled "SOULSCOPE" and "SEE WITHIN. KNOW MORE."
 
 > Authority note: The SoulScope Foundational Canon controls product truth, scientific boundaries, prohibited claims, visual laws, and governance. This Constellation Bible controls operational constellation specifications where it does not conflict with the Canon.
 
