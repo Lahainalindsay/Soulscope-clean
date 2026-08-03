@@ -1,0 +1,54 @@
+.frame {
+  position: relative;
+  overflow: hidden;
+  min-height: clamp(360px, 58vw, 620px);
+  border: 1px solid var(--ss-border-strong);
+  border-radius: var(--ss-radius-md);
+  background:
+    linear-gradient(var(--ss-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ss-grid) 1px, transparent 1px),
+    radial-gradient(circle at 50% 48%, rgba(97, 231, 236, 0.19), transparent 30%),
+    linear-gradient(180deg, rgba(7, 17, 31, 0.86), rgba(3, 11, 20, 0.94));
+  background-size: 44px 44px, 44px 44px, auto, auto;
+  box-shadow: 0 0 80px rgba(97, 231, 236, 0.1);
+}
+
+.svg {
+  position: absolute;
+  inset: 4%;
+  width: 92%;
+  height: 92%;
+}
+
+.label {
+  position: absolute;
+  left: var(--ss-space-4);
+  top: var(--ss-space-4);
+  z-index: 1;
+}
+
+.spine {
+  filter: drop-shadow(0 0 18px rgba(184, 245, 237, 0.34));
+}
+
+.contour {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: contourDrift 14s ease-in-out infinite alternate;
+}
+
+@keyframes contourDrift {
+  from {
+    transform: translateY(-4px);
+  }
+  to {
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contour {
+    animation: none;
+  }
+}
