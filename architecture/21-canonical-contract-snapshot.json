@@ -1,0 +1,730 @@
+{
+  "packageName": "@soulscope/canonical-contracts",
+  "packageVersion": "0.1.0",
+  "sourceBibleVersion": "0.1",
+  "constellationRegistry": [
+    {
+      "id": "COG",
+      "label": "Cognitive Form",
+      "fourPoints": [
+        "Organization",
+        "Exploration",
+        "Focus Continuity",
+        "Processing Demand"
+      ],
+      "questionAnswered": "How is mental work being organized and sustained?",
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 1, The four proposed constellations",
+        "sourceTable": "Table 4"
+      }
+    },
+    {
+      "id": "REG",
+      "label": "Regulatory Motion",
+      "fourPoints": [
+        "Activation",
+        "Stability",
+        "Flexibility",
+        "Recovery"
+      ],
+      "questionAnswered": "How is the system responding, adapting, and returning?",
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 1, The four proposed constellations",
+        "sourceTable": "Table 4"
+      }
+    },
+    {
+      "id": "CAP",
+      "label": "Available Capacity",
+      "fourPoints": [
+        "Mobilization",
+        "Reserve",
+        "Effort Cost",
+        "Sustainability"
+      ],
+      "questionAnswered": "What resources appear available, and what does current functioning seem to cost?",
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 1, The four proposed constellations",
+        "sourceTable": "Table 4"
+      }
+    },
+    {
+      "id": "EXP",
+      "label": "Expressive Interface",
+      "fourPoints": [
+        "Range",
+        "Openness",
+        "Restraint",
+        "Relational Availability"
+      ],
+      "questionAnswered": "How is inner activity being carried into outward expression?",
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 1, The four proposed constellations",
+        "sourceTable": "Table 4"
+      }
+    }
+  ],
+  "dimensionRegistry": [
+    {
+      "id": "COG-P1",
+      "label": "Organization",
+      "constellationId": "COG",
+      "order": 1,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 6, COG-P1",
+        "sourceTable": "Tables 14-15"
+      }
+    },
+    {
+      "id": "COG-P2",
+      "label": "Exploration",
+      "constellationId": "COG",
+      "order": 2,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 6, COG-P2",
+        "sourceTable": "Tables 16-17"
+      }
+    },
+    {
+      "id": "COG-P3",
+      "label": "Focus Continuity",
+      "constellationId": "COG",
+      "order": 3,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 6, COG-P3",
+        "sourceTable": "Tables 18-19"
+      }
+    },
+    {
+      "id": "COG-P4",
+      "label": "Processing Demand",
+      "constellationId": "COG",
+      "order": 4,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 6, COG-P4",
+        "sourceTable": "Tables 20-21"
+      }
+    },
+    {
+      "id": "REG-P1",
+      "label": "Activation",
+      "constellationId": "REG",
+      "order": 5,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 7, REG-P1",
+        "sourceTable": "Tables 27-28"
+      }
+    },
+    {
+      "id": "REG-P2",
+      "label": "Stability",
+      "constellationId": "REG",
+      "order": 6,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 7, REG-P2",
+        "sourceTable": "Tables 29-30"
+      }
+    },
+    {
+      "id": "REG-P3",
+      "label": "Flexibility",
+      "constellationId": "REG",
+      "order": 7,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 7, REG-P3",
+        "sourceTable": "Tables 31-32"
+      }
+    },
+    {
+      "id": "REG-P4",
+      "label": "Recovery",
+      "constellationId": "REG",
+      "order": 8,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 7, REG-P4",
+        "sourceTable": "Tables 33-34"
+      }
+    },
+    {
+      "id": "CAP-P1",
+      "label": "Mobilization",
+      "constellationId": "CAP",
+      "order": 9,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 8, CAP-P1",
+        "sourceTable": "Tables 40-41"
+      }
+    },
+    {
+      "id": "CAP-P2",
+      "label": "Reserve",
+      "constellationId": "CAP",
+      "order": 10,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 8, CAP-P2",
+        "sourceTable": "Tables 42-43"
+      }
+    },
+    {
+      "id": "CAP-P3",
+      "label": "Effort Cost",
+      "constellationId": "CAP",
+      "order": 11,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 8, CAP-P3",
+        "sourceTable": "Tables 44-45"
+      }
+    },
+    {
+      "id": "CAP-P4",
+      "label": "Sustainability",
+      "constellationId": "CAP",
+      "order": 12,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 8, CAP-P4",
+        "sourceTable": "Tables 46-47"
+      }
+    },
+    {
+      "id": "EXP-P1",
+      "label": "Range",
+      "constellationId": "EXP",
+      "order": 13,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 9, EXP-P1",
+        "sourceTable": "Tables 53-54"
+      }
+    },
+    {
+      "id": "EXP-P2",
+      "label": "Openness",
+      "constellationId": "EXP",
+      "order": 14,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 9, EXP-P2",
+        "sourceTable": "Tables 55-56"
+      }
+    },
+    {
+      "id": "EXP-P3",
+      "label": "Restraint",
+      "constellationId": "EXP",
+      "order": 15,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 9, EXP-P3",
+        "sourceTable": "Tables 57-58"
+      }
+    },
+    {
+      "id": "EXP-P4",
+      "label": "Relational Availability",
+      "constellationId": "EXP",
+      "order": 16,
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 9, EXP-P4",
+        "sourceTable": "Tables 59-60"
+      }
+    }
+  ],
+  "seedStateRegistry": [
+    {
+      "id": "COG-017",
+      "constellationId": "COG",
+      "displayName": "Deliberate Builder",
+      "lifecycle": "reserved_fixed_seed",
+      "coreMeaning": "A structured processing style is helping the person work through something that is not effortless.",
+      "strengths": [
+        "Care",
+        "persistence",
+        "sequencing",
+        "considered response"
+      ],
+      "potentialCosts": [
+        "Slowness",
+        "over-management",
+        "fatigue from holding the structure"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 6.2 Seed state registry",
+        "sourceTable": "Table 23"
+      }
+    },
+    {
+      "id": "COG-014",
+      "constellationId": "COG",
+      "displayName": "Structured Ease",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Clear, efficient structure with available room.",
+      "strengths": [
+        "Clarity",
+        "reliability",
+        "follow-through"
+      ],
+      "potentialCosts": [
+        "Routine rigidity",
+        "under-exploration if repeated across contexts"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 6.2 Seed state registry",
+        "sourceTable": "Table 24"
+      }
+    },
+    {
+      "id": "COG-011",
+      "constellationId": "COG",
+      "displayName": "Open Architect",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Flexible thought with enough structure to stay coherent.",
+      "strengths": [
+        "Creativity",
+        "reframing",
+        "synthesis"
+      ],
+      "potentialCosts": [
+        "Over-expansion",
+        "too many branches if focus drops"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 6.2 Seed state registry",
+        "sourceTable": "Table 25"
+      }
+    },
+    {
+      "id": "COG-020",
+      "constellationId": "COG",
+      "displayName": "Searching Load",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Active search has not yet settled into a stable structure.",
+      "strengths": [
+        "Possibility generation",
+        "sensitivity to complexity"
+      ],
+      "potentialCosts": [
+        "Mental friction",
+        "indecision",
+        "fragmentation risk"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 6.2 Seed state registry",
+        "sourceTable": "Table 26"
+      }
+    },
+    {
+      "id": "REG-022",
+      "constellationId": "REG",
+      "displayName": "Adaptive Recovery",
+      "lifecycle": "reserved_fixed_seed",
+      "coreMeaning": "The system appears able to mobilize, adjust, and come back toward its reference.",
+      "strengths": [
+        "Responsiveness",
+        "resilience",
+        "usable range"
+      ],
+      "potentialCosts": [
+        "Recovery may still carry a resource cost",
+        "one successful return is not a trait"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 7.1 Seed state registry",
+        "sourceTable": "Table 36"
+      }
+    },
+    {
+      "id": "REG-019",
+      "constellationId": "REG",
+      "displayName": "Steady Mobilization",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Energy appears contained and directed.",
+      "strengths": [
+        "Readiness",
+        "focus",
+        "persistence"
+      ],
+      "potentialCosts": [
+        "Sustained tension if recovery remains absent"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 7.1 Seed state registry",
+        "sourceTable": "Table 37"
+      }
+    },
+    {
+      "id": "REG-024",
+      "constellationId": "REG",
+      "displayName": "Returning Capacity",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Return is underway, even if the starting point was strained.",
+      "strengths": [
+        "Recalibration",
+        "responsiveness",
+        "regained room"
+      ],
+      "potentialCosts": [
+        "Temporary fragility",
+        "return may be incomplete"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 7.1 Seed state registry",
+        "sourceTable": "Table 38"
+      }
+    },
+    {
+      "id": "REG-026",
+      "constellationId": "REG",
+      "displayName": "Held Activation",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Mobilization appears sustained and contained rather than resolved.",
+      "strengths": [
+        "Endurance",
+        "task commitment",
+        "controlled intensity"
+      ],
+      "potentialCosts": [
+        "Carryover",
+        "constraint",
+        "delayed recovery"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 7.1 Seed state registry",
+        "sourceTable": "Table 39"
+      }
+    },
+    {
+      "id": "CAP-012",
+      "constellationId": "CAP",
+      "displayName": "Available Reserve",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "The person appears able to engage without using all available room.",
+      "strengths": [
+        "Pacing",
+        "adaptability",
+        "capacity for added demand"
+      ],
+      "potentialCosts": [
+        "Reserve can be context-specific and temporary"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 8.1 Seed state registry",
+        "sourceTable": "Table 49"
+      }
+    },
+    {
+      "id": "CAP-016",
+      "constellationId": "CAP",
+      "displayName": "Efficient Engagement",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Energy is reaching the task efficiently.",
+      "strengths": [
+        "Presence",
+        "momentum",
+        "clear deployment"
+      ],
+      "potentialCosts": [
+        "May be short-lived if reserve is untested"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 8.1 Seed state registry",
+        "sourceTable": "Table 50"
+      }
+    },
+    {
+      "id": "CAP-018",
+      "constellationId": "CAP",
+      "displayName": "Costly Output",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Performance may be held through extra effort.",
+      "strengths": [
+        "Determination",
+        "commitment",
+        "capacity to compensate"
+      ],
+      "potentialCosts": [
+        "Fatigue",
+        "reduced margin",
+        "diminishing return"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 8.1 Seed state registry",
+        "sourceTable": "Table 51"
+      }
+    },
+    {
+      "id": "CAP-021",
+      "constellationId": "CAP",
+      "displayName": "Rebuilding Reserve",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "The scan suggests return of room rather than full availability.",
+      "strengths": [
+        "Recalibration",
+        "pacing",
+        "responsiveness"
+      ],
+      "potentialCosts": [
+        "Still-limited margin",
+        "improvement may be fragile"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 8.1 Seed state registry",
+        "sourceTable": "Table 52"
+      }
+    },
+    {
+      "id": "EXP-009",
+      "constellationId": "EXP",
+      "displayName": "Guarded Openness",
+      "lifecycle": "reserved_fixed_seed",
+      "coreMeaning": "The person appears able to engage while choosing what and how much to reveal.",
+      "strengths": [
+        "Discernment",
+        "boundaries",
+        "deliberate communication"
+      ],
+      "potentialCosts": [
+        "Extra effort",
+        "partial withholding from self-protection",
+        "slower access"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 9.1 Seed state registry",
+        "sourceTable": "Table 62"
+      }
+    },
+    {
+      "id": "EXP-006",
+      "constellationId": "EXP",
+      "displayName": "Selective Clarity",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Expression is economical and intentional.",
+      "strengths": [
+        "Clarity",
+        "boundaries",
+        "efficient communication"
+      ],
+      "potentialCosts": [
+        "Nuance may remain private",
+        "range may be under-used"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 9.1 Seed state registry",
+        "sourceTable": "Table 63"
+      }
+    },
+    {
+      "id": "EXP-004",
+      "constellationId": "EXP",
+      "displayName": "Open Range",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Expression appears fluid, responsive, and varied.",
+      "strengths": [
+        "Nuance",
+        "communication",
+        "spontaneous access"
+      ],
+      "potentialCosts": [
+        "Overextension",
+        "reduced boundary if Regulation is strained"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 9.1 Seed state registry",
+        "sourceTable": "Table 64"
+      }
+    },
+    {
+      "id": "EXP-012",
+      "constellationId": "EXP",
+      "displayName": "Constrained Access",
+      "lifecycle": "provisional_seed",
+      "coreMeaning": "Access to outward expression may currently be restricted or expensive.",
+      "strengths": [
+        "Protection",
+        "composure",
+        "preservation of privacy"
+      ],
+      "potentialCosts": [
+        "Isolation",
+        "inhibited communication",
+        "increased internal effort"
+      ],
+      "registryVersion": "0.1.0",
+      "provenance": {
+        "sourceDocument": "docs/CONSTELLATION_BIBLE.md",
+        "sourceVersion": "0.1",
+        "sourceSection": "Section 9.1 Seed state registry",
+        "sourceTable": "Table 65"
+      }
+    }
+  ],
+  "baselineHierarchy": [
+    "personal_reference_signature",
+    "within_session_reference",
+    "matched_population_prior",
+    "no_reference"
+  ],
+  "processingStages": [
+    "raw_acoustic_features",
+    "evidence_engine",
+    "evidence_ledger",
+    "dimension_engine",
+    "constellation_engine",
+    "cross_constellation_interaction_engine",
+    "pattern_engine",
+    "narrative_engine",
+    "resonance_signature"
+  ],
+  "narrativeSections": [
+    "what_feels_most_present",
+    "how_this_may_show_up_in_daily_life",
+    "what_may_be_happening_underneath",
+    "something_worth_noticing",
+    "a_question_to_sit_with"
+  ],
+  "validationPhases": [
+    "phase_0_measurement",
+    "phase_1_reliability",
+    "phase_2_construct",
+    "phase_3_generalization",
+    "phase_4_longitudinal",
+    "phase_5_outcome"
+  ],
+  "provenanceFieldNames": [
+    "sourceDocument",
+    "sourceVersion",
+    "sourceSection",
+    "sourceTable",
+    "extractedBy",
+    "extractionDate"
+  ],
+  "versionFieldNames": [
+    "packageVersion",
+    "registryVersion",
+    "schemaVersion",
+    "sourceVersion"
+  ],
+  "deferredBehaviorList": [
+    "acoustic scoring formulas",
+    "feature weights",
+    "normalization formulas",
+    "confidence formulas",
+    "posterior interval construction",
+    "dimension scoring",
+    "state eligibility",
+    "state selection",
+    "publish thresholds",
+    "blend margins",
+    "contradiction penalties",
+    "interaction inference",
+    "pattern inference",
+    "narrative generation",
+    "Resonance Signature behavior",
+    "database migrations",
+    "frontend integration",
+    "backend integration",
+    "renderer integration",
+    "production deployment"
+  ]
+}
