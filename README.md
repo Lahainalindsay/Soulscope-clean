@@ -16,6 +16,13 @@ Initial foundation only:
 
 No frontend app, backend service, Supabase schema, renderer package, or production pipeline code has been migrated yet.
 
+## Document Authority
+
+- `docs/SOULSCOPE_CANON.md` is the faithful Markdown transcription of the Foundational Canon and governs product truth, scientific boundaries, prohibited claims, vocabulary, visual laws, and governance.
+- `docs/CONSTELLATION_BIBLE.md` is the faithful Markdown transcription of the correct Constellation Bible and governs operational constellation specifications under Canon authority.
+- `docs/SoulScope_Canon_Foundational_Edition_v1.0.pdf` is the immutable Canon source artifact and must not be modified.
+- `docs/source/SoulScope_Constellation_Bible_v0.1.docx` is the immutable Constellation Bible source artifact and must not be modified after preservation.
+
 ## Core Rule
 
 One canonical pipeline. One immutable result object. One report path. No legacy compatibility systems.
