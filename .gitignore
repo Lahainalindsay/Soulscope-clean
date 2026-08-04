@@ -11,3 +11,6 @@ dist/
 coverage/
 backend/.private_audio/
 .DS_Store
+
+# Local visual-review screenshots
+frontend/screenshots/
