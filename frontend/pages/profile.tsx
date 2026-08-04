@@ -1,41 +1,62 @@
-import { InstrumentPanel } from "../components/ui/InstrumentPanel";
-import styles from "./Page.module.css";
+import { InstrumentLayout } from "../components/instrument/InstrumentLayout";
+
+const sections = [
+  {
+    title: "Personal reference status",
+    rows: [
+      ["Reference signature", "Not created in this visual foundation"],
+      ["Within-session reference", "Opening prompt only"],
+      ["Version history", "Unavailable"],
+    ],
+  },
+  {
+    title: "Privacy",
+    rows: [
+      ["Audio retention", "Presentation control"],
+      ["Result visibility", "Private by default presentation"],
+      ["Data export", "Unavailable"],
+    ],
+  },
+  {
+    title: "Reflection preferences",
+    rows: [
+      ["Reflection depth", "Balanced"],
+      ["Language style", "Bounded and plain"],
+      ["Unresolved results", "Show clearly"],
+    ],
+  },
+  {
+    title: "Accessibility",
+    rows: [
+      ["Reduced motion", "Respected by CSS"],
+      ["Contrast", "High contrast dark interface"],
+      ["Touch targets", "44px minimum target"],
+    ],
+  },
+];
 
 export default function ProfilePage() {
   return (
-    <>
-      <section className={styles.hero}>
-        <p className="instrumentLabel">Profile presentation</p>
-        <h1 className={styles.title}>Reference settings, shown as visual controls.</h1>
+    <InstrumentLayout
+      title="SoulScope — Profile"
+      description="SoulScope profile visual foundation"
+      eyebrow="Profile"
+      heading="Reference, privacy, and reflection preferences"
+      meta={["Visual controls", "Not saved"]}
+    >
+      <section className="ss-settings-stack" aria-label="Profile presentation">
+        {sections.map((section) => (
+          <section className="ss-settings-section" key={section.title}>
+            <h2>{section.title}</h2>
+            {section.rows.map(([label, value]) => (
+              <div className="ss-setting-row" key={label}>
+                <span>{label}</span>
+                <strong>{value}</strong>
+              </div>
+            ))}
+          </section>
+        ))}
       </section>
-      <div className={styles.grid}>
-        <InstrumentPanel>
-          <h2>Personal reference status</h2>
-          <p>
-            Empty trusted-reference state. An opening prompt may serve as a within-session reference, but it is not
-            automatically a trusted longitudinal personal reference.
-          </p>
-        </InstrumentPanel>
-        <InstrumentPanel>
-          <h2>Privacy controls presentation</h2>
-          <p>Visual-only controls. No user data, audio, or preference is saved.</p>
-        </InstrumentPanel>
-        <InstrumentPanel>
-          <h2>Preferred reflection depth</h2>
-          <select className={styles.control} aria-label="Preferred reflection depth visual control">
-            <option>Balanced</option>
-            <option>Brief</option>
-            <option>More spacious</option>
-          </select>
-        </InstrumentPanel>
-        <InstrumentPanel>
-          <h2>Accessibility preferences</h2>
-          <label className={styles.setting}>
-            <span>Reduced motion visual control</span>
-            <input type="checkbox" />
-          </label>
-        </InstrumentPanel>
-      </div>
-    </>
+    </InstrumentLayout>
   );
 }

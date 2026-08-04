@@ -25,7 +25,9 @@ function files(dir) {
 }
 
 const sourceRoots = ["components", "mocks", "pages", "styles", "tests"];
-const sourceFiles = sourceRoots.flatMap((dir) => files(dir)).filter((file) => /\.(tsx?|css|mjs|json)$/.test(file));
+const sourceFiles = sourceRoots
+  .flatMap((dir) => files(dir))
+  .filter((file) => /\.(tsx?|css|mjs|json)$/.test(file));
 
 test("all visual routes are present", () => {
   for (const routeFile of [
@@ -42,38 +44,54 @@ test("all visual routes are present", () => {
   }
 });
 
-test("navigation landmarks and app shell are present", () => {
-  const shell = read("components/app/AppShell.tsx");
-  const top = read("components/app/TopNavigation.tsx");
-  const mobile = read("components/app/MobileNavigation.tsx");
-  assert.match(shell, /<main/);
-  assert.match(top, /aria-label="Primary navigation"/);
-  assert.match(mobile, /aria-label="Mobile navigation"/);
+test("navigation landmark and instrument shell are present", () => {
+  const layout = read("components/instrument/InstrumentLayout.tsx");
+  const home = read("pages/index.tsx");
+  const styles = read("styles/globals.css");
+  assert.match(layout, /aria-label="Primary navigation"/);
+  assert.match(layout, /<main className="ss-main-shell"/);
+  assert.match(home, /class=\\"instrument\\"/);
+  assert.match(home, /grid-template-columns:\\n        58px\\n        clamp\(220px, 15vw, 250px\)\\n        minmax\(0, 1fr\)\\n        clamp\(300px, 20vw, 340px\)/);
 });
 
 test("canonical labels are imported from the contract package", () => {
-  assert.match(read("pages/index.tsx"), /@soulscope\/canonical-contracts/);
+  assert.match(read("mocks/visualFoundation.ts"), /@soulscope\/canonical-contracts/);
   assert.match(read("pages/scan/analyzing.tsx"), /@soulscope\/canonical-contracts/);
 });
 
-test("placeholder and fixture carry non-production warnings", () => {
-  assert.match(read("components/resonance/SignaturePlaceholder.tsx"), /Visual placeholder — no scientific meaning/);
-  assert.match(read("mocks/demoResultPresentation.ts"), /visual review only/);
-  assert.match(read("mocks/demoResultPresentation.ts"), /not generated from voice evidence/);
+test("signature placeholder carries non-production warning", () => {
+  const signature = read("components/instrument/SignatureField.tsx");
+  assert.match(signature, /Visual placeholder · no scientific meaning/);
+  assert.match(signature, /no scientific meaning/);
+  assert.doesNotMatch(signature, /dimensions|confidence|coverage|momentum|baseline/);
+});
+
+test("mock result carries non-production warning", () => {
+  const fixture = read("mocks/visualFoundation.ts");
+  assert.match(fixture, /Visual foundation only/);
+  assert.match(fixture, /not derived from voice evidence/);
 });
 
 test("scan presentation does not auto-record", () => {
-  const scanSources = ["components/scan/PromptPanel.tsx", "components/scan/RecordingControls.tsx"].map(read).join("\n");
+  const scanSources = [
+    "pages/scan/index.tsx",
+    "pages/scan/question/[step].tsx",
+  ]
+    .map(read)
+    .join("\n");
   assert.equal(/auto(record|Record)|getUserMedia|MediaRecorder/.test(scanSources), false);
   assert.match(scanSources, /Start recording/);
 });
 
 test("feedback is labeled non-persistent", () => {
-  assert.match(read("components/results/FeedbackDemo.tsx"), /Feedback demonstration — not saved/);
+  assert.match(read("pages/results/demo.tsx"), /Feedback demonstration — not saved/);
 });
 
 test("no forbidden implementation imports exist", () => {
-  const combined = sourceFiles.filter((file) => !file.startsWith("tests/")).map((file) => read(file)).join("\n");
+  const combined = sourceFiles
+    .filter((file) => !file.startsWith("tests/"))
+    .map((file) => read(file))
+    .join("\n");
   assert.equal(/from ["'].*supabase|createClient|@supabase/.test(combined), false);
   assert.equal(/from ["'].*backend|from ["'].*\/home\/lahainalindsay9111\/soulscope/.test(combined), false);
 });
