@@ -15,7 +15,7 @@ The backend foundation should support:
 
 - authenticated user ownership
 - scan creation
-- consent
+- account-level Terms of Service and Privacy Policy acceptance history
 - three-prompt capture workflow
 - private audio handling
 - processing jobs
@@ -33,6 +33,8 @@ Explicitly excluded:
 - adoption of exploratory rendering contracts
 
 The first backend foundation is a persistence, lifecycle, privacy, and audit layer. It may store canonical identifiers, approved structural contracts, provenance, and version metadata. It must not implement or imply unapproved measurement formulas, dimension scoring, constellation-state selection, pattern inference, generated personal claims, or renderer mappings.
+
+Users accept the current Terms of Service and Privacy Policy when creating their account. A scan does not require repeated legal consent, a separate approval record, or a consent lifecycle transition. Browser or operating-system microphone permission is a technical device permission and is not represented as SoulScope legal policy acceptance.
 
 ## 2. Canonical boundaries
 
@@ -67,7 +69,6 @@ Primary lifecycle:
 
 ```text
 created
-consented
 capturing
 capture_complete
 queued
@@ -89,6 +90,7 @@ Rules:
 
 - clients request transitions but cannot assign states directly
 - transitions are validated server-side
+- scans move from `created` directly to `capturing`
 - finalized results are immutable
 - reprocessing creates a new result version
 - failed or cancelled scans cannot appear finalized
@@ -269,7 +271,7 @@ Idempotency keys should be scoped to the user, scan, capture, operation, and rel
 Proposed tables:
 
 - `profiles`
-- `consent_records`
+- `policy_acceptances`
 - `prompt_sets`
 - `prompt_definitions`
 - `scan_sessions`
@@ -292,7 +294,7 @@ This table list is not a migration plan. Database migrations remain deferred unt
 The first backend milestone is complete when:
 
 - authenticated user can create a scan
-- consent is recorded
+- account-level Terms of Service and Privacy Policy acceptance history can be recorded
 - three-prompt set is versioned
 - captures belong to the correct prompts
 - audio remains private
