@@ -410,22 +410,22 @@ declare
   caller_is_service boolean := coalesce(auth.jwt() ->> 'role', '') = 'service_role';
   deletion_job_key text;
 begin
-  select capture_artifacts.*
+  select ca.*
     into locked_artifact
-    from public.capture_artifacts
-    join public.scan_sessions on scan_sessions.id = capture_artifacts.scan_id
-   where capture_artifacts.id = p_artifact_id
-   for update of capture_artifacts;
+    from public.capture_artifacts as ca
+    join public.scan_sessions as ss on ss.id = ca.scan_id
+   where ca.id = p_artifact_id
+   for update of ca;
 
   if not found then
     raise exception 'artifact not found'
       using errcode = '02000';
   end if;
 
-  select user_id
+  select ss.user_id
     into scan_owner_id
-    from public.scan_sessions
-   where id = locked_artifact.scan_id;
+    from public.scan_sessions as ss
+   where ss.id = locked_artifact.scan_id;
 
   if not caller_is_service then
     if caller_user_id is null or caller_user_id <> scan_owner_id then
@@ -437,10 +437,10 @@ begin
   deletion_job_key := 'audio-deletion:' || locked_artifact.id::text;
 
   if locked_artifact.audio_state in ('deleted', 'deletion_pending') then
-    select processing_jobs.id, processing_jobs.status
+    select pj.id, pj.status
       into job_id, job_status
-      from public.processing_jobs
-     where processing_jobs.idempotency_key = deletion_job_key;
+      from public.processing_jobs as pj
+     where pj.idempotency_key = deletion_job_key;
 
     artifact_id := locked_artifact.id;
     scan_id := locked_artifact.scan_id;
@@ -463,16 +463,16 @@ begin
 
   previous_audio_state := locked_artifact.audio_state;
 
-  update public.capture_artifacts
+  update public.capture_artifacts as ca
      set audio_state = 'deletion_pending',
-         deletion_requested_at = coalesce(deletion_requested_at, now()),
+         deletion_requested_at = coalesce(ca.deletion_requested_at, now()),
          deleted_at = null,
          deletion_failure_code = null,
          deletion_failure_detail = null
-   where id = locked_artifact.id
-   returning * into locked_artifact;
+   where ca.id = locked_artifact.id
+   returning ca.* into locked_artifact;
 
-  insert into public.processing_jobs (
+  insert into public.processing_jobs as pj (
     scan_id,
     capture_id,
     artifact_id,
@@ -497,7 +497,7 @@ begin
         completed_at = null,
         last_error_code = null,
         last_error_detail = null
-  returning public.processing_jobs.id, public.processing_jobs.status into job_id, job_status;
+  returning pj.id, pj.status into job_id, job_status;
 
   insert into public.audit_events (
     user_id,
@@ -568,12 +568,12 @@ begin
       using errcode = '22023';
   end if;
 
-  select capture_artifacts.*
+  select ca.*
     into locked_artifact
-    from public.capture_artifacts
-    join public.scan_sessions on scan_sessions.id = capture_artifacts.scan_id
-   where capture_artifacts.id = p_artifact_id
-   for update of capture_artifacts;
+    from public.capture_artifacts as ca
+    join public.scan_sessions as ss on ss.id = ca.scan_id
+   where ca.id = p_artifact_id
+   for update of ca;
 
   if not found then
     raise exception 'artifact not found'
@@ -584,8 +584,8 @@ begin
 
   select *
     into locked_job
-    from public.processing_jobs
-   where idempotency_key = deletion_job_key
+    from public.processing_jobs as pj
+   where pj.idempotency_key = deletion_job_key
    for update;
 
   if not found then
@@ -593,10 +593,10 @@ begin
       using errcode = '02000';
   end if;
 
-  select user_id
+  select ss.user_id
     into scan_owner_id
-    from public.scan_sessions
-   where id = locked_artifact.scan_id;
+    from public.scan_sessions as ss
+   where ss.id = locked_artifact.scan_id;
 
   if locked_artifact.audio_state = 'deleted' and p_succeeded then
     artifact_id := locked_artifact.id;
@@ -619,23 +619,23 @@ begin
   previous_audio_state := locked_artifact.audio_state;
 
   if p_succeeded then
-    update public.capture_artifacts
+    update public.capture_artifacts as ca
        set audio_state = 'deleted',
            deleted_at = now(),
            deletion_failure_code = null,
            deletion_failure_detail = null,
            storage_bucket = null,
            storage_object_path = null
-     where id = locked_artifact.id
-     returning * into locked_artifact;
+     where ca.id = locked_artifact.id
+     returning ca.* into locked_artifact;
 
-    update public.processing_jobs
+    update public.processing_jobs as pj
        set status = 'succeeded',
            completed_at = now(),
            last_error_code = null,
            last_error_detail = null
-     where id = locked_job.id
-     returning * into locked_job;
+     where pj.id = locked_job.id
+     returning pj.* into locked_job;
 
     insert into public.audit_events (
       user_id,
@@ -659,21 +659,21 @@ begin
       )
     );
   else
-    update public.capture_artifacts
+    update public.capture_artifacts as ca
        set audio_state = 'deletion_failed',
            deleted_at = null,
            deletion_failure_code = p_failure_code,
            deletion_failure_detail = p_failure_detail
-     where id = locked_artifact.id
-     returning * into locked_artifact;
+     where ca.id = locked_artifact.id
+     returning ca.* into locked_artifact;
 
-    update public.processing_jobs
+    update public.processing_jobs as pj
        set status = 'failed',
            completed_at = now(),
            last_error_code = p_failure_code,
            last_error_detail = p_failure_detail
-     where id = locked_job.id
-     returning * into locked_job;
+     where pj.id = locked_job.id
+     returning pj.* into locked_job;
 
     insert into public.audit_events (
       user_id,
