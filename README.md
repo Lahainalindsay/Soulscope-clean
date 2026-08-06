@@ -6,15 +6,30 @@ The old `~/soulscope` repository is preserved as the research archive. This repo
 
 ## Current Status
 
-Initial foundation only:
+Current implementation:
 
-- canonical architecture documents
-- Phase E.5 audit artifacts
-- clean repository structure
-- migration inventory
-- clean system plan
+- approved canonical contract package
+- initial backend database foundation authored but not deployed
+- scan ownership and lifecycle schema
+- versioned prompt-set storage
+- prompt capture records
+- account policy acceptance history
+- audit-event infrastructure
+- row-level security foundations
 
-No frontend app, backend service, Supabase schema, renderer package, or production pipeline code has been migrated yet.
+Not yet implemented:
+
+- deployed backend service
+- executed production database migration
+- private audio storage and retention workflow
+- audio processing jobs
+- acoustic feature extraction
+- executable Evidence Engine
+- Dimension Engine
+- constellation decisions
+- canonical result generation
+- narrative or story generation
+- production Resonance Signature renderer
 
 ## Document Authority
 

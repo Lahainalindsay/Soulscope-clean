@@ -1,9 +1,9 @@
 # Backend Foundation Proposal
 
-Status: PROPOSED ARCHITECTURE
+Status: APPROVED BACKEND FOUNDATION
 Authority: Planning document only
 Canonical status: NOT CANON
-Implementation status: NOT YET IMPLEMENTED
+Implementation status: INITIAL DATABASE MIGRATION AUTHORED - NOT EXECUTED OR DEPLOYED
 
 This document proposes a backend foundation for SoulScope scan ownership, capture, evidence persistence, result versioning, privacy, and auditability. It is not Canon, does not amend the Canon, and does not approve production scientific inference, scoring, narrative interpretation, or Resonance Signature rendering.
 
@@ -287,7 +287,7 @@ Proposed tables:
 
 Visual-renderer tables are excluded. No Resonance Signature renderer tables, exploratory rendering contract tables, visual parameter tables, or visual asset persistence tables are part of this backend foundation proposal.
 
-This table list is not a migration plan. Database migrations remain deferred until the backend foundation is approved for implementation.
+The initial persistence and lifecycle migration has been authored and has passed static review. It has not been executed against local PostgreSQL and has not been deployed. Scientific processing remains deferred. Audio storage, processing jobs, Evidence Ledger implementation, result generation, and rendering remain deferred.
 
 ## 12. First backend milestone
 

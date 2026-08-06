@@ -619,11 +619,11 @@ grant all on public.audit_events to service_role;
 -- Owner-approved production prompt wording is required before production use.
 with launch_prompt_set as (
   insert into public.prompt_sets (version, status, name, activated_at)
-  values ('launch-v1', 'active', 'Launch prompt set v1 - placeholder wording requires owner approval', now())
+  values ('launch-v1', 'draft', 'Launch prompt set v1 - placeholder wording requires owner approval', null)
   on conflict (version) do update
     set status = excluded.status,
         name = excluded.name,
-        activated_at = coalesce(public.prompt_sets.activated_at, excluded.activated_at)
+        activated_at = excluded.activated_at
   returning id
 )
 insert into public.prompt_definitions (
