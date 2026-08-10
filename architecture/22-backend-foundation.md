@@ -3,7 +3,7 @@
 Status: APPROVED BACKEND FOUNDATION
 Authority: Planning document only
 Canonical status: NOT CANON
-Implementation status: INITIAL DATABASE MIGRATION AUTHORED - NOT EXECUTED OR DEPLOYED
+Implementation status: DATABASE MIGRATIONS AUTHORED AND LOCALLY VALIDATED - NOT DEPLOYED
 
 This document proposes a backend foundation for SoulScope scan ownership, capture, evidence persistence, result versioning, privacy, and auditability. It is not Canon, does not amend the Canon, and does not approve production scientific inference, scoring, narrative interpretation, or Resonance Signature rendering.
 
@@ -287,7 +287,11 @@ Proposed tables:
 
 Visual-renderer tables are excluded. No Resonance Signature renderer tables, exploratory rendering contract tables, visual parameter tables, or visual asset persistence tables are part of this backend foundation proposal.
 
-The initial persistence and lifecycle migration has been authored and has passed static review. It has not been executed against local PostgreSQL and has not been deployed. Scientific processing remains deferred. Audio storage, processing jobs, Evidence Ledger implementation, result generation, and rendering remain deferred.
+The backend foundation migrations have been authored and all three apply successfully from scratch on PostgreSQL 15 using the local test harness in `scripts/test-backend-foundation.sh`.
+
+Local validation has covered structural table creation, forced row-level security, prompt-set draft safety, scan lifecycle behavior, Evidence Ledger append-only and missingness rules, raw-audio deletion idempotency, result history and finalization immutability, and personal baseline ownership/state validators. This testing used the minimal Supabase Auth compatibility scaffold in `supabase/tests/local_auth_compatibility.sql`; that scaffold is test-only and is not production schema or a replacement for Supabase Auth.
+
+These migrations have not been deployed to Supabase. Full hosted or local Supabase runtime validation remains a deployment gate, including Supabase Auth, API, storage, and operational environment behavior. The `launch-v1` prompt set remains draft with `activated_at` null and requires owner-approved prompt wording before activation.
 
 ## 12. First backend milestone
 
