@@ -6,15 +6,31 @@ The old `~/soulscope` repository is preserved as the research archive. This repo
 
 ## Current Status
 
-Initial foundation only:
+Current implementation:
 
-- canonical architecture documents
-- Phase E.5 audit artifacts
-- clean repository structure
-- migration inventory
-- clean system plan
+- approved canonical contract package
+- backend database foundation migrations authored and locally validated on PostgreSQL 15
+- scan ownership and lifecycle schema
+- versioned prompt-set storage
+- prompt capture records
+- account policy acceptance history
+- audit-event infrastructure
+- row-level security foundations
+- local PostgreSQL backend foundation test harness
 
-No frontend app, backend service, Supabase schema, renderer package, or production pipeline code has been migrated yet.
+Not yet implemented:
+
+- deployed backend service
+- executed production database migration
+- private audio storage and retention workflow
+- audio processing jobs
+- acoustic feature extraction
+- executable Evidence Engine
+- Dimension Engine
+- constellation decisions
+- canonical result generation
+- narrative or story generation
+- production Resonance Signature renderer
 
 ## Document Authority
 
@@ -28,3 +44,15 @@ No frontend app, backend service, Supabase schema, renderer package, or producti
 One canonical pipeline. One immutable result object. One report path. No legacy compatibility systems.
 
 Nothing may bypass the Evidence Ledger. Nothing may publish independently from the canonical result.
+
+## Backend Foundation Local Test Harness
+
+Run the local PostgreSQL migration and invariant harness with:
+
+```bash
+./scripts/test-backend-foundation.sh
+```
+
+PostgreSQL and sudo access to the `postgres` system user are required. The script drops and recreates only the disposable test database named by `SOULSCOPE_TEST_DB`, defaulting to `soulscope_migration_test`; overrides must begin with `soulscope_`.
+
+This validates PostgreSQL migration compatibility and backend invariants for the foundation migrations. It does not constitute hosted Supabase deployment validation.
