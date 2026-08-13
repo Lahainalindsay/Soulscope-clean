@@ -6,16 +6,16 @@ export default function HistoryPage() {
   return (
     <InstrumentLayout
       title="SoulScope — History"
-      description="SoulScope session history visual foundation"
-      eyebrow="Session ledger"
-      heading="Recent sessions"
-      meta={["Presentation rows", "No longitudinal interpretation"]}
+      description="SoulScope session history"
+      eyebrow="History"
+      heading="Past reflections"
+      meta={["Local build", "Sample sessions"]}
     >
-      <section className="ss-ledger-page" aria-label="History ledger">
+      <section className="ss-ledger-page" aria-label="History">
         <div className="ss-ledger-head">
           <p>
-            No longitudinal interpretation is available in this visual foundation.
-            Rows demonstrate density, rhythm, and review actions only.
+            Saved history is not active in this local build. These sample rows
+            show how completed reflections can be reviewed.
           </p>
           <Link href="/scan" className="ss-button ss-button-primary">
             Begin scan
@@ -36,9 +36,9 @@ export default function HistoryPage() {
         </div>
 
         <div className="ss-empty-state">
-          <p className="ss-technical-label">Empty state</p>
+          <p className="ss-technical-label">Saved history</p>
           <h2>No saved sessions yet</h2>
-          <p>When persistence is approved, completed sessions can appear in this ledger.</p>
+          <p>Completed sessions are not stored in this build.</p>
         </div>
       </section>
     </InstrumentLayout>

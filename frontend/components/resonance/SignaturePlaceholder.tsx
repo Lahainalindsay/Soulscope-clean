@@ -5,14 +5,14 @@ export function SignaturePlaceholder() {
   return (
     <section
       className={styles.frame}
-      aria-label="Visual placeholder Resonance Signature with no scientific meaning"
+      aria-label="Decorative resonance signature image"
     >
       <div className={styles.label}>
-        <StatusBadge>Visual placeholder — no scientific meaning</StatusBadge>
+        <StatusBadge>Sample image</StatusBadge>
       </div>
       <svg className={styles.svg} viewBox="0 0 900 520" role="img" aria-labelledby="signature-placeholder-title">
         <title id="signature-placeholder-title">
-          Static unified interference field placeholder for visual review only
+          Decorative unified field image
         </title>
         <path className={`${styles.contour} ${styles.spine}`} d="M450 70 C482 150 475 210 450 260 C421 317 419 382 450 452" stroke="rgba(184,245,237,.86)" strokeWidth="3" />
         <path className={styles.contour} d="M170 270 C245 104 375 92 455 148 C552 82 702 130 752 274 C708 416 552 448 455 382 C350 452 212 402 170 270Z" stroke="rgba(97,231,236,.72)" strokeWidth="2" />

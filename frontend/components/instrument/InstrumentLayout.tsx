@@ -17,6 +17,8 @@ type InstrumentLayoutProps = {
   eyebrow?: string;
   heading: string;
   meta?: string[];
+  compactHeader?: boolean;
+  hideHeader?: boolean;
   children: ReactNode;
 };
 
@@ -25,7 +27,9 @@ export function InstrumentLayout({
   description,
   eyebrow = "Private resonance dashboard",
   heading,
-  meta = ["Visual foundation", "No analysis active"],
+  meta = ["Private reflection", "User controlled"],
+  compactHeader = false,
+  hideHeader = false,
   children,
 }: InstrumentLayoutProps) {
   const router = useRouter();
@@ -64,23 +68,25 @@ export function InstrumentLayout({
 
           <div className="ss-system-status">
             <span className="ss-status-dot" />
-            Visual foundation
+            Private session
           </div>
         </nav>
 
         <main className="ss-main-shell">
-          <header className="ss-session-header">
-            <div>
-              <p className="ss-kicker">{eyebrow}</p>
-              <h1>{heading}</h1>
-            </div>
+          {hideHeader ? null : (
+            <header className={`ss-session-header${compactHeader ? " ss-session-header-compact" : ""}`}>
+              <div>
+                {compactHeader ? null : <p className="ss-kicker">{eyebrow}</p>}
+                <h1>{heading}</h1>
+              </div>
 
-            <div className="ss-header-meta" aria-label="Session metadata">
-              {meta.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
-            </div>
-          </header>
+              <div className="ss-header-meta" aria-label="Session metadata">
+                {meta.map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
+              </div>
+            </header>
+          )}
 
           {children}
         </main>

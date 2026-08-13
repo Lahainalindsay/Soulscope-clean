@@ -2,35 +2,27 @@ import { InstrumentLayout } from "../components/instrument/InstrumentLayout";
 
 const sections = [
   {
-    title: "Personal reference status",
+    title: "About you",
     rows: [
-      ["Reference signature", "Not created in this visual foundation"],
-      ["Within-session reference", "Opening prompt only"],
-      ["Version history", "Unavailable"],
+      ["Name", "Not set"],
+      ["Reflection history", "Not saved in this build"],
+      ["Personal baseline", "Not created"],
     ],
   },
   {
-    title: "Privacy",
+    title: "Privacy and recording",
     rows: [
-      ["Audio retention", "Presentation control"],
-      ["Result visibility", "Private by default presentation"],
-      ["Data export", "Unavailable"],
+      ["Microphone", "Not accessed in this visual build"],
+      ["Recordings", "Preview controls only"],
+      ["Uploads", "Not used in this build"],
     ],
   },
   {
-    title: "Reflection preferences",
+    title: "Boundary",
     rows: [
-      ["Reflection depth", "Balanced"],
-      ["Language style", "Bounded and plain"],
-      ["Unresolved results", "Show clearly"],
-    ],
-  },
-  {
-    title: "Accessibility",
-    rows: [
-      ["Reduced motion", "Respected by CSS"],
-      ["Contrast", "High contrast dark interface"],
-      ["Touch targets", "44px minimum target"],
+      ["Purpose", "Private reflection"],
+      ["Diagnosis", "Not provided"],
+      ["Scoring", "Not provided"],
     ],
   },
 ];
@@ -39,12 +31,12 @@ export default function ProfilePage() {
   return (
     <InstrumentLayout
       title="SoulScope — Profile"
-      description="SoulScope profile visual foundation"
+      description="SoulScope profile"
       eyebrow="Profile"
-      heading="Reference, privacy, and reflection preferences"
-      meta={["Visual controls", "Not saved"]}
+      heading="Your reflection space"
+      meta={["Local build", "No account connected"]}
     >
-      <section className="ss-settings-stack" aria-label="Profile presentation">
+      <section className="ss-settings-stack" aria-label="Profile">
         {sections.map((section) => (
           <section className="ss-settings-section" key={section.title}>
             <h2>{section.title}</h2>

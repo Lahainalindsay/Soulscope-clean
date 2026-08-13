@@ -1,33 +1,53 @@
 import { InstrumentLayout } from "../components/instrument/InstrumentLayout";
 
 const settings = [
-  ["Privacy", "Private presentation defaults", "Visual-foundation control"],
-  ["Audio retention preference", "Ask before saving audio", "Visual-foundation control"],
-  ["Accessibility", "Reduced motion and readable contrast", "Visual-foundation control"],
-  ["Reflection style", "Plain, reflective, bounded", "Visual-foundation control"],
-  ["Account actions", "Unavailable until authentication is approved", "Presentation only"],
+  {
+    title: "Recording and privacy",
+    rows: [
+      ["Microphone", "Not accessed in this visual build", "No browser prompt"],
+      ["Recordings", "Preview controls only", "No audio captured"],
+      ["Discard", "Resets the visual preview state", "No stored audio"],
+    ],
+  },
+  {
+    title: "Session behavior",
+    rows: [
+      ["Leaving a prompt", "No microphone session is active", "Visual only"],
+      ["Saved history", "Not active in this build", "Nothing is stored"],
+      ["Account settings", "Not available yet", "No account connected"],
+    ],
+  },
+  {
+    title: "SoulScope boundary",
+    rows: [
+      ["Purpose", "Private reflection", "Not medical advice"],
+      ["Not provided", "Diagnosis, scoring, or hidden-trait detection", "User boundary"],
+    ],
+  },
 ];
 
 export default function SettingsPage() {
   return (
     <InstrumentLayout
       title="SoulScope — Settings"
-      description="SoulScope settings visual foundation"
+      description="SoulScope recording privacy and session settings"
       eyebrow="Settings"
-      heading="Application preferences"
-      meta={["Non-persistent", "No account integration"]}
+      heading="Recording, privacy, and boundaries"
+      meta={["Local session", "You control recording"]}
     >
-      <section className="ss-settings-stack" aria-label="Settings presentation">
-        <section className="ss-settings-section">
-          <h2>Visual-foundation controls</h2>
-          {settings.map(([label, value, note]) => (
-            <div className="ss-setting-row" key={label}>
-              <span>{label}</span>
-              <strong>{value}</strong>
-              <small>{note}</small>
-            </div>
-          ))}
-        </section>
+      <section className="ss-settings-stack" aria-label="Settings">
+        {settings.map((section) => (
+          <section className="ss-settings-section" key={section.title}>
+            <h2>{section.title}</h2>
+            {section.rows.map(([label, value, note]) => (
+              <div className="ss-setting-row" key={label}>
+                <span>{label}</span>
+                <strong>{value}</strong>
+                <small>{note}</small>
+              </div>
+            ))}
+          </section>
+        ))}
       </section>
     </InstrumentLayout>
   );

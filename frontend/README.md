@@ -13,12 +13,12 @@ Included:
 - responsive application shell
 - navigation
 - design tokens
-- scan-screen presentation
+- scan-screen recording presentation
 - analyzing-screen presentation
 - results demo layout
 - history, profile, and settings presentation
 - visual-only Resonance Signature placeholder
-- clearly labeled mock data
+- clearly labeled sample result data
 - accessibility and reduced-motion foundations
 
 Excluded:

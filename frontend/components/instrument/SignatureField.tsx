@@ -16,10 +16,10 @@ export function SignatureField({
         </div>
 
         <div className="ss-signature-header-right">
-          <span>Visual prototype</span>
+          <span>Sample field</span>
           <span className="ss-live-mark">
             <i />
-            Static field
+            Still image
           </span>
         </div>
       </div>
@@ -27,7 +27,7 @@ export function SignatureField({
       <div
         className={`ss-signature-field${compact ? " ss-signature-field-compact" : ""}`}
         role="img"
-        aria-label="Decorative SoulScope resonance signature placeholder with asymmetric cyan, blue, mint, and violet contours. This visual has no scientific meaning."
+        aria-label="Decorative SoulScope resonance signature image with asymmetric cyan, blue, mint, and violet contours."
       >
         <div className="ss-axis ss-axis-top">Cognitive form</div>
         <div className="ss-axis ss-axis-right">Regulatory motion</div>
@@ -138,7 +138,7 @@ export function SignatureField({
         </svg>
 
         <div className="ss-signature-warning">
-          Visual placeholder · no scientific meaning
+          Sample image · for reflection only
         </div>
       </div>
     </section>

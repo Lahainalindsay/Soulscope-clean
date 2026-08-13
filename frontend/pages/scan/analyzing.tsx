@@ -1,49 +1,40 @@
 import Link from "next/link";
-import { PROCESSING_STAGES } from "@soulscope/canonical-contracts";
 import { InstrumentLayout } from "../../components/instrument/InstrumentLayout";
 
 const presentationSteps = [
-  "Preparing the recordings",
-  "Organizing evidence",
-  "Comparing the three responses",
-  "Preparing your reflection",
-  "Composing the visual field",
+  "Closing the recording step",
+  "Gathering the three prompts",
+  "Preparing the reflection screen",
+  "Drawing the sample field",
 ];
-
-function formatStageId(id: string) {
-  return id
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
 
 export default function ScanAnalyzingPage() {
   return (
     <InstrumentLayout
-      title="SoulScope — Demonstration Processing"
-      description="SoulScope analyzing screen visual foundation"
-      eyebrow="Demonstration processing state"
-      heading="Holding the scan while the reflection prepares"
-      meta={["Step-based progress", "No scientific logic active"]}
+      title="SoulScope — Preparing Reflection"
+      description="SoulScope reflection preparation"
+      eyebrow="Preparing"
+      heading="Holding the scan while the next screen opens"
+      meta={["Local session", "No diagnosis"]}
     >
-      <section className="ss-scan-shell ss-analyzing-shell" aria-label="Analyzing demonstration">
+      <section className="ss-scan-shell ss-analyzing-shell" aria-label="Preparing reflection">
         <aside className="ss-scan-progress">
-          <p className="ss-technical-label">Bible stage labels</p>
-          {PROCESSING_STAGES.map((stage) => (
-            <div className="ss-scan-progress-row" key={stage.id}>
-              <span>{stage.order}</span>
-              <strong>{formatStageId(stage.id)}</strong>
-              <small>Label only</small>
+          <p className="ss-technical-label">Progress</p>
+          {presentationSteps.map((step, index) => (
+            <div className="ss-scan-progress-row" key={step}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{step}</strong>
+              <small>{index === 0 ? "Done" : "Next"}</small>
             </div>
           ))}
         </aside>
 
         <section className="ss-prompt-console ss-processing-console">
-          <p className="ss-kicker">Demonstration processing state</p>
-          <h2>Preparing your visual reflection</h2>
+          <p className="ss-kicker">Almost there</p>
+          <h2>Preparing your reflection screen</h2>
           <p>
-            The sequence below is presentation-only. It does not imply that
-            scientific scoring, selection, or story generation is active.
+            This moment is a pause between recording and the sample reflection.
+            SoulScope does not produce a diagnosis, score, or hidden-trait reading.
           </p>
 
           <div className="ss-processing-steps">
@@ -56,16 +47,16 @@ export default function ScanAnalyzingPage() {
           </div>
 
           <Link href="/results/demo" className="ss-button ss-button-primary">
-            View demo reflection
+            View sample reflection
           </Link>
         </section>
 
         <aside className="ss-recording-rail">
           <p className="ss-technical-label">Status</p>
           <div className="ss-status-stack">
-            <span>Audio extraction inactive</span>
-            <span>Evidence inactive</span>
-            <span>Story inactive</span>
+            <span>Recording preview only</span>
+            <span>No diagnosis</span>
+            <span>No score</span>
           </div>
         </aside>
       </section>
