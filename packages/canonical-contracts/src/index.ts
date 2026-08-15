@@ -13,6 +13,7 @@ export * from "./promptProtocol";
 export * from "./processingStages";
 export * from "./provenance";
 export * from "./resultContracts";
+export * from "./scanProcessing";
 export * from "./scientificStatus";
 export * from "./stateRegistry";
 export * from "./validationPhases";

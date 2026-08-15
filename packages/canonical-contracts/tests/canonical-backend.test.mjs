@@ -15,6 +15,7 @@ const sourceBundle = [
   "src/processingStages.ts",
   "src/versioning.ts",
   "src/resultContracts.ts",
+  "src/scanProcessing.ts",
 ].map((file) => readText(file)).join("\n");
 
 test("authority chain points to Canon v1.3 and current registries", () => {
@@ -79,6 +80,29 @@ test("semantic and visual processing paths remain separated", () => {
   assert.doesNotMatch(processingStages, /resonance_signature/);
   assert.match(readText("src/resultContracts.ts"), /QUALIFIED_ACOUSTIC_MEASUREMENTS_T/);
   assert.match(readText("src/resultContracts.ts"), /semanticGeometryInputAllowed: false/);
+});
+
+test("real scan processing foundation is service-owned and calibration-bounded", () => {
+  const scanProcessing = readText("src/scanProcessing.ts");
+  assert.match(scanProcessing, /register_uploaded_capture_artifact/);
+  assert.match(scanProcessing, /start_scan_processing_run/);
+  assert.match(scanProcessing, /create_measurement_record/);
+  assert.match(scanProcessing, /create_unresolved_semantic_result/);
+  assert.match(scanProcessing, /requiredPromptArtifactCount: 3/);
+  assert.match(scanProcessing, /createsCalibratedAcousticFeatures: false/);
+  assert.match(scanProcessing, /createsDimensionScores: false/);
+  assert.match(scanProcessing, /createsNarrative: false/);
+  assert.match(scanProcessing, /createsResonanceRendering: false/);
+});
+
+test("unresolved semantic result policy preserves D3 abstentions and no Pattern", () => {
+  const scanProcessing = readText("src/scanProcessing.ts");
+  assert.match(scanProcessing, /NO_RECOVERY_COMPATIBLE_CONDITION/);
+  assert.match(scanProcessing, /NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL/);
+  assert.match(scanProcessing, /NO_RELATIONAL_OBSERVATION/);
+  assert.match(scanProcessing, /patternOutcome: "NO_PATTERN_PUBLISHED"/);
+  assert.match(scanProcessing, /noPatternForced: true/);
+  assert.match(scanProcessing, /noD3Reconstruction: true/);
 });
 
 test("active version manifest preserves material version identities", () => {

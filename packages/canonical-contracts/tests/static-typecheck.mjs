@@ -30,6 +30,7 @@ for (const expectedExport of [
   "processingStages",
   "provenance",
   "resultContracts",
+  "scanProcessing",
   "scientificStatus",
   "stateRegistry",
   "validationPhases",

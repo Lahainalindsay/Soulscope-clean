@@ -21,7 +21,10 @@ declare
     'result_manifests',
     'result_manifest_evidence',
     'personal_baselines',
-    'baseline_scan_members'
+    'baseline_scan_members',
+    'scan_processing_runs',
+    'measurement_records',
+    'semantic_result_records'
   ];
   expected_privileged_functions text[] := array[
     'transition_scan_lifecycle',
@@ -29,7 +32,11 @@ declare
     'record_audio_deletion_result',
     'create_scan_result_version',
     'add_result_manifest_evidence',
-    'finalize_scan_result_version'
+    'finalize_scan_result_version',
+    'register_uploaded_capture_artifact',
+    'start_scan_processing_run',
+    'create_measurement_record',
+    'create_unresolved_semantic_result'
   ];
   expected_policy_names text[] := array[
     'profiles_select_own',
@@ -52,7 +59,10 @@ declare
     'result_manifests_select_own_finalized',
     'result_manifest_evidence_select_own_finalized',
     'personal_baselines_select_own',
-    'baseline_scan_members_select_own'
+    'baseline_scan_members_select_own',
+    'scan_processing_runs_select_own_scan',
+    'measurement_records_select_own_scan',
+    'semantic_result_records_select_own_scan'
   ];
   missing_count integer;
   bad_count integer;
@@ -63,9 +73,9 @@ begin
    where to_regclass('public.' || expected.table_name) is null;
 
   if missing_count <> 0 then
-    raise exception 'ASSERTION_FAILED: expected all 15 backend tables to exist; missing count %', missing_count;
+    raise exception 'ASSERTION_FAILED: expected all backend tables to exist; missing count %', missing_count;
   end if;
-  raise notice 'PASS: all 15 backend tables exist';
+  raise notice 'PASS: all backend tables exist';
 
   select count(*)
     into bad_count
@@ -74,9 +84,9 @@ begin
    where not (c.relrowsecurity and c.relforcerowsecurity);
 
   if bad_count <> 0 then
-    raise exception 'ASSERTION_FAILED: expected RLS enabled and forced on all 15 tables; bad count %', bad_count;
+    raise exception 'ASSERTION_FAILED: expected RLS enabled and forced on all backend tables; bad count %', bad_count;
   end if;
-  raise notice 'PASS: RLS is enabled and forced on all 15 backend tables';
+  raise notice 'PASS: RLS is enabled and forced on all backend tables';
 
   if not exists (
     select 1
@@ -1111,6 +1121,271 @@ begin
     when check_violation then
       raise notice 'PASS: baseline/result compatibility validators reject invalid relationships';
   end;
+end;
+$$;
+
+reset role;
+insert into public.scan_sessions (user_id, prompt_set_id)
+values (
+  current_setting('test.owner_user_id')::uuid,
+  current_setting('test.prompt_set_id')::uuid
+)
+returning id as pipeline_scan_id
+\gset
+
+select set_config('test.pipeline_scan_id', :'pipeline_scan_id', true);
+
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claims', '{"role": "service_role"}', true);
+
+select * from public.transition_scan_lifecycle(
+  current_setting('test.pipeline_scan_id')::uuid,
+  'capturing'::public.scan_lifecycle_state,
+  '{"test": "pipeline scan created to capturing"}'::jsonb
+);
+
+reset role;
+
+insert into public.scan_prompt_captures (
+  scan_id,
+  prompt_definition_id,
+  prompt_order,
+  capture_status,
+  duration_ms,
+  upload_status,
+  completed_at
+)
+select
+  current_setting('test.pipeline_scan_id')::uuid,
+  prompt_definitions.id,
+  prompt_definitions.prompt_order,
+  'uploaded'::public.capture_status,
+  30000,
+  'uploaded'::public.capture_upload_status,
+  now()
+from public.prompt_definitions
+where prompt_definitions.prompt_set_id = current_setting('test.prompt_set_id')::uuid
+order by prompt_definitions.prompt_order;
+
+select id as pipeline_capture_one_id
+from public.scan_prompt_captures
+where scan_id = current_setting('test.pipeline_scan_id')::uuid
+  and prompt_order = 1
+\gset
+
+select id as pipeline_capture_two_id
+from public.scan_prompt_captures
+where scan_id = current_setting('test.pipeline_scan_id')::uuid
+  and prompt_order = 2
+\gset
+
+select id as pipeline_capture_three_id
+from public.scan_prompt_captures
+where scan_id = current_setting('test.pipeline_scan_id')::uuid
+  and prompt_order = 3
+\gset
+
+select set_config('test.pipeline_capture_one_id', :'pipeline_capture_one_id', true);
+select set_config('test.pipeline_capture_two_id', :'pipeline_capture_two_id', true);
+select set_config('test.pipeline_capture_three_id', :'pipeline_capture_three_id', true);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', current_setting('test.owner_user_id'), true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.owner_user_id'), 'role', 'authenticated')::text, true);
+
+do $$
+begin
+  begin
+    perform * from public.register_uploaded_capture_artifact(
+      current_setting('test.pipeline_capture_one_id')::uuid,
+      'private-audio',
+      'runtime/pipeline-p1.webm',
+      'audio/webm',
+      2048,
+      repeat('b', 64),
+      'runtime:pipeline:artifact:p1'
+    );
+    raise exception 'ASSERTION_FAILED: authenticated user registered capture artifact';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: artifact registration is service-only';
+  end;
+end;
+$$;
+
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claims', '{"role": "service_role"}', true);
+
+select * from public.register_uploaded_capture_artifact(
+  current_setting('test.pipeline_capture_one_id')::uuid,
+  'private-audio',
+  'runtime/pipeline-p1.webm',
+  'audio/webm',
+  2048,
+  repeat('b', 64),
+  'runtime:pipeline:artifact:p1'
+)
+\gset pipeline_artifact_one_
+
+select * from public.register_uploaded_capture_artifact(
+  current_setting('test.pipeline_capture_two_id')::uuid,
+  'private-audio',
+  'runtime/pipeline-p2.webm',
+  'audio/webm',
+  2049,
+  repeat('c', 64),
+  'runtime:pipeline:artifact:p2'
+)
+\gset pipeline_artifact_two_
+
+select * from public.register_uploaded_capture_artifact(
+  current_setting('test.pipeline_capture_three_id')::uuid,
+  'private-audio',
+  'runtime/pipeline-p3.webm',
+  'audio/webm',
+  2050,
+  repeat('d', 64),
+  'runtime:pipeline:artifact:p3'
+)
+\gset pipeline_artifact_three_
+
+select * from public.transition_scan_lifecycle(
+  current_setting('test.pipeline_scan_id')::uuid,
+  'capture_complete'::public.scan_lifecycle_state,
+  '{"test": "pipeline capture complete"}'::jsonb
+);
+
+select * from public.transition_scan_lifecycle(
+  current_setting('test.pipeline_scan_id')::uuid,
+  'queued'::public.scan_lifecycle_state,
+  '{"test": "pipeline queued"}'::jsonb
+);
+
+select * from public.start_scan_processing_run(
+  current_setting('test.pipeline_scan_id')::uuid,
+  'runtime:pipeline:run',
+  'extractor-calibration-required',
+  'CALIBRATION_REQUIRED'
+)
+\gset pipeline_run_
+
+select set_config('test.pipeline_run_id', :'pipeline_run_processing_run_id', true);
+
+select * from public.create_measurement_record(
+  current_setting('test.pipeline_run_id')::uuid,
+  'runtime:pipeline:measurement',
+  'limited',
+  jsonb_build_array(
+    jsonb_build_object('promptId', 'P1_OPEN_REFERENCE', 'measurements', jsonb_build_array()),
+    jsonb_build_object('promptId', 'P2_TROUBLING_CONTEXT', 'measurements', jsonb_build_array()),
+    jsonb_build_object('promptId', 'P3_FUTURE_CONTEXT', 'measurements', jsonb_build_array())
+  ),
+  jsonb_build_array(),
+  jsonb_build_object('overallQuality', 'limited', 'calibrationStatus', 'CALIBRATION_REQUIRED'),
+  jsonb_build_object('extractor', 'adapter-placeholder', 'version', 'extractor-calibration-required'),
+  false,
+  true
+)
+\gset pipeline_measurement_
+
+select set_config('test.pipeline_measurement_id', :'pipeline_measurement_measurement_record_id', true);
+
+select * from public.create_unresolved_semantic_result(
+  current_setting('test.pipeline_measurement_id')::uuid,
+  'runtime:pipeline:semantic-unresolved'
+)
+\gset pipeline_semantic_
+
+select set_config('test.pipeline_semantic_id', :'pipeline_semantic_semantic_result_id', true);
+
+reset role;
+
+do $$
+declare
+  semantic_record public.semantic_result_records%rowtype;
+begin
+  select *
+    into semantic_record
+    from public.semantic_result_records
+   where id = current_setting('test.pipeline_semantic_id')::uuid;
+
+  if semantic_record.pattern_result ->> 'publicationStatus' <> 'NO_PATTERN_PUBLISHED' then
+    raise exception 'ASSERTION_FAILED: unresolved semantic result forced a Pattern';
+  end if;
+
+  if not (
+    semantic_record.dimensions @> '[{"dimensionId":"REG-P4","resolutionStatus":"UNRESOLVED","resolutionReason":"NO_RECOVERY_COMPATIBLE_CONDITION"}]'::jsonb
+    and semantic_record.dimensions @> '[{"dimensionId":"CAP-P2","resolutionStatus":"UNRESOLVED","resolutionReason":"NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL"}]'::jsonb
+    and semantic_record.dimensions @> '[{"dimensionId":"EXP-P4","resolutionStatus":"UNRESOLVED","resolutionReason":"NO_RELATIONAL_OBSERVATION"}]'::jsonb
+  ) then
+    raise exception 'ASSERTION_FAILED: unresolved semantic result did not preserve D3 hard abstentions';
+  end if;
+
+  if not exists (
+    select 1
+      from public.scan_sessions
+     where id = current_setting('test.pipeline_scan_id')::uuid
+       and lifecycle_state = 'evidence_ready'
+  ) then
+    raise exception 'ASSERTION_FAILED: pipeline scan did not reach evidence_ready';
+  end if;
+
+  raise notice 'PASS: real-scan pipeline foundation creates measurement and unresolved semantic records without forced Pattern or D3 leakage';
+
+  begin
+    update public.measurement_records
+       set measurement_status = 'qualified'
+     where id = current_setting('test.pipeline_measurement_id')::uuid;
+    raise exception 'ASSERTION_FAILED: immutable measurement record update was accepted';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: measurement records are immutable';
+  end;
+
+  begin
+    update public.semantic_result_records
+       set status = 'invalid'
+     where id = current_setting('test.pipeline_semantic_id')::uuid;
+    raise exception 'ASSERTION_FAILED: immutable semantic result update was accepted';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: semantic result records are immutable';
+  end;
+end;
+$$;
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', current_setting('test.owner_user_id'), true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.owner_user_id'), 'role', 'authenticated')::text, true);
+
+do $$
+begin
+  if not exists (
+    select 1 from public.measurement_records where id = current_setting('test.pipeline_measurement_id')::uuid
+  ) or not exists (
+    select 1 from public.semantic_result_records where id = current_setting('test.pipeline_semantic_id')::uuid
+  ) then
+    raise exception 'ASSERTION_FAILED: owner cannot read pipeline measurement and semantic records';
+  end if;
+  raise notice 'PASS: owner can read their pipeline measurement and semantic records';
+end;
+$$;
+
+select set_config('request.jwt.claim.sub', current_setting('test.other_user_id'), true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.other_user_id'), 'role', 'authenticated')::text, true);
+
+do $$
+begin
+  if exists (
+    select 1 from public.measurement_records where id = current_setting('test.pipeline_measurement_id')::uuid
+  ) or exists (
+    select 1 from public.semantic_result_records where id = current_setting('test.pipeline_semantic_id')::uuid
+  ) then
+    raise exception 'ASSERTION_FAILED: another user can read pipeline measurement or semantic records';
+  end if;
+  raise notice 'PASS: another user cannot read pipeline measurement or semantic records';
 end;
 $$;
 

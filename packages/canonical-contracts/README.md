@@ -30,6 +30,7 @@ Included:
 - Evidence Ledger record fields and JSON Schema required-field validation.
 - Baseline hierarchy enum.
 - Canonical processing-stage names.
+- Real-scan processing foundation names for service-owned artifact registration, processing runs, measurement records, and unresolved semantic results.
 - Narrative section names, authority boundaries, and internal citation requirements.
 - Validation phase-gate names.
 - Source, provenance, registry version, schema version, and package version contracts.
@@ -37,7 +38,7 @@ Included:
 
 Deferred:
 
-- Acoustic scoring formulas.
+- Calibrated acoustic extraction and scoring formulas.
 - Feature weights.
 - Normalization formulas.
 - Confidence formulas.
@@ -48,7 +49,7 @@ Deferred:
 - Pattern inference models.
 - Narrative generation.
 - Resonance Signature behavior.
-- Database, frontend, backend, and renderer integration.
+- Frontend and renderer integration.
 
 Known authority gap:
 
