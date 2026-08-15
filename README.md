@@ -9,9 +9,14 @@ The old `~/soulscope` repository is preserved as the research archive. This repo
 Current implementation:
 
 - current Canonical Authority Ledger
-- current Canon v1.3 and seven uploaded scientific/backend companion registries preserved under `docs/canonical/`
+- current Canon v1.3 and eight uploaded scientific/backend companion registries preserved under `docs/canonical/`
 - approved canonical contract package
 - backend database foundation migrations authored and locally validated on PostgreSQL 15
+- local Python/FastAPI backend measurement worker scaffold
+- private canonical WAV validation, storage pathing, Supabase Storage adapter, and cleanup helper
+- deterministic raw acoustic measurement extraction for the three-prompt protocol
+- unresolved semantic result creation through privileged RPCs
+- opt-in hosted Supabase integration test harness for private Storage, RPC authorization, RLS, immutability, and idempotency
 - scan ownership and lifecycle schema
 - versioned prompt-set storage
 - prompt capture records
@@ -22,18 +27,18 @@ Current implementation:
 
 Not yet implemented:
 
-- deployed backend service
+- deployed backend service or worker runtime
 - executed production database migration
-- private audio storage and retention workflow
-- audio processing jobs
-- acoustic feature extraction
+- completed hosted staging validation run with project credentials
+- calibrated audio processing jobs
+- calibrated acoustic extraction with Parselmouth/SciPy/VAD production methods
 - executable Evidence Engine
 - Dimension Engine
 - constellation decisions
 - canonical result generation
 - narrative or story generation
 - production Resonance Signature renderer
-- Whole-Scan Pattern Registry source artifact in `docs/canonical/`
+- staging Supabase deployment validation
 
 ## Document Authority
 
@@ -48,6 +53,7 @@ Current governing source artifacts live under `docs/canonical/`:
 - SoulScope Inference Rule Registry v0.1
 - SoulScope Constellation State Registry v0.1
 - SoulScope Cross-Constellation Interaction Registry v0.1
+- SoulScope Whole-Scan Pattern Registry v0.1
 - SoulScope Narrative Registry v0.1
 
 Superseded Canon/Bible materials live under `docs/archive/` and are historical provenance only.
@@ -69,3 +75,39 @@ Run the local PostgreSQL migration and invariant harness with:
 PostgreSQL and sudo access to the `postgres` system user are required. The script drops and recreates only the disposable test database named by `SOULSCOPE_TEST_DB`, defaulting to `soulscope_migration_test`; overrides must begin with `soulscope_`.
 
 This validates PostgreSQL migration compatibility and backend invariants for the foundation migrations. It does not constitute hosted Supabase deployment validation.
+
+## Backend Measurement Worker Local Tests
+
+Run the local measurement-worker checks with:
+
+```bash
+PYTHONPATH=backend python3 -m unittest discover -s backend/tests -t backend
+```
+
+These tests use committed WAV fixtures and in-memory RPC fakes. They validate the service boundary and audio/measurement lifecycle without connecting the frontend or requiring hosted Supabase credentials.
+
+## Hosted Measurement Pipeline Tests
+
+Hosted Supabase tests are opt-in and are skipped by default. They require a staging project, repository migrations applied, a private Supabase Storage bucket, service-role and anon keys, and two staging-only test users.
+
+Required environment:
+
+```bash
+SOULSCOPE_RUN_HOSTED_TESTS=1
+SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+SOULSCOPE_SUPABASE_STORAGE_BUCKET=...
+SOULSCOPE_STAGING_USER_A_EMAIL=...
+SOULSCOPE_STAGING_USER_A_PASSWORD=...
+SOULSCOPE_STAGING_USER_B_EMAIL=...
+SOULSCOPE_STAGING_USER_B_PASSWORD=...
+```
+
+Run:
+
+```bash
+pytest backend/tests/hosted
+```
+
+These tests use real Supabase Auth, Storage, PostgREST/RPC, Postgres constraints, and RLS. They do not publish Evidence, Dimensions, States, Patterns, Narrative, Resonance output, or frontend changes.

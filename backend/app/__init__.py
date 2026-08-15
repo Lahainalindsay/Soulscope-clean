@@ -1,0 +1,1 @@
+"""SoulScope backend worker service."""

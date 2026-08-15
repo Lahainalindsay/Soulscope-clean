@@ -2,7 +2,11 @@ node_modules/
 .next/
 .git/
 .env*
+__pycache__/
+*.pyc
+*.egg-info/
 *.wav
+!backend/tests/fixtures/*.wav
 *.mp3
 *.webm
 *.tsbuildinfo
