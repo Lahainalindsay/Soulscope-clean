@@ -24,7 +24,8 @@ declare
     'baseline_scan_members',
     'scan_processing_runs',
     'measurement_records',
-    'semantic_result_records'
+    'semantic_result_records',
+    'evidence_ledgers'
   ];
   expected_privileged_functions text[] := array[
     'transition_scan_lifecycle',
@@ -36,7 +37,8 @@ declare
     'register_uploaded_capture_artifact',
     'start_scan_processing_run',
     'create_measurement_record',
-    'create_unresolved_semantic_result'
+    'create_unresolved_semantic_result',
+    'create_evidence_ledger'
   ];
   expected_policy_names text[] := array[
     'profiles_select_own',
@@ -62,7 +64,8 @@ declare
     'baseline_scan_members_select_own',
     'scan_processing_runs_select_own_scan',
     'measurement_records_select_own_scan',
-    'semantic_result_records_select_own_scan'
+    'semantic_result_records_select_own_scan',
+    'evidence_ledgers_select_own_scan'
   ];
   missing_count integer;
   bad_count integer;
@@ -1292,6 +1295,158 @@ select * from public.create_measurement_record(
 
 select set_config('test.pipeline_measurement_id', :'pipeline_measurement_measurement_record_id', true);
 
+set local role authenticated;
+select set_config('request.jwt.claim.sub', current_setting('test.owner_user_id'), true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.owner_user_id'), 'role', 'authenticated')::text, true);
+
+do $$
+begin
+  begin
+    perform * from public.create_evidence_ledger(
+      current_setting('test.pipeline_measurement_id')::uuid,
+      'runtime:pipeline:evidence-ledger:authenticated-denied',
+      'soulscope-evidence-engine-0.1.0',
+      'evidence-structural-v1',
+      '0.1',
+      '0.1',
+      jsonb_build_array(jsonb_build_object(
+        'evidence_id', 'ev_denied',
+        'evidence_status', 'supported',
+        'marker_id', 'OUTPUT_CONTINUITY',
+        'source_measurement_ids', jsonb_build_array('m_denied')
+      )),
+      jsonb_build_object('supported', 1, 'contradicted', 0, 'unavailable', 0, 'rejected', 0, 'insufficient', 0),
+      jsonb_build_object('raw_audio_consumed', false, 'acoustic_extraction_rerun', false)
+    );
+    raise exception 'ASSERTION_FAILED: authenticated user created evidence ledger';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: evidence ledger creation is service-only';
+  end;
+end;
+$$;
+
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claims', '{"role": "service_role"}', true);
+
+select * from public.create_evidence_ledger(
+  current_setting('test.pipeline_measurement_id')::uuid,
+  'runtime:pipeline:evidence-ledger',
+  'soulscope-evidence-engine-0.1.0',
+  'evidence-structural-v1',
+  '0.1',
+  '0.1',
+  jsonb_build_array(
+    jsonb_build_object(
+      'evidence_id', 'ev_runtime_supported',
+      'evidence_status', 'supported',
+      'marker_id', 'OUTPUT_CONTINUITY',
+      'marker_version', '0.1',
+      'scan_id', current_setting('test.pipeline_scan_id'),
+      'prompt_scope', jsonb_build_array('P1_OPEN_REFERENCE'),
+      'source_measurement_ids', jsonb_build_array('runtime_measurement_supported'),
+      'source_feature_families', jsonb_build_array('DYN'),
+      'direction', 'NONE',
+      'supporting_components', jsonb_build_array('AC_DURATION_MS'),
+      'contradicting_components', jsonb_build_array(),
+      'missing_components', jsonb_build_array(),
+      'confound_flags', jsonb_build_array(),
+      'status', 'RESOLVED'
+    ),
+    jsonb_build_object(
+      'evidence_id', 'ev_runtime_unavailable',
+      'evidence_status', 'unavailable',
+      'marker_id', 'PHONATORY_STABILITY',
+      'marker_version', '0.1',
+      'scan_id', current_setting('test.pipeline_scan_id'),
+      'prompt_scope', jsonb_build_array('P1_OPEN_REFERENCE'),
+      'source_measurement_ids', jsonb_build_array(),
+      'source_feature_families', jsonb_build_array('PHO'),
+      'direction', 'UNRESOLVED',
+      'supporting_components', jsonb_build_array(),
+      'contradicting_components', jsonb_build_array(),
+      'missing_components', jsonb_build_array('AC_FORMANT_TRACKING'),
+      'confound_flags', jsonb_build_array(),
+      'status', 'UNRESOLVED',
+      'resolution_reason', 'MISSING_REQUIRED_EVIDENCE'
+    )
+  ),
+  jsonb_build_object('supported', 1, 'contradicted', 0, 'unavailable', 1, 'rejected', 0, 'insufficient', 0),
+  jsonb_build_object(
+    'source', 'measurement_record',
+    'measurement_record_id', current_setting('test.pipeline_measurement_id'),
+    'raw_audio_consumed', false,
+    'acoustic_extraction_rerun', false
+  )
+)
+\gset pipeline_evidence_
+
+select set_config('test.pipeline_evidence_ledger_id', :'pipeline_evidence_evidence_ledger_id', true);
+
+select * from public.create_evidence_ledger(
+  current_setting('test.pipeline_measurement_id')::uuid,
+  'runtime:pipeline:evidence-ledger',
+  'soulscope-evidence-engine-0.1.0',
+  'evidence-structural-v1',
+  '0.1',
+  '0.1',
+  jsonb_build_array(
+    jsonb_build_object(
+      'evidence_id', 'ev_runtime_supported',
+      'evidence_status', 'supported',
+      'marker_id', 'OUTPUT_CONTINUITY',
+      'marker_version', '0.1',
+      'scan_id', current_setting('test.pipeline_scan_id'),
+      'prompt_scope', jsonb_build_array('P1_OPEN_REFERENCE'),
+      'source_measurement_ids', jsonb_build_array('runtime_measurement_supported'),
+      'source_feature_families', jsonb_build_array('DYN'),
+      'direction', 'NONE',
+      'supporting_components', jsonb_build_array('AC_DURATION_MS'),
+      'contradicting_components', jsonb_build_array(),
+      'missing_components', jsonb_build_array(),
+      'confound_flags', jsonb_build_array(),
+      'status', 'RESOLVED'
+    ),
+    jsonb_build_object(
+      'evidence_id', 'ev_runtime_unavailable',
+      'evidence_status', 'unavailable',
+      'marker_id', 'PHONATORY_STABILITY',
+      'marker_version', '0.1',
+      'scan_id', current_setting('test.pipeline_scan_id'),
+      'prompt_scope', jsonb_build_array('P1_OPEN_REFERENCE'),
+      'source_measurement_ids', jsonb_build_array(),
+      'source_feature_families', jsonb_build_array('PHO'),
+      'direction', 'UNRESOLVED',
+      'supporting_components', jsonb_build_array(),
+      'contradicting_components', jsonb_build_array(),
+      'missing_components', jsonb_build_array('AC_FORMANT_TRACKING'),
+      'confound_flags', jsonb_build_array(),
+      'status', 'UNRESOLVED',
+      'resolution_reason', 'MISSING_REQUIRED_EVIDENCE'
+    )
+  ),
+  jsonb_build_object('supported', 1, 'contradicted', 0, 'unavailable', 1, 'rejected', 0, 'insufficient', 0),
+  jsonb_build_object(
+    'source', 'measurement_record',
+    'measurement_record_id', current_setting('test.pipeline_measurement_id'),
+    'raw_audio_consumed', false,
+    'acoustic_extraction_rerun', false
+  )
+)
+\gset pipeline_evidence_repeat_
+
+select set_config('test.pipeline_evidence_repeat_ledger_id', :'pipeline_evidence_repeat_evidence_ledger_id', true);
+
+do $$
+begin
+  if current_setting('test.pipeline_evidence_ledger_id') <> current_setting('test.pipeline_evidence_repeat_ledger_id') then
+    raise exception 'ASSERTION_FAILED: duplicate evidence ledger request was not idempotent';
+  end if;
+  raise notice 'PASS: evidence ledger creation is idempotent';
+end;
+$$;
+
 select * from public.create_unresolved_semantic_result(
   current_setting('test.pipeline_measurement_id')::uuid,
   'runtime:pipeline:semantic-unresolved'
@@ -1349,12 +1504,22 @@ begin
        set status = 'invalid'
      where id = current_setting('test.pipeline_semantic_id')::uuid;
     raise exception 'ASSERTION_FAILED: immutable semantic result update was accepted';
-  exception
-    when insufficient_privilege then
-      raise notice 'PASS: semantic result records are immutable';
-  end;
-end;
-$$;
+	  exception
+	    when insufficient_privilege then
+	      raise notice 'PASS: semantic result records are immutable';
+	  end;
+
+	  begin
+	    update public.evidence_ledgers
+	       set status = 'invalid'
+	     where id = current_setting('test.pipeline_evidence_ledger_id')::uuid;
+	    raise exception 'ASSERTION_FAILED: immutable evidence ledger update was accepted';
+	  exception
+	    when insufficient_privilege then
+	      raise notice 'PASS: evidence ledgers are immutable';
+	  end;
+	end;
+	$$;
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', current_setting('test.owner_user_id'), true);
@@ -1366,10 +1531,12 @@ begin
     select 1 from public.measurement_records where id = current_setting('test.pipeline_measurement_id')::uuid
   ) or not exists (
     select 1 from public.semantic_result_records where id = current_setting('test.pipeline_semantic_id')::uuid
+  ) or not exists (
+    select 1 from public.evidence_ledgers where id = current_setting('test.pipeline_evidence_ledger_id')::uuid
   ) then
-    raise exception 'ASSERTION_FAILED: owner cannot read pipeline measurement and semantic records';
+    raise exception 'ASSERTION_FAILED: owner cannot read pipeline measurement, evidence, and semantic records';
   end if;
-  raise notice 'PASS: owner can read their pipeline measurement and semantic records';
+  raise notice 'PASS: owner can read their pipeline measurement, evidence, and semantic records';
 end;
 $$;
 
@@ -1382,10 +1549,12 @@ begin
     select 1 from public.measurement_records where id = current_setting('test.pipeline_measurement_id')::uuid
   ) or exists (
     select 1 from public.semantic_result_records where id = current_setting('test.pipeline_semantic_id')::uuid
+  ) or exists (
+    select 1 from public.evidence_ledgers where id = current_setting('test.pipeline_evidence_ledger_id')::uuid
   ) then
-    raise exception 'ASSERTION_FAILED: another user can read pipeline measurement or semantic records';
+    raise exception 'ASSERTION_FAILED: another user can read pipeline measurement, evidence, or semantic records';
   end if;
-  raise notice 'PASS: another user cannot read pipeline measurement or semantic records';
+  raise notice 'PASS: another user cannot read pipeline measurement, evidence, or semantic records';
 end;
 $$;
 

@@ -9,6 +9,8 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile, stat
 from .auth import ServiceAuth
 from .config import require_service_settings
 from .database import SupabaseRestRpc
+from .evidence.service import EvidenceService
+from .evidence.writer import EvidenceWriter
 from .logging import configure_logging
 from .processing.measurement_writer import MeasurementWriter
 from .processing.worker import PromptAudioInput, ScanWorker
@@ -87,4 +89,27 @@ async def process_scan(
         "semantic_result_id": result.semantic_result_id,
         "measurement_status": result.measurement_status,
         "semantic_status": result.semantic_status,
+    }
+
+
+@app.post("/internal/process-evidence")
+async def process_evidence(
+    measurement_record_id: Annotated[str, Form()],
+    x_worker_token: Annotated[str | None, Header()] = None,
+) -> dict[str, str]:
+    settings = require_service_settings()
+    if settings.worker_internal_token and x_worker_token != settings.worker_internal_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid worker token",
+        )
+    auth = ServiceAuth(settings.supabase_service_role_key)
+    rpc = SupabaseRestRpc(settings.supabase_url, auth)
+    service = EvidenceService(settings.supabase_url, auth, EvidenceWriter(rpc))
+    result = service.process_measurement_record(measurement_record_id)
+    return {
+        "evidence_ledger_id": str(result["evidence_ledger_id"]),
+        "scan_id": str(result["scan_id"]),
+        "measurement_record_id": str(result["measurement_record_id"]),
+        "status": str(result["status"]),
     }

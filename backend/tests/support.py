@@ -56,6 +56,13 @@ class FakeRpc:
                 "semantic_result_id": f"semantic-{payload['p_measurement_record_id']}",
                 "status": "unresolved_abstained",
             }
+        elif name == "create_evidence_ledger":
+            response = {
+                "evidence_ledger_id": f"evidence-ledger-{payload['p_measurement_record_id']}",
+                "scan_id": "scan-1",
+                "measurement_record_id": payload["p_measurement_record_id"],
+                "status": "complete",
+            }
         else:
             raise AssertionError(f"Unexpected RPC call: {name}")
 

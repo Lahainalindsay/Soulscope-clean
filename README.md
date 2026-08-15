@@ -16,6 +16,8 @@ Current implementation:
 - private canonical WAV validation, storage pathing, Supabase Storage adapter, and cleanup helper
 - deterministic raw acoustic measurement extraction for the three-prompt protocol
 - unresolved semantic result creation through privileged RPCs
+- executable Evidence Engine v1 over immutable MeasurementRecords
+- immutable `evidence_ledgers` persistence through a service-only RPC
 - opt-in hosted Supabase integration test harness for private Storage, RPC authorization, RLS, immutability, and idempotency
 - scan ownership and lifecycle schema
 - versioned prompt-set storage
@@ -29,10 +31,8 @@ Not yet implemented:
 
 - deployed backend service or worker runtime
 - executed production database migration
-- completed hosted staging validation run with project credentials
 - calibrated audio processing jobs
 - calibrated acoustic extraction with Parselmouth/SciPy/VAD production methods
-- executable Evidence Engine
 - Dimension Engine
 - constellation decisions
 - canonical result generation
@@ -110,4 +110,19 @@ Run:
 pytest backend/tests/hosted
 ```
 
-These tests use real Supabase Auth, Storage, PostgREST/RPC, Postgres constraints, and RLS. They do not publish Evidence, Dimensions, States, Patterns, Narrative, Resonance output, or frontend changes.
+These tests use real Supabase Auth, Storage, PostgREST/RPC, Postgres constraints, and RLS. They verify MeasurementRecord persistence and Evidence Ledger generation. They do not publish Dimensions, States, Patterns, Narrative, Resonance output, or frontend changes.
+
+## Evidence Engine v1
+
+Evidence Engine v1 consumes immutable `measurement_records` only. It never reads WAVs, reruns acoustic extraction, mutates measurements, or creates downstream semantic inference.
+
+The v1 engine produces a structural Evidence Ledger:
+
+- available measurements become neutral `supported` evidence facts, meaning the measurement exists and is usable, not that a psychological claim is supported
+- missing inputs become `unavailable`
+- rejected/null unsupported inputs become `rejected`
+- limited-quality inputs become `insufficient`
+- missing, rejected, and insufficient evidence are never converted to zero or contradiction
+- every evidence entry records source measurement identity, feature/version, prompt scope, quality, provenance, and active evidence versions
+
+Persistence is service-owned through `create_evidence_ledger(...)`. Browser, anon, and normal authenticated clients cannot create or mutate Evidence Ledgers. Repeated generation for the same MeasurementRecord, Evidence Engine version, and rule version is idempotent.

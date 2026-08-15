@@ -16,6 +16,9 @@ from urllib.request import Request, urlopen
 from app.auth import ServiceAuth
 from app.config import Settings
 from app.database import SupabaseRestRpc
+from app.evidence.engine import evaluate_evidence
+from app.evidence.models import MeasurementRecordInput
+from app.evidence.writer import EvidenceWriter
 from app.processing.measurement_writer import MeasurementWriter
 from app.processing.worker import PromptAudioInput, ScanWorker
 from app.storage.supabase import SupabasePrivateAudioStorage, SupabaseStorageError
@@ -117,6 +120,31 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
             )
         self.assertIn(anon_error.exception.status_code, (401, 403, 404))
 
+        with self.assertRaises(HostedHttpError) as anon_evidence_error:
+            self._rpc_with_key(
+                self.anon_key,
+                None,
+                "create_evidence_ledger",
+                {
+                    "p_measurement_record_id": "00000000-0000-4000-8000-000000000000",
+                    "p_idempotency_key": f"{self.namespace}:anon-evidence-denied",
+                    "p_evidence_engine_version": "soulscope-evidence-engine-0.1.0",
+                    "p_evidence_rule_version": "evidence-structural-v1",
+                    "p_evidence_registry_version": "0.1",
+                    "p_ledger_schema_version": "0.1",
+                    "p_entries": [{"evidence_id": "ev_denied"}],
+                    "p_status_counts": {
+                        "supported": 0,
+                        "contradicted": 0,
+                        "unavailable": 1,
+                        "rejected": 0,
+                        "insufficient": 0,
+                    },
+                    "p_provenance": {"raw_audio_consumed": False, "acoustic_extraction_rerun": False},
+                },
+            )
+        self.assertIn(anon_evidence_error.exception.status_code, (401, 403, 404))
+
         with self.assertRaises(HostedHttpError) as user_error:
             self._rpc_as_user(
                 self.user_a,
@@ -128,6 +156,30 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
                 },
             )
         self.assertIn(user_error.exception.status_code, (401, 403, 404))
+
+        with self.assertRaises(HostedHttpError) as user_evidence_error:
+            self._rpc_as_user(
+                self.user_a,
+                "create_evidence_ledger",
+                {
+                    "p_measurement_record_id": "00000000-0000-4000-8000-000000000000",
+                    "p_idempotency_key": f"{self.namespace}:user-evidence-denied",
+                    "p_evidence_engine_version": "soulscope-evidence-engine-0.1.0",
+                    "p_evidence_rule_version": "evidence-structural-v1",
+                    "p_evidence_registry_version": "0.1",
+                    "p_ledger_schema_version": "0.1",
+                    "p_entries": [{"evidence_id": "ev_denied"}],
+                    "p_status_counts": {
+                        "supported": 0,
+                        "contradicted": 0,
+                        "unavailable": 1,
+                        "rejected": 0,
+                        "insufficient": 0,
+                    },
+                    "p_provenance": {"raw_audio_consumed": False, "acoustic_extraction_rerun": False},
+                },
+            )
+        self.assertIn(user_evidence_error.exception.status_code, (401, 403, 404))
 
     def test_hosted_fixture_scan_persists_measurements_and_enforces_rls(self) -> None:
         scan_id, captures = self._create_ready_scan(self.user_a)
@@ -158,6 +210,47 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
         self.assertEqual(len(owner_measurements), 1)
         self.assertEqual(owner_measurements[0]["measurement_status"], "qualified")
         self.assertEqual(len(owner_measurements[0]["prompt_measurements"]), 3)
+
+        service_measurements = self._rest_with_key(
+            self.service_role_key,
+            "GET",
+            f"measurement_records?{urlencode({'id': f'eq.{result.measurement_record_id}', 'select': '*'})}",
+        )
+        ledger = evaluate_evidence(MeasurementRecordInput.from_row(service_measurements[0]))
+        evidence_writer = EvidenceWriter(SupabaseRestRpc(self.supabase_url, ServiceAuth(self.service_role_key)))
+
+        def write_evidence_once() -> str:
+            row = evidence_writer.create_evidence_ledger(ledger, f"evidence-ledger:{self.namespace}:{result.measurement_record_id}")
+            return str(row["evidence_ledger_id"])
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            evidence_ids = list(executor.map(lambda _index: write_evidence_once(), range(2)))
+        self.assertEqual(evidence_ids[0], evidence_ids[1])
+
+        owner_evidence = self._rest_as_user(
+            self.user_a,
+            "GET",
+            f"evidence_ledgers?{urlencode({'id': f'eq.{evidence_ids[0]}', 'select': 'id,status,status_counts,entries,evidence_engine_version'})}",
+        )
+        self.assertEqual(len(owner_evidence), 1)
+        self.assertEqual(owner_evidence[0]["evidence_engine_version"], "soulscope-evidence-engine-0.1.0")
+        self.assertGreater(owner_evidence[0]["status_counts"]["supported"], 0)
+        self.assertTrue(owner_evidence[0]["entries"])
+
+        user_b_evidence = self._rest_as_user(
+            self.user_b,
+            "GET",
+            f"evidence_ledgers?{urlencode({'id': f'eq.{evidence_ids[0]}', 'select': 'id'})}",
+        )
+        self.assertEqual(user_b_evidence, [])
+
+        with self.assertRaises(HostedHttpError):
+            self._rest_as_user(
+                self.user_a,
+                "PATCH",
+                f"evidence_ledgers?{urlencode({'id': f'eq.{evidence_ids[0]}'})}",
+                {"status": "invalid"},
+            )
 
         owner_semantic = self._rest_as_user(
             self.user_a,
@@ -359,6 +452,16 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
         prefer: str | None = None,
     ) -> Any:
         return self._request(method, f"rest/v1/{route}", self.anon_key, session.access_token, payload, prefer)
+
+    def _rest_with_key(
+        self,
+        api_key: str,
+        method: str,
+        route: str,
+        payload: dict[str, Any] | None = None,
+        prefer: str | None = None,
+    ) -> Any:
+        return self._request(method, f"rest/v1/{route}", api_key, None, payload, prefer)
 
     def _request(
         self,

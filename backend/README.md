@@ -1,12 +1,13 @@
 # SoulScope Backend
 
-This directory contains the Python/FastAPI measurement worker for Backend Milestones 1 and 2.
+This directory contains the Python/FastAPI backend worker for Backend Milestones 1, 2, and 3.
 
 The worker uses the service-owned Supabase RPC boundary established by the foundation migrations:
 
 - `register_uploaded_capture_artifact`
 - `start_scan_processing_run`
 - `create_measurement_record`
+- `create_evidence_ledger`
 - `create_unresolved_semantic_result`
 
 It implements:
@@ -17,10 +18,12 @@ It implements:
 - deterministic raw acoustic measurement extraction from three prompt WAVs
 - signal quality qualification
 - immutable measurement-record payload creation
+- deterministic Evidence Engine v1 over immutable MeasurementRecords
+- immutable Evidence Ledger persistence
 - unresolved semantic result creation
-- opt-in hosted Supabase tests for Storage, privileged RPCs, RLS, immutability, and idempotency
+- opt-in hosted Supabase tests for Storage, privileged RPCs, RLS, immutability, Evidence, and idempotency
 
-It intentionally does not implement calibrated Evidence, Dimension scoring, State selection, Pattern inference, Narrative generation, Resonance Signature rendering, or frontend integration.
+It intentionally does not implement Dimension scoring, State selection, Pattern inference, Narrative generation, Resonance Signature rendering, frontend integration, or calibrated psychological/scientific interpretation.
 
 ## Local checks
 
@@ -71,6 +74,30 @@ Hosted integration tests additionally require:
 
 The hosted staging project must already have all repository migrations applied, a private audio bucket, and an active three-prompt prompt set. Tests do not create public audio URLs and do not log service-role secrets.
 
+## Evidence Engine v1
+
+Evidence Engine v1 is a deterministic transformation:
+
+```text
+immutable MeasurementRecord
+  -> Evidence Engine v1
+  -> immutable Evidence Ledger
+```
+
+It consumes persisted `measurement_records.prompt_measurements` and related measurement metadata. It does not consume raw audio, private Storage objects, frontend data, or semantic-result payloads.
+
+Evidence status semantics:
+
+- `supported`: the source measurement is present and usable as neutral measurement evidence
+- `contradicted`: represented in the status model, but not produced by v1 because no calibrated contradiction rules are active
+- `unavailable`: expected measurement input is absent or null without a rejection reason
+- `rejected`: measurement input is explicitly rejected or unsupported
+- `insufficient`: measurement input exists but quality is limited for evidence use
+
+Every entry includes source measurement IDs, feature ID/version, prompt scope, measurement quality, missing/rejected components, rule/version metadata, and provenance back to the MeasurementRecord. Missing and rejected values remain `null`; they are not coerced to `0`, average, normal, or contradiction.
+
+Evidence persistence uses the service-only `create_evidence_ledger(...)` RPC. Ledgers are immutable, owner-readable through RLS, non-owner isolated, and idempotent by MeasurementRecord plus Evidence Engine/rule version.
+
 ## Running the service
 
 Local filesystem storage:
@@ -98,7 +125,6 @@ The `/health` endpoint returns a small deterministic JSON body and does not vali
 
 The hosted measurement pipeline remains measurement-only:
 
-- no Evidence Engine
 - no Dimension Engine
 - no State inference
 - no Pattern inference
