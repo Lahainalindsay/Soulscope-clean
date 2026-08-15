@@ -6,88 +6,88 @@
   "additionalProperties": false,
   "required": [
     "evidence_id",
-    "session_segment",
-    "source_features",
-    "observation",
-    "direction_magnitude",
+    "marker_id",
+    "marker_version",
+    "scan_id",
+    "prompt_scope",
+    "time_scope",
+    "reference_scope",
+    "source_measurement_ids",
+    "source_feature_families",
+    "direction",
     "quality",
-    "baseline",
-    "support_contradiction",
-    "confounds",
-    "confidence",
-    "policy",
+    "supporting_components",
+    "contradicting_components",
+    "missing_components",
+    "confound_flags",
+    "rule_id",
+    "rule_version",
+    "status",
     "timestamp",
     "provenance",
     "version"
   ],
   "properties": {
     "evidence_id": { "type": "string", "minLength": 1 },
-    "session_segment": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["session_id", "prompt_id", "start_time", "end_time"],
-      "properties": {
-        "session_id": { "type": "string", "minLength": 1 },
-        "prompt_id": { "type": "string", "minLength": 1 },
-        "start_time": { "type": "number" },
-        "end_time": { "type": "number" }
-      }
+    "marker_id": {
+      "enum": [
+        "PROSODIC_EXPANSION",
+        "PROSODIC_COMPRESSION",
+        "PAUSE_LOAD_INCREASE",
+        "TEMPORAL_FRAGMENTATION",
+        "OUTPUT_CONTINUITY",
+        "PHONATORY_SHIFT",
+        "PHONATORY_STABILITY",
+        "MODULATION_BREADTH",
+        "CONTEXT_RECONFIGURATION",
+        "CONTEXT_CONSISTENCY",
+        "WITHIN_PROMPT_DRIFT"
+      ]
     },
-    "source_features": {
+    "marker_version": { "type": "string", "minLength": 1 },
+    "scan_id": { "type": "string", "minLength": 1 },
+    "prompt_scope": {
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["feature_id", "extractor_version", "feature_definition_version"],
-        "properties": {
-          "feature_id": { "type": "string", "minLength": 1 },
-          "extractor_version": { "type": "string", "minLength": 1 },
-          "feature_definition_version": { "type": "string", "minLength": 1 }
-        }
+        "enum": ["P1_OPEN_REFERENCE", "P2_TROUBLING_CONTEXT", "P3_FUTURE_CONTEXT"]
       }
     },
-    "observation": { "type": "string", "minLength": 1 },
-    "direction_magnitude": { "type": "object" },
+    "time_scope": {
+      "type": "object",
+      "properties": {
+        "start_time": { "type": ["number", "null"] },
+        "end_time": { "type": ["number", "null"] }
+      }
+    },
+    "reference_scope": {
+      "type": "object",
+      "required": ["reference_type"],
+      "properties": {
+        "reference_type": { "type": "string", "minLength": 1 },
+        "reference_id": { "type": ["string", "null"] }
+      }
+    },
+    "source_measurement_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "source_feature_families": {
+      "type": "array",
+      "items": { "enum": ["PRO", "ENG", "TIM", "PHO", "SPE", "DYN"] }
+    },
+    "value": { "type": ["number", "string", "boolean", "null"] },
+    "direction": { "enum": ["LOWER", "HIGHER", "NONE", "MIXED", "UNRESOLVED"] },
+    "magnitude": { "type": ["number", "null"] },
+    "uncertainty": { "type": ["number", "null"] },
     "quality": { "type": "object" },
-    "baseline": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["reference_type", "trust_status", "compatibility"],
-      "properties": {
-        "reference_type": {
-          "enum": [
-            "personal_reference_signature",
-            "within_session_reference",
-            "matched_population_prior",
-            "no_reference"
-          ]
-        },
-        "trust_status": { "type": "string", "minLength": 1 },
-        "compatibility": { "type": "string", "minLength": 1 },
-        "sample_count": { "type": ["integer", "null"] }
-      }
-    },
-    "support_contradiction": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["support", "contradiction"],
-      "properties": {
-        "support": { "type": "array", "items": { "type": "string" } },
-        "contradiction": { "type": "array", "items": { "type": "string" } },
-        "relationship_type": { "type": ["string", "null"] }
-      }
-    },
-    "confounds": { "type": "array", "items": { "type": "string" } },
-    "confidence": { "type": "object" },
-    "policy": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["allowed_inference_tier", "prohibited_use_flags"],
-      "properties": {
-        "allowed_inference_tier": { "enum": ["A", "B", "C", "D"] },
-        "prohibited_use_flags": { "type": "array", "items": { "type": "string" } }
-      }
-    },
+    "coverage": { "type": ["number", "null"] },
+    "agreement": { "type": ["number", "null"] },
+    "baseline_trust": { "type": ["number", "null"] },
+    "supporting_components": { "type": "array", "items": { "type": "string" } },
+    "contradicting_components": { "type": "array", "items": { "type": "string" } },
+    "missing_components": { "type": "array", "items": { "type": "string" } },
+    "confound_flags": { "type": "array", "items": { "type": "string" } },
+    "rule_id": { "type": "string", "minLength": 1 },
+    "rule_version": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["RESOLVED", "PARTIALLY_RESOLVED", "UNRESOLVED", "SUPPRESSED", "INVALID", "RESEARCH_ESTIMATE"] },
+    "resolution_reason": { "type": "string" },
     "timestamp": { "type": "string", "minLength": 1 },
     "provenance": { "$ref": "provenance.schema.json" },
     "version": { "$ref": "version-reference.schema.json" }

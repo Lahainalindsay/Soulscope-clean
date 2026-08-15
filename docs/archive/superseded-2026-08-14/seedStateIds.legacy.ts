@@ -37,7 +37,7 @@ export type SeedStateRegistryEntry = Readonly<{
 }>;
 
 const sourceFor = (section: string, table: string) =>
-  provenance(sourceReference("constellationBible", section, "BIBLE", table));
+  provenance(sourceReference("archivedConstellationBible", section, "BIBLE", table));
 
 export const SEED_STATE_REGISTRY: readonly SeedStateRegistryEntry[] = Object.freeze([
   Object.freeze({ id: "COG-017", constellationId: "COG", displayName: "Deliberate Builder", lifecycle: "reserved_fixed_seed", coreMeaning: "A structured processing style is helping the person work through something that is not effortless.", strengths: Object.freeze(["Care", "persistence", "sequencing", "considered response"] as const), potentialCosts: Object.freeze(["Slowness", "over-management", "fatigue from holding the structure"] as const), registryVersion: REGISTRY_VERSION, provenance: sourceFor("Section 6.2 Seed state registry", "Table 23") }),

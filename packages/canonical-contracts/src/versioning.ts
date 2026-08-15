@@ -14,5 +14,37 @@ export const VERSION_REFERENCE: VersionReference = Object.freeze({
   packageVersion: CONTRACT_PACKAGE_VERSION,
   registryVersion: REGISTRY_VERSION,
   schemaVersion: SCHEMA_VERSION,
-  sourceVersion: "0.1",
+  sourceVersion: "1.3",
+});
+
+export type CanonicalVersionManifest = Readonly<{
+  protocol: "1.3";
+  extractor: "CALIBRATION_REQUIRED";
+  featureRegistry: "0.1";
+  qualityRules: "0.1";
+  evidenceRegistry: "0.1";
+  dimensionRegistry: "0.1";
+  inferenceRules: "0.1";
+  stateRegistry: "0.1";
+  interactionRegistry: "0.1";
+  patternRegistry: "0.1";
+  narrativeRegistry: "0.1";
+  modelRegistry: "CALIBRATION_REQUIRED";
+  rendererRegistry: "CALIBRATION_REQUIRED";
+}>;
+
+export const ACTIVE_VERSION_MANIFEST: CanonicalVersionManifest = Object.freeze({
+  protocol: "1.3",
+  extractor: "CALIBRATION_REQUIRED",
+  featureRegistry: "0.1",
+  qualityRules: "0.1",
+  evidenceRegistry: "0.1",
+  dimensionRegistry: "0.1",
+  inferenceRules: "0.1",
+  stateRegistry: "0.1",
+  interactionRegistry: "0.1",
+  patternRegistry: "0.1",
+  narrativeRegistry: "0.1",
+  modelRegistry: "CALIBRATION_REQUIRED",
+  rendererRegistry: "CALIBRATION_REQUIRED",
 });

@@ -15,10 +15,9 @@ export type ConstellationRegistryEntry = Readonly<{
 }>;
 
 const constellationSource = sourceReference(
-  "constellationBible",
-  "Section 1, The four proposed constellations",
-  "BIBLE",
-  "Table 4",
+  "dimensionRegistry",
+  "Section 3, Current 16-point status",
+  "CANON",
 );
 
 export const CONSTELLATION_REGISTRY: readonly ConstellationRegistryEntry[] = Object.freeze([

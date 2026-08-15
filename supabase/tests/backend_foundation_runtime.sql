@@ -109,9 +109,9 @@ begin
       ) actual
       full join (
         values
-          ('opening_reference', 1),
-          ('demanding_reflection', 2),
-          ('hope_future_orientation', 3)
+          ('P1_OPEN_REFERENCE', 1),
+          ('P2_TROUBLING_CONTEXT', 2),
+          ('P3_FUTURE_CONTEXT', 3)
       ) expected(canonical_key, prompt_order)
         on expected.canonical_key = actual.canonical_key
        and expected.prompt_order = actual.prompt_order
@@ -120,6 +120,21 @@ begin
     raise exception 'ASSERTION_FAILED: launch-v1 canonical prompt keys or orders are incorrect';
   end if;
   raise notice 'PASS: launch-v1 has exactly 3 canonical prompt definitions in the expected order';
+
+  if exists (
+    select 1
+      from public.prompt_definitions
+      join public.prompt_sets on prompt_sets.id = prompt_definitions.prompt_set_id
+     where prompt_sets.version = 'launch-v1'
+       and (
+         (canonical_key = 'P1_OPEN_REFERENCE' and prompt_text ~* 'neutral')
+         or (canonical_key = 'P2_TROUBLING_CONTEXT' and prompt_text ~* 'negative emotion|stress|anxiety|distress')
+         or (canonical_key = 'P3_FUTURE_CONTEXT' and prompt_text ~* 'positive emotion|optimism|recovery')
+       )
+  ) then
+    raise exception 'ASSERTION_FAILED: launch-v1 prompt text includes prohibited prompt assumptions';
+  end if;
+  raise notice 'PASS: launch-v1 prompt wording preserves Canon v1.3 prompt semantics';
 
   select count(*)
     into bad_count

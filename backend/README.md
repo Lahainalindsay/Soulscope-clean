@@ -1,5 +1,5 @@
 # backend
 
-Implementation intentionally not migrated yet.
+No deployed backend service implementation is present yet.
 
-This directory is reserved for the clean SoulScope rebuild stage that owns this layer. Do not copy old repository code here wholesale.
+Backend scientific authority lives in `docs/CANONICAL_AUTHORITY_LEDGER.md` and `packages/canonical-contracts`. Do not copy old repository code here wholesale, and do not implement runtime scientific inference outside the canonical Measurement -> Evidence -> Dimension -> Constellation -> Interaction -> Pattern -> Narrative path.

@@ -4,7 +4,6 @@ import { readJson, readText, unique } from "./test-utils.mjs";
 
 const constellations = readJson("registries/constellations.v0.1.json");
 const dimensions = readJson("registries/dimensions.v0.1.json");
-const seedStates = readJson("registries/seed-states.v0.1.json");
 const validConstellationIds = new Set(["COG", "REG", "CAP", "EXP"]);
 const validDimensionIds = new Set(dimensions.map((entry) => entry.id));
 
@@ -43,10 +42,6 @@ test("dimension IDs are unique", () => {
   assert.equal(unique(dimensions.map((entry) => entry.id)), true);
 });
 
-test("seed-state IDs are unique", () => {
-  assert.equal(unique(seedStates.map((entry) => entry.id)), true);
-});
-
 test("invalid constellation IDs are rejected by registry membership", () => {
   assert.equal(validConstellationIds.has("INT"), false);
   assert.equal(validConstellationIds.has("COGNITIVE"), false);
@@ -60,5 +55,5 @@ test("invalid dimension IDs are rejected by registry membership", () => {
 test("TypeScript identifier guards are present", () => {
   assert.match(readText("src/constellationIds.ts"), /function isConstellationId/);
   assert.match(readText("src/dimensionIds.ts"), /function isDimensionId/);
-  assert.match(readText("src/seedStateIds.ts"), /function isSeedStateId/);
+  assert.match(readText("src/stateRegistry.ts"), /STATE_IDS/);
 });

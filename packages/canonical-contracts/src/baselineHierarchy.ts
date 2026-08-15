@@ -16,15 +16,15 @@ export const BASELINE_HIERARCHY = Object.freeze([
     label: "Personal Reference Signature",
     use: "Primary change-from-self interpretation.",
     guardrail: "Same user, feature version, unit, task family, and compatible capture conditions.",
-    provenance: provenance(sourceReference("constellationBible", "Section 3.2 Baseline hierarchy", "BIBLE", "Table 10")),
+    provenance: provenance(sourceReference("acousticParameterRegistry", "Reference compatibility and personal reference", "CANON")),
   }),
   Object.freeze({
     priority: 2,
     id: "within_session_reference",
     label: "Within-session reference",
     use: "Prompt-to-prompt and early-to-late comparison.",
-    guardrail: "Never call it trait or long-term change.",
-    provenance: provenance(sourceReference("constellationBible", "Section 3.2 Baseline hierarchy", "BIBLE", "Table 10")),
+    guardrail: "Never call it neutral, trait, or long-term change.",
+    provenance: provenance(sourceReference("canon", "Section V, Prompt 1 Open Reference", "CANON")),
   }),
   Object.freeze({
     priority: 3,
@@ -32,7 +32,7 @@ export const BASELINE_HIERARCHY = Object.freeze([
     label: "Matched population prior",
     use: "Feature scaling and anomaly checks.",
     guardrail: "Not a substitute for a personal baseline; stratify and audit bias.",
-    provenance: provenance(sourceReference("constellationBible", "Section 3.2 Baseline hierarchy", "BIBLE", "Table 10")),
+    provenance: provenance(sourceReference("acousticParameterRegistry", "Reference compatibility and population reference", "CANON")),
   }),
   Object.freeze({
     priority: 4,
@@ -40,6 +40,6 @@ export const BASELINE_HIERARCHY = Object.freeze([
     label: "No reference",
     use: "Raw description only.",
     guardrail: "Suppress directional personal claims.",
-    provenance: provenance(sourceReference("constellationBible", "Section 3.2 Baseline hierarchy", "BIBLE", "Table 10")),
+    provenance: provenance(sourceReference("evidenceMarkerRegistry", "Section 3, Reference-aware effect representation", "CANON")),
   }),
 ]);

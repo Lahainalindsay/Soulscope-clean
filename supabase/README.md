@@ -1,5 +1,11 @@
 # supabase
 
-Implementation intentionally not migrated yet.
+This directory contains the backend database foundation migrations and local runtime assertions.
 
-This directory is reserved for the clean SoulScope rebuild stage that owns this layer. Do not copy old repository code here wholesale.
+The migrations are a persistence, ownership, privacy, evidence, result-versioning, and audit scaffold. They do not implement acoustic extraction, scientific scoring, Dimension inference, State selection, Pattern inference, narrative generation, or Resonance Signature rendering.
+
+Prompt definitions follow SoulScope Canon v1.3:
+
+- `P1_OPEN_REFERENCE`
+- `P2_TROUBLING_CONTEXT`
+- `P3_FUTURE_CONTEXT`

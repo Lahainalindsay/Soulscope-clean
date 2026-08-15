@@ -1,5 +1,5 @@
 # tests
 
-Implementation intentionally not migrated yet.
+Repository-level tests are added only when a concern crosses package boundaries.
 
-This directory is reserved for the clean SoulScope rebuild stage that owns this layer. Do not copy old repository code here wholesale.
+Current backend contract tests live in `packages/canonical-contracts/tests`, and database invariant tests live in `supabase/tests`.
