@@ -23,6 +23,7 @@ It implements:
 - immutable Evidence Ledger persistence
 - deterministic Dimension Engine v1 over immutable Evidence Ledgers
 - immutable Dimension Result persistence
+- Dimension Calibration Foundation with immutable `CALIBRATION_REQUIRED` specs
 - unresolved semantic result creation
 - opt-in hosted Supabase tests for Storage, privileged RPCs, RLS, immutability, Evidence, Dimensions, and idempotency
 
@@ -126,6 +127,29 @@ Dimension status semantics:
 Supported, contradicted, unavailable, rejected, and insufficient Evidence entries remain distinct in Dimension provenance. Missing/rejected/null Evidence is never coerced to `0`, normal, average, or negative evidence.
 
 Dimension persistence uses the service-only `create_dimension_result(...)` RPC. Results are immutable, owner-readable through RLS, non-owner isolated, and idempotent by Evidence Ledger plus Dimension Engine/registry/scoring version.
+
+## Dimension Calibration Foundation
+
+The calibration foundation is a guardrail between Evidence Ledgers and future Dimension scoring:
+
+```text
+Evidence Ledger
+  -> Calibration Contract
+  -> Dimension Scoring Eligibility
+```
+
+It does not calculate scores. It records whether a Dimension has the required scientific prerequisites for scoring and returns explicit blockers when it does not.
+
+Current calibration status:
+
+- all 16 Dimensions have immutable `CALIBRATION_REQUIRED` specs
+- no Evidence-to-Dimension mappings are defined
+- no directionality, weights, thresholds, normalization, score ranges, confidence model, posterior model, reference dataset, or validation criteria are defined
+- no calibration is activated as validated
+
+Compatibility checks cover Evidence Engine version, Evidence rule version, Evidence registry version, Dimension Engine version, and Dimension registry version. Dimension Engine v1 includes the resulting calibration blockers in each unresolved Dimension output while keeping posterior and confidence fields `null`.
+
+Calibration metadata persistence uses the service-only `create_dimension_calibration_spec(...)` RPC. Anon and normal authenticated users cannot create or mutate calibration specs. Existing calibration specs are immutable; future versions must coexist rather than overwrite historical records.
 
 ## Running the service
 

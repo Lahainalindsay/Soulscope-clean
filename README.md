@@ -20,6 +20,7 @@ Current implementation:
 - immutable `evidence_ledgers` persistence through a service-only RPC
 - executable Dimension Engine v1 over immutable Evidence Ledgers
 - immutable `dimension_results` persistence through a service-only RPC
+- Dimension Calibration Foundation with versioned `CALIBRATION_REQUIRED` specs and scoring-eligibility blockers
 - opt-in hosted Supabase integration test harness for private Storage, RPC authorization, RLS, immutability, and idempotency
 - scan ownership and lifecycle schema
 - versioned prompt-set storage
@@ -35,6 +36,7 @@ Not yet implemented:
 - executed production database migration
 - calibrated audio processing jobs
 - calibrated acoustic extraction with Parselmouth/SciPy/VAD production methods
+- calibrated Dimension scoring
 - constellation decisions
 - canonical result generation
 - narrative or story generation
@@ -139,3 +141,32 @@ Canonical calibrated Dimension scoring, weights, normalization, posterior constr
 The current protocol hard-abstains `REG-P4` Recovery with `NO_RECOVERY_COMPATIBLE_CONDITION`, `CAP-P2` Reserve with `NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL`, and `EXP-P4` Relational Availability with `NO_RELATIONAL_OBSERVATION`. All other v1 Dimensions abstain with `CONSTRUCT_MODEL_NOT_VALIDATED`.
 
 Persistence is service-owned through `create_dimension_result(...)`. Browser, anon, and normal authenticated clients cannot create or mutate Dimension Results. Repeated generation for the same Evidence Ledger, Dimension Engine version, registry version, and scoring version is database-idempotent.
+
+## Dimension Calibration Foundation
+
+The calibration foundation answers whether a Dimension may be scored with a scientifically defined calibration. The current answer for all 16 Dimensions is `NO`: `CALIBRATION_REQUIRED`.
+
+Implemented:
+
+- immutable versioned calibration metadata
+- one calibration-required spec per canonical Dimension
+- compatibility checks for Evidence/Dimension engine and registry versions
+- deterministic scoring-eligibility blockers
+- service-owned calibration metadata writes
+- documentation of missing scientific prerequisites in `architecture/DIMENSION_CALIBRATION_REQUIREMENTS.md`
+
+Not scientifically defined:
+
+- Evidence-to-Dimension mappings
+- directionality
+- weights
+- thresholds
+- normalization
+- score range
+- minimum evidence rules
+- confidence model
+- priors/posteriors
+- reference dataset
+- validation criteria
+
+Dimension Engine v1 reads this calibration state and continues to persist unresolved/abstained Dimension Results. No numeric Dimension scoring is enabled.

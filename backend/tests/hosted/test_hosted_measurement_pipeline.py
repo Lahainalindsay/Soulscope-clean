@@ -157,6 +157,15 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
             )
         self.assertIn(anon_dimension_error.exception.status_code, (401, 403, 404))
 
+        with self.assertRaises(HostedHttpError) as anon_calibration_error:
+            self._rpc_with_key(
+                self.anon_key,
+                None,
+                "create_dimension_calibration_spec",
+                _calibration_denial_payload(f"{self.namespace}:anon-calibration-denied"),
+            )
+        self.assertIn(anon_calibration_error.exception.status_code, (401, 403, 404))
+
         with self.assertRaises(HostedHttpError) as user_error:
             self._rpc_as_user(
                 self.user_a,
@@ -200,6 +209,23 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
                 _dimension_denial_payload("00000000-0000-4000-8000-000000000000", f"{self.namespace}:user-dimension-denied"),
             )
         self.assertIn(user_dimension_error.exception.status_code, (401, 403, 404))
+
+        with self.assertRaises(HostedHttpError) as user_calibration_error:
+            self._rpc_as_user(
+                self.user_a,
+                "create_dimension_calibration_spec",
+                _calibration_denial_payload(f"{self.namespace}:user-calibration-denied"),
+            )
+        self.assertIn(user_calibration_error.exception.status_code, (401, 403, 404))
+
+        service_calibration = self._rpc_with_key(
+            self.service_role_key,
+            None,
+            "create_dimension_calibration_spec",
+            _calibration_seed_payload("COG-P1"),
+        )
+        self.assertEqual(service_calibration[0]["dimension_id"], "COG-P1")
+        self.assertEqual(service_calibration[0]["status"], "CALIBRATION_REQUIRED")
 
     def test_hosted_fixture_scan_persists_measurements_and_enforces_rls(self) -> None:
         scan_id, captures = self._create_ready_scan(self.user_a)
@@ -301,6 +327,8 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
         self.assertEqual(len(owner_dimensions[0]["dimensions"]), 16)
         self.assertTrue(all(item["posteriorMean"] is None for item in owner_dimensions[0]["dimensions"]))
         self.assertTrue(all(item["confidence"] is None for item in owner_dimensions[0]["dimensions"]))
+        self.assertTrue(all(item["scoringPermitted"] is False for item in owner_dimensions[0]["dimensions"]))
+        self.assertTrue(all("CALIBRATION_NOT_VALIDATED" in item["scoringBlockers"] for item in owner_dimensions[0]["dimensions"]))
 
         user_b_dimensions = self._rest_as_user(
             self.user_b,
@@ -614,3 +642,46 @@ def _dimension_denial_payload(evidence_ledger_id: str, idempotency_key: str) -> 
             "resonance_generated": False,
         },
     }
+
+
+def _calibration_denial_payload(calibration_id: str) -> dict[str, Any]:
+    return {
+        "p_calibration_id": calibration_id,
+        "p_calibration_version": "dimension-calibration-foundation-v0.1",
+        "p_dimension_id": "COG-P1",
+        "p_dimension_registry_version": "0.1",
+        "p_evidence_engine_version": "soulscope-evidence-engine-0.1.0",
+        "p_evidence_rule_version": "evidence-structural-v1",
+        "p_evidence_registry_version": "0.1",
+        "p_dimension_engine_version": "soulscope-dimension-engine-0.1.0",
+        "p_status": "CALIBRATION_REQUIRED",
+        "p_eligible_evidence_marker_ids": [],
+        "p_required_evidence_marker_ids": [],
+        "p_directionality": None,
+        "p_weights": None,
+        "p_normalization": None,
+        "p_thresholds": None,
+        "p_minimum_evidence_rule": None,
+        "p_score_range": None,
+        "p_confidence_model": None,
+        "p_posterior_model": None,
+        "p_reference_dataset": None,
+        "p_validation_criteria": None,
+        "p_validation_metrics": None,
+        "p_provenance": {
+            "source": "hosted-denial-test",
+            "contract_version": "0.1",
+            "scientific_status": "CALIBRATION_REQUIRED",
+        },
+    }
+
+
+def _calibration_seed_payload(dimension_id: str) -> dict[str, Any]:
+    payload = _calibration_denial_payload(f"{dimension_id}:calibration-required")
+    payload["p_provenance"] = {
+        "source": "dimension_calibration_foundation",
+        "contract_version": "0.1",
+        "scientific_status": "CALIBRATION_REQUIRED",
+        "note": "No repository-approved calibrated Dimension scoring specification exists.",
+    }
+    return payload

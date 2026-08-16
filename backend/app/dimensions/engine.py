@@ -4,11 +4,13 @@ from copy import deepcopy
 from typing import Any
 
 from ..config import (
+    DIMENSION_CALIBRATION_REGISTRY_VERSION,
     DIMENSION_ENGINE_VERSION,
     DIMENSION_REGISTRY_VERSION,
     DIMENSION_RESULT_SCHEMA_VERSION,
     DIMENSION_SCORING_VERSION,
 )
+from .calibration import assess_dimension_scoring_eligibility, get_calibration_spec
 from .models import DimensionResultSet, EvidenceLedgerInput
 from .registry import D3_ABSTENTION_REASONS, DIMENSION_DEFINITIONS, DimensionDefinition
 
@@ -37,6 +39,7 @@ def evaluate_dimensions(ledger: EvidenceLedgerInput) -> DimensionResultSet:
             "evidence_rule_version": ledger.evidence_rule_version,
             "evidence_registry_version": ledger.evidence_registry_version,
             "dimension_registry_version": DIMENSION_REGISTRY_VERSION,
+            "dimension_calibration_registry_version": DIMENSION_CALIBRATION_REGISTRY_VERSION,
             "dimension_scoring_version": DIMENSION_SCORING_VERSION,
             "scoring_calibration_status": "CALIBRATION_REQUIRED",
             "raw_audio_consumed": False,
@@ -55,6 +58,8 @@ def _dimension_result(
     evidence_summary: dict[str, Any],
 ) -> dict[str, Any]:
     d3_reason = D3_ABSTENTION_REASONS.get(definition.dimension_id)
+    calibration_spec = get_calibration_spec(definition.dimension_id)
+    eligibility = assess_dimension_scoring_eligibility(ledger, calibration_spec)
     reason = d3_reason or "CONSTRUCT_MODEL_NOT_VALIDATED"
     all_evidence_ids = evidence_summary["all_evidence_ids"]
     return {
@@ -65,7 +70,9 @@ def _dimension_result(
         "scientificClass": definition.scientific_class,
         "dimensionVersion": DIMENSION_REGISTRY_VERSION,
         "dimensionEngineVersion": DIMENSION_ENGINE_VERSION,
+        "dimensionCalibrationVersion": calibration_spec.calibration_version,
         "dimensionScoringVersion": DIMENSION_SCORING_VERSION,
+        "calibrationStatus": eligibility.calibration_status,
         "resolutionStatus": "UNRESOLVED",
         "resolutionReason": reason,
         "posteriorMean": None,
@@ -79,6 +86,12 @@ def _dimension_result(
         "momentum": None,
         "scoreProduced": False,
         "confidenceProduced": False,
+        "scoringPermitted": eligibility.scoring_permitted,
+        "scoringBlockers": list(eligibility.blockers),
+        "calibrationGaps": [
+            {"category": gap.category, "status": gap.status, "reason": gap.reason}
+            for gap in eligibility.gaps
+        ],
         "relevantEvidenceIds": [],
         "ignoredEvidenceIds": all_evidence_ids,
         "ignoredEvidenceReason": "NO_CALIBRATED_DIMENSION_EVIDENCE_MAPPING",
@@ -92,8 +105,14 @@ def _dimension_result(
             "evidenceLedgerId": ledger.evidence_ledger_id,
             "evidenceEngineVersion": ledger.evidence_engine_version,
             "dimensionRegistryVersion": DIMENSION_REGISTRY_VERSION,
+            "dimensionCalibrationVersion": calibration_spec.calibration_version,
             "dimensionEngineVersion": DIMENSION_ENGINE_VERSION,
             "scoringVersion": DIMENSION_SCORING_VERSION,
+            "scoringEligibility": {
+                "permitted": eligibility.scoring_permitted,
+                "blockers": list(eligibility.blockers),
+                "compatibleVersions": eligibility.compatible_versions,
+            },
             "reason": reason,
         },
     }

@@ -26,7 +26,8 @@ declare
     'measurement_records',
     'semantic_result_records',
     'evidence_ledgers',
-    'dimension_results'
+    'dimension_results',
+    'dimension_calibration_specs'
   ];
   expected_privileged_functions text[] := array[
     'transition_scan_lifecycle',
@@ -40,7 +41,8 @@ declare
     'create_measurement_record',
     'create_unresolved_semantic_result',
     'create_evidence_ledger',
-    'create_dimension_result'
+    'create_dimension_result',
+    'create_dimension_calibration_spec'
   ];
   expected_policy_names text[] := array[
     'profiles_select_own',
@@ -190,6 +192,133 @@ begin
   raise notice 'PASS: no anon RLS policies exist';
 end;
 $$;
+
+do $$
+declare
+  spec_count integer;
+begin
+  select count(*)
+    into spec_count
+    from public.dimension_calibration_specs
+   where calibration_version = 'dimension-calibration-foundation-v0.1'
+     and status = 'CALIBRATION_REQUIRED'
+     and eligible_evidence_marker_ids = '[]'::jsonb
+     and required_evidence_marker_ids = '[]'::jsonb
+     and weights is null
+     and normalization is null
+     and thresholds is null
+     and confidence_model is null
+     and posterior_model is null
+     and reference_dataset is null
+     and validation_criteria is null
+     and activated_at is null;
+
+  if spec_count <> 16 then
+    raise exception 'ASSERTION_FAILED: expected 16 calibration-required Dimension specs without fake science; found %', spec_count;
+  end if;
+  raise notice 'PASS: calibration foundation seeds 16 CALIBRATION_REQUIRED specs without scoring constants';
+end;
+$$;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000101', false);
+select set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}', false);
+
+do $$
+begin
+  begin
+    perform * from public.create_dimension_calibration_spec(
+      'runtime:calibration:user-denied',
+      'dimension-calibration-foundation-v0.1',
+      'COG-P1',
+      '0.1',
+      'soulscope-evidence-engine-0.1.0',
+      'evidence-structural-v1',
+      '0.1',
+      'soulscope-dimension-engine-0.1.0',
+      'CALIBRATION_REQUIRED',
+      '[]'::jsonb,
+      '[]'::jsonb,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      jsonb_build_object('source', 'runtime-denied')
+    );
+    raise exception 'ASSERTION_FAILED: authenticated user created dimension calibration spec';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: dimension calibration spec creation is service-only';
+  end;
+end;
+$$;
+
+set role service_role;
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '{"role": "service_role"}', false);
+
+select * from public.create_dimension_calibration_spec(
+  'COG-P1:calibration-required',
+  'dimension-calibration-foundation-v0.1',
+  'COG-P1',
+  '0.1',
+  'soulscope-evidence-engine-0.1.0',
+  'evidence-structural-v1',
+  '0.1',
+  'soulscope-dimension-engine-0.1.0',
+  'CALIBRATION_REQUIRED',
+  '[]'::jsonb,
+  '[]'::jsonb,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  jsonb_build_object(
+    'source', 'dimension_calibration_foundation',
+    'contract_version', '0.1',
+    'scientific_status', 'CALIBRATION_REQUIRED',
+    'note', 'No repository-approved calibrated Dimension scoring specification exists.'
+  )
+)
+\gset calibration_seed_repeat_
+
+select set_config('test.calibration_seed_repeat_id', :'calibration_seed_repeat_calibration_spec_id', false);
+
+do $$
+declare
+  affected_count integer;
+begin
+  begin
+    update public.dimension_calibration_specs
+       set status = 'CALIBRATION_VALIDATED'
+     where id = current_setting('test.calibration_seed_repeat_id')::uuid;
+    get diagnostics affected_count = row_count;
+    if affected_count <> 0 then
+      raise exception 'ASSERTION_FAILED: immutable dimension calibration spec update was accepted';
+    end if;
+    raise notice 'PASS: dimension calibration specs are immutable';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: dimension calibration specs are immutable';
+  end;
+end;
+$$;
+
+reset role;
 
 begin;
 

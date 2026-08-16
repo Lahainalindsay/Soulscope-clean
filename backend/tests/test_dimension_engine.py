@@ -130,7 +130,27 @@ class DimensionEngineTests(unittest.TestCase):
 
         self.assertEqual(dimension["resolutionReason"], "CONSTRUCT_MODEL_NOT_VALIDATED")
         self.assertEqual(dimension["dimensionScoringVersion"], "CALIBRATION_REQUIRED")
+        self.assertEqual(dimension["calibrationStatus"], "CALIBRATION_REQUIRED")
         self.assertFalse(dimension["scoreProduced"])
+        self.assertFalse(dimension["scoringPermitted"])
+        self.assertIn("CALIBRATION_NOT_VALIDATED", dimension["scoringBlockers"])
+        self.assertIn("EVIDENCE_TO_DIMENSION_MAPPING_NOT_DEFINED", dimension["scoringBlockers"])
+
+    def test_all_dimensions_remain_unscored_when_calibration_is_required(self) -> None:
+        result = evaluate_dimensions(ledger_with([evidence_entry("ev_supported", "supported")]))
+
+        self.assertEqual(len(result.dimensions), 16)
+        for dimension in result.dimensions:
+            self.assertEqual(dimension["resolutionStatus"], "UNRESOLVED")
+            self.assertIsNone(dimension["posteriorMean"])
+            self.assertIsNone(dimension["posteriorLower"])
+            self.assertIsNone(dimension["posteriorUpper"])
+            self.assertIsNone(dimension["confidence"])
+            self.assertFalse(dimension["scoreProduced"])
+            self.assertFalse(dimension["confidenceProduced"])
+            self.assertFalse(dimension["scoringPermitted"])
+            self.assertIn("CALIBRATION_NOT_VALIDATED", dimension["scoringBlockers"])
+            self.assertTrue(dimension["calibrationGaps"])
 
     def test_provenance_references_evidence_ledger_and_versions(self) -> None:
         result = evaluate_dimensions(ledger_with([evidence_entry("ev_supported", "supported")]))
@@ -138,6 +158,7 @@ class DimensionEngineTests(unittest.TestCase):
 
         self.assertEqual(dimension["provenance"]["evidenceLedgerId"], "evidence-ledger-1")
         self.assertEqual(dimension["provenance"]["dimensionEngineVersion"], DIMENSION_ENGINE_VERSION)
+        self.assertFalse(dimension["provenance"]["scoringEligibility"]["permitted"])
         self.assertEqual(result.provenance["raw_audio_consumed"], False)
         self.assertEqual(result.provenance["measurement_record_consumed_directly"], False)
 
