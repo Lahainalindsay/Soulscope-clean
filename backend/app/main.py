@@ -9,6 +9,8 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile, stat
 from .auth import ServiceAuth
 from .config import require_service_settings
 from .database import SupabaseRestRpc
+from .dimensions.service import DimensionService
+from .dimensions.writer import DimensionWriter
 from .evidence.service import EvidenceService
 from .evidence.writer import EvidenceWriter
 from .logging import configure_logging
@@ -111,5 +113,28 @@ async def process_evidence(
         "evidence_ledger_id": str(result["evidence_ledger_id"]),
         "scan_id": str(result["scan_id"]),
         "measurement_record_id": str(result["measurement_record_id"]),
+        "status": str(result["status"]),
+    }
+
+
+@app.post("/internal/process-dimensions")
+async def process_dimensions(
+    evidence_ledger_id: Annotated[str, Form()],
+    x_worker_token: Annotated[str | None, Header()] = None,
+) -> dict[str, str]:
+    settings = require_service_settings()
+    if settings.worker_internal_token and x_worker_token != settings.worker_internal_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid worker token",
+        )
+    auth = ServiceAuth(settings.supabase_service_role_key)
+    rpc = SupabaseRestRpc(settings.supabase_url, auth)
+    service = DimensionService(settings.supabase_url, auth, DimensionWriter(rpc))
+    result = service.process_evidence_ledger(evidence_ledger_id)
+    return {
+        "dimension_result_id": str(result["dimension_result_id"]),
+        "scan_id": str(result["scan_id"]),
+        "evidence_ledger_id": str(result["evidence_ledger_id"]),
         "status": str(result["status"]),
     }

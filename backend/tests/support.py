@@ -63,6 +63,13 @@ class FakeRpc:
                 "measurement_record_id": payload["p_measurement_record_id"],
                 "status": "complete",
             }
+        elif name == "create_dimension_result":
+            response = {
+                "dimension_result_id": f"dimension-result-{payload['p_evidence_ledger_id']}",
+                "scan_id": "scan-1",
+                "evidence_ledger_id": payload["p_evidence_ledger_id"],
+                "status": "unresolved_abstained",
+            }
         else:
             raise AssertionError(f"Unexpected RPC call: {name}")
 

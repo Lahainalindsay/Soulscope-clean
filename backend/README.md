@@ -1,6 +1,6 @@
 # SoulScope Backend
 
-This directory contains the Python/FastAPI backend worker for Backend Milestones 1, 2, and 3.
+This directory contains the Python/FastAPI backend worker for Backend Milestones 1, 2, 3, and 4.
 
 The worker uses the service-owned Supabase RPC boundary established by the foundation migrations:
 
@@ -8,6 +8,7 @@ The worker uses the service-owned Supabase RPC boundary established by the found
 - `start_scan_processing_run`
 - `create_measurement_record`
 - `create_evidence_ledger`
+- `create_dimension_result`
 - `create_unresolved_semantic_result`
 
 It implements:
@@ -20,10 +21,12 @@ It implements:
 - immutable measurement-record payload creation
 - deterministic Evidence Engine v1 over immutable MeasurementRecords
 - immutable Evidence Ledger persistence
+- deterministic Dimension Engine v1 over immutable Evidence Ledgers
+- immutable Dimension Result persistence
 - unresolved semantic result creation
-- opt-in hosted Supabase tests for Storage, privileged RPCs, RLS, immutability, Evidence, and idempotency
+- opt-in hosted Supabase tests for Storage, privileged RPCs, RLS, immutability, Evidence, Dimensions, and idempotency
 
-It intentionally does not implement Dimension scoring, State selection, Pattern inference, Narrative generation, Resonance Signature rendering, frontend integration, or calibrated psychological/scientific interpretation.
+It intentionally does not implement calibrated Dimension scoring, State selection, Constellation scoring, Pattern inference, Narrative generation, Resonance Signature rendering, frontend integration, or calibrated psychological/scientific interpretation.
 
 ## Local checks
 
@@ -98,6 +101,32 @@ Every entry includes source measurement IDs, feature ID/version, prompt scope, m
 
 Evidence persistence uses the service-only `create_evidence_ledger(...)` RPC. Ledgers are immutable, owner-readable through RLS, non-owner isolated, and idempotent by MeasurementRecord plus Evidence Engine/rule version.
 
+## Dimension Engine v1
+
+Dimension Engine v1 is a deterministic transformation:
+
+```text
+immutable Evidence Ledger
+  -> Dimension Engine v1
+  -> immutable Dimension Result
+```
+
+It consumes persisted `evidence_ledgers.entries`, status counts, and ledger provenance. It does not consume raw audio, Storage objects, MeasurementRecords directly, frontend data, or semantic-result payloads.
+
+The engine enumerates the 16 canonical Dimensions from the Constellation Dimension Registry. Calibrated Dimension scoring, weights, normalization, posterior construction, and confidence formulas are not yet defined, so v1 abstains from scoring. Every Dimension Result entry has `posteriorMean`, posterior bounds, and `confidence` set to `null`, with `scoreProduced=false` and `confidenceProduced=false`.
+
+Dimension status semantics:
+
+- `UNRESOLVED`: Dimension output is intentionally unresolved because calibrated scoring is unavailable or the current protocol cannot observe the construct
+- `NO_RECOVERY_COMPATIBLE_CONDITION`: hard abstention for `REG-P4` Recovery
+- `NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL`: hard abstention for `CAP-P2` Reserve
+- `NO_RELATIONAL_OBSERVATION`: hard abstention for `EXP-P4` Relational Availability
+- `CONSTRUCT_MODEL_NOT_VALIDATED`: non-D3 v1 abstention because calibrated Dimension inference is deferred
+
+Supported, contradicted, unavailable, rejected, and insufficient Evidence entries remain distinct in Dimension provenance. Missing/rejected/null Evidence is never coerced to `0`, normal, average, or negative evidence.
+
+Dimension persistence uses the service-only `create_dimension_result(...)` RPC. Results are immutable, owner-readable through RLS, non-owner isolated, and idempotent by Evidence Ledger plus Dimension Engine/registry/scoring version.
+
 ## Running the service
 
 Local filesystem storage:
@@ -123,14 +152,15 @@ The `/health` endpoint returns a small deterministic JSON body and does not vali
 
 ## Current limits
 
-The hosted measurement pipeline remains measurement-only:
+The hosted pipeline currently stops at unresolved Dimension Results:
 
-- no Dimension Engine
 - no State inference
+- no Constellation scoring
 - no Pattern inference
 - no Narrative generation
+- no Resonance output
 - no frontend integration
-- no calibrated acoustic/scientific scoring
+- no calibrated Dimension or psychological/scientific scoring
 - no production deployment in this repository
 
-Backend scientific authority lives in `docs/CANONICAL_AUTHORITY_LEDGER.md` and `packages/canonical-contracts`. The current Supabase migrations provide the service-owned real-scan processing scaffold: uploaded capture artifact registration, processing-run metadata, immutable measurement records, and unresolved semantic result records.
+Backend scientific authority lives in `docs/CANONICAL_AUTHORITY_LEDGER.md` and `packages/canonical-contracts`. The current Supabase migrations provide the service-owned real-scan processing scaffold: uploaded capture artifact registration, processing-run metadata, immutable measurement records, immutable Evidence Ledgers, immutable Dimension Results, and unresolved semantic result records.

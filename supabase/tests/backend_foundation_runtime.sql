@@ -25,7 +25,8 @@ declare
     'scan_processing_runs',
     'measurement_records',
     'semantic_result_records',
-    'evidence_ledgers'
+    'evidence_ledgers',
+    'dimension_results'
   ];
   expected_privileged_functions text[] := array[
     'transition_scan_lifecycle',
@@ -38,7 +39,8 @@ declare
     'start_scan_processing_run',
     'create_measurement_record',
     'create_unresolved_semantic_result',
-    'create_evidence_ledger'
+    'create_evidence_ledger',
+    'create_dimension_result'
   ];
   expected_policy_names text[] := array[
     'profiles_select_own',
@@ -65,7 +67,8 @@ declare
     'scan_processing_runs_select_own_scan',
     'measurement_records_select_own_scan',
     'semantic_result_records_select_own_scan',
-    'evidence_ledgers_select_own_scan'
+    'evidence_ledgers_select_own_scan',
+    'dimension_results_select_own_scan'
   ];
   missing_count integer;
   bad_count integer;
@@ -1447,6 +1450,215 @@ begin
 end;
 $$;
 
+set local role authenticated;
+select set_config('request.jwt.claim.sub', current_setting('test.owner_user_id'), true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.owner_user_id'), 'role', 'authenticated')::text, true);
+
+do $$
+begin
+  begin
+    perform * from public.create_dimension_result(
+      current_setting('test.pipeline_evidence_ledger_id')::uuid,
+      'runtime:pipeline:dimension-result:authenticated-denied',
+      'soulscope-dimension-engine-0.1.0',
+      '0.1',
+      'CALIBRATION_REQUIRED',
+      '0.1',
+      (
+        select jsonb_agg(jsonb_build_object(
+          'dimensionId', dimension_id,
+          'resolutionStatus', 'UNRESOLVED',
+          'resolutionReason', 'CONSTRUCT_MODEL_NOT_VALIDATED',
+          'posteriorMean', null,
+          'confidence', null
+        ) order by ord)
+        from unnest(array[
+          'COG-P1','COG-P2','COG-P3','COG-P4',
+          'REG-P1','REG-P2','REG-P3','REG-P4',
+          'CAP-P1','CAP-P2','CAP-P3','CAP-P4',
+          'EXP-P1','EXP-P2','EXP-P3','EXP-P4'
+        ]) with ordinality as dims(dimension_id, ord)
+      ),
+      jsonb_build_object('unresolved', 16, 'resolved', 0, 'invalid', 0),
+      jsonb_build_object(
+        'source', 'evidence_ledger',
+        'evidence_ledger_id', current_setting('test.pipeline_evidence_ledger_id'),
+        'raw_audio_consumed', false,
+        'measurement_record_consumed_directly', false,
+        'downstream_state_generated', false,
+        'downstream_pattern_generated', false,
+        'narrative_generated', false,
+        'resonance_generated', false
+      )
+    );
+    raise exception 'ASSERTION_FAILED: authenticated user created dimension result';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: dimension result creation is service-only';
+  end;
+end;
+$$;
+
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claims', '{"role": "service_role"}', true);
+
+select * from public.create_dimension_result(
+  current_setting('test.pipeline_evidence_ledger_id')::uuid,
+  'runtime:pipeline:dimension-result',
+  'soulscope-dimension-engine-0.1.0',
+  '0.1',
+  'CALIBRATION_REQUIRED',
+  '0.1',
+  (
+    select jsonb_agg(jsonb_build_object(
+      'dimensionId', dimension_id,
+      'resolutionStatus', 'UNRESOLVED',
+      'resolutionReason',
+        case dimension_id
+          when 'REG-P4' then 'NO_RECOVERY_COMPATIBLE_CONDITION'
+          when 'CAP-P2' then 'NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL'
+          when 'EXP-P4' then 'NO_RELATIONAL_OBSERVATION'
+          else 'CONSTRUCT_MODEL_NOT_VALIDATED'
+        end,
+      'posteriorMean', null,
+      'confidence', null,
+      'scoreProduced', false,
+      'confidenceProduced', false
+    ) order by ord)
+    from unnest(array[
+      'COG-P1','COG-P2','COG-P3','COG-P4',
+      'REG-P1','REG-P2','REG-P3','REG-P4',
+      'CAP-P1','CAP-P2','CAP-P3','CAP-P4',
+      'EXP-P1','EXP-P2','EXP-P3','EXP-P4'
+    ]) with ordinality as dims(dimension_id, ord)
+  ),
+  jsonb_build_object('unresolved', 16, 'resolved', 0, 'invalid', 0),
+  jsonb_build_object(
+    'source', 'evidence_ledger',
+    'evidence_ledger_id', current_setting('test.pipeline_evidence_ledger_id'),
+    'raw_audio_consumed', false,
+    'measurement_record_consumed_directly', false,
+    'downstream_state_generated', false,
+    'downstream_pattern_generated', false,
+    'narrative_generated', false,
+    'resonance_generated', false
+  )
+)
+\gset pipeline_dimension_
+
+select set_config('test.pipeline_dimension_result_id', :'pipeline_dimension_dimension_result_id', true);
+
+select * from public.create_dimension_result(
+  current_setting('test.pipeline_evidence_ledger_id')::uuid,
+  'runtime:pipeline:dimension-result',
+  'soulscope-dimension-engine-0.1.0',
+  '0.1',
+  'CALIBRATION_REQUIRED',
+  '0.1',
+  (
+    select jsonb_agg(jsonb_build_object(
+      'dimensionId', dimension_id,
+      'resolutionStatus', 'UNRESOLVED',
+      'resolutionReason',
+        case dimension_id
+          when 'REG-P4' then 'NO_RECOVERY_COMPATIBLE_CONDITION'
+          when 'CAP-P2' then 'NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL'
+          when 'EXP-P4' then 'NO_RELATIONAL_OBSERVATION'
+          else 'CONSTRUCT_MODEL_NOT_VALIDATED'
+        end,
+      'posteriorMean', null,
+      'confidence', null,
+      'scoreProduced', false,
+      'confidenceProduced', false
+    ) order by ord)
+    from unnest(array[
+      'COG-P1','COG-P2','COG-P3','COG-P4',
+      'REG-P1','REG-P2','REG-P3','REG-P4',
+      'CAP-P1','CAP-P2','CAP-P3','CAP-P4',
+      'EXP-P1','EXP-P2','EXP-P3','EXP-P4'
+    ]) with ordinality as dims(dimension_id, ord)
+  ),
+  jsonb_build_object('unresolved', 16, 'resolved', 0, 'invalid', 0),
+  jsonb_build_object(
+    'source', 'evidence_ledger',
+    'evidence_ledger_id', current_setting('test.pipeline_evidence_ledger_id'),
+    'raw_audio_consumed', false,
+    'measurement_record_consumed_directly', false,
+    'downstream_state_generated', false,
+    'downstream_pattern_generated', false,
+    'narrative_generated', false,
+    'resonance_generated', false
+  )
+)
+\gset pipeline_dimension_repeat_
+
+select set_config('test.pipeline_dimension_repeat_result_id', :'pipeline_dimension_repeat_dimension_result_id', true);
+
+do $$
+begin
+  if current_setting('test.pipeline_dimension_result_id') <> current_setting('test.pipeline_dimension_repeat_result_id') then
+    raise exception 'ASSERTION_FAILED: duplicate dimension result request was not idempotent';
+  end if;
+  raise notice 'PASS: dimension result creation is idempotent';
+end;
+$$;
+
+select * from public.create_dimension_result(
+  current_setting('test.pipeline_evidence_ledger_id')::uuid,
+  'runtime:pipeline:dimension-result-second-key',
+  'soulscope-dimension-engine-0.1.0',
+  '0.1',
+  'CALIBRATION_REQUIRED',
+  '0.1',
+  (
+    select jsonb_agg(jsonb_build_object(
+      'dimensionId', dimension_id,
+      'resolutionStatus', 'UNRESOLVED',
+      'resolutionReason',
+        case dimension_id
+          when 'REG-P4' then 'NO_RECOVERY_COMPATIBLE_CONDITION'
+          when 'CAP-P2' then 'NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL'
+          when 'EXP-P4' then 'NO_RELATIONAL_OBSERVATION'
+          else 'CONSTRUCT_MODEL_NOT_VALIDATED'
+        end,
+      'posteriorMean', null,
+      'confidence', null,
+      'scoreProduced', false,
+      'confidenceProduced', false
+    ) order by ord)
+    from unnest(array[
+      'COG-P1','COG-P2','COG-P3','COG-P4',
+      'REG-P1','REG-P2','REG-P3','REG-P4',
+      'CAP-P1','CAP-P2','CAP-P3','CAP-P4',
+      'EXP-P1','EXP-P2','EXP-P3','EXP-P4'
+    ]) with ordinality as dims(dimension_id, ord)
+  ),
+  jsonb_build_object('unresolved', 16, 'resolved', 0, 'invalid', 0),
+  jsonb_build_object(
+    'source', 'evidence_ledger',
+    'evidence_ledger_id', current_setting('test.pipeline_evidence_ledger_id'),
+    'raw_audio_consumed', false,
+    'measurement_record_consumed_directly', false,
+    'downstream_state_generated', false,
+    'downstream_pattern_generated', false,
+    'narrative_generated', false,
+    'resonance_generated', false
+  )
+)
+\gset pipeline_dimension_second_key_
+
+select set_config('test.pipeline_dimension_second_key_result_id', :'pipeline_dimension_second_key_dimension_result_id', true);
+
+do $$
+begin
+  if current_setting('test.pipeline_dimension_result_id') <> current_setting('test.pipeline_dimension_second_key_result_id') then
+    raise exception 'ASSERTION_FAILED: duplicate logical dimension result with a different retry key created a second row';
+  end if;
+  raise notice 'PASS: dimension result logical uniqueness is database-enforced';
+end;
+$$;
+
 select * from public.create_unresolved_semantic_result(
   current_setting('test.pipeline_measurement_id')::uuid,
   'runtime:pipeline:semantic-unresolved'
@@ -1518,6 +1730,16 @@ begin
 	    when insufficient_privilege then
 	      raise notice 'PASS: evidence ledgers are immutable';
 	  end;
+
+	  begin
+	    update public.dimension_results
+	       set status = 'invalid'
+	     where id = current_setting('test.pipeline_dimension_result_id')::uuid;
+	    raise exception 'ASSERTION_FAILED: immutable dimension result update was accepted';
+	  exception
+	    when insufficient_privilege then
+	      raise notice 'PASS: dimension results are immutable';
+	  end;
 	end;
 	$$;
 
@@ -1533,10 +1755,12 @@ begin
     select 1 from public.semantic_result_records where id = current_setting('test.pipeline_semantic_id')::uuid
   ) or not exists (
     select 1 from public.evidence_ledgers where id = current_setting('test.pipeline_evidence_ledger_id')::uuid
+  ) or not exists (
+    select 1 from public.dimension_results where id = current_setting('test.pipeline_dimension_result_id')::uuid
   ) then
-    raise exception 'ASSERTION_FAILED: owner cannot read pipeline measurement, evidence, and semantic records';
+    raise exception 'ASSERTION_FAILED: owner cannot read pipeline measurement, evidence, dimension, and semantic records';
   end if;
-  raise notice 'PASS: owner can read their pipeline measurement, evidence, and semantic records';
+  raise notice 'PASS: owner can read their pipeline measurement, evidence, dimension, and semantic records';
 end;
 $$;
 
@@ -1551,10 +1775,12 @@ begin
     select 1 from public.semantic_result_records where id = current_setting('test.pipeline_semantic_id')::uuid
   ) or exists (
     select 1 from public.evidence_ledgers where id = current_setting('test.pipeline_evidence_ledger_id')::uuid
+  ) or exists (
+    select 1 from public.dimension_results where id = current_setting('test.pipeline_dimension_result_id')::uuid
   ) then
-    raise exception 'ASSERTION_FAILED: another user can read pipeline measurement, evidence, or semantic records';
+    raise exception 'ASSERTION_FAILED: another user can read pipeline measurement, evidence, dimension, or semantic records';
   end if;
-  raise notice 'PASS: another user cannot read pipeline measurement, evidence, or semantic records';
+  raise notice 'PASS: another user cannot read pipeline measurement, evidence, dimension, or semantic records';
 end;
 $$;
 

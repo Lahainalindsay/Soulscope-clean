@@ -16,6 +16,9 @@ from urllib.request import Request, urlopen
 from app.auth import ServiceAuth
 from app.config import Settings
 from app.database import SupabaseRestRpc
+from app.dimensions.engine import evaluate_dimensions
+from app.dimensions.models import EvidenceLedgerInput
+from app.dimensions.writer import DimensionWriter
 from app.evidence.engine import evaluate_evidence
 from app.evidence.models import MeasurementRecordInput
 from app.evidence.writer import EvidenceWriter
@@ -145,6 +148,15 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
             )
         self.assertIn(anon_evidence_error.exception.status_code, (401, 403, 404))
 
+        with self.assertRaises(HostedHttpError) as anon_dimension_error:
+            self._rpc_with_key(
+                self.anon_key,
+                None,
+                "create_dimension_result",
+                _dimension_denial_payload("00000000-0000-4000-8000-000000000000", f"{self.namespace}:anon-dimension-denied"),
+            )
+        self.assertIn(anon_dimension_error.exception.status_code, (401, 403, 404))
+
         with self.assertRaises(HostedHttpError) as user_error:
             self._rpc_as_user(
                 self.user_a,
@@ -180,6 +192,14 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
                 },
             )
         self.assertIn(user_evidence_error.exception.status_code, (401, 403, 404))
+
+        with self.assertRaises(HostedHttpError) as user_dimension_error:
+            self._rpc_as_user(
+                self.user_a,
+                "create_dimension_result",
+                _dimension_denial_payload("00000000-0000-4000-8000-000000000000", f"{self.namespace}:user-dimension-denied"),
+            )
+        self.assertIn(user_dimension_error.exception.status_code, (401, 403, 404))
 
     def test_hosted_fixture_scan_persists_measurements_and_enforces_rls(self) -> None:
         scan_id, captures = self._create_ready_scan(self.user_a)
@@ -249,6 +269,51 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
                 self.user_a,
                 "PATCH",
                 f"evidence_ledgers?{urlencode({'id': f'eq.{evidence_ids[0]}'})}",
+                {"status": "invalid"},
+            )
+
+        service_evidence = self._rest_with_key(
+            self.service_role_key,
+            "GET",
+            f"evidence_ledgers?{urlencode({'id': f'eq.{evidence_ids[0]}', 'select': '*'})}",
+        )
+        dimension_result = evaluate_dimensions(EvidenceLedgerInput.from_row(service_evidence[0]))
+        dimension_writer = DimensionWriter(SupabaseRestRpc(self.supabase_url, ServiceAuth(self.service_role_key)))
+
+        def write_dimension_once() -> str:
+            row = dimension_writer.create_dimension_result(
+                dimension_result,
+                f"dimension-result:{self.namespace}:{evidence_ids[0]}",
+            )
+            return str(row["dimension_result_id"])
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            dimension_ids = list(executor.map(lambda _index: write_dimension_once(), range(2)))
+        self.assertEqual(dimension_ids[0], dimension_ids[1])
+
+        owner_dimensions = self._rest_as_user(
+            self.user_a,
+            "GET",
+            f"dimension_results?{urlencode({'id': f'eq.{dimension_ids[0]}', 'select': 'id,status,status_counts,dimensions,dimension_scoring_version'})}",
+        )
+        self.assertEqual(len(owner_dimensions), 1)
+        self.assertEqual(owner_dimensions[0]["dimension_scoring_version"], "CALIBRATION_REQUIRED")
+        self.assertEqual(len(owner_dimensions[0]["dimensions"]), 16)
+        self.assertTrue(all(item["posteriorMean"] is None for item in owner_dimensions[0]["dimensions"]))
+        self.assertTrue(all(item["confidence"] is None for item in owner_dimensions[0]["dimensions"]))
+
+        user_b_dimensions = self._rest_as_user(
+            self.user_b,
+            "GET",
+            f"dimension_results?{urlencode({'id': f'eq.{dimension_ids[0]}', 'select': 'id'})}",
+        )
+        self.assertEqual(user_b_dimensions, [])
+
+        with self.assertRaises(HostedHttpError):
+            self._rest_as_user(
+                self.user_a,
+                "PATCH",
+                f"dimension_results?{urlencode({'id': f'eq.{dimension_ids[0]}'})}",
                 {"status": "invalid"},
             )
 
@@ -500,3 +565,52 @@ def _safe_detail(detail: str) -> str:
     if "jwt" in lowered or "token" in lowered:
         return "AUTH_ERROR"
     return "REQUEST_FAILED"
+
+
+def _dimension_denial_payload(evidence_ledger_id: str, idempotency_key: str) -> dict[str, Any]:
+    dimensions = [
+        {
+            "dimensionId": dimension_id,
+            "resolutionStatus": "UNRESOLVED",
+            "resolutionReason": "CONSTRUCT_MODEL_NOT_VALIDATED",
+            "posteriorMean": None,
+            "confidence": None,
+        }
+        for dimension_id in [
+            "COG-P1",
+            "COG-P2",
+            "COG-P3",
+            "COG-P4",
+            "REG-P1",
+            "REG-P2",
+            "REG-P3",
+            "REG-P4",
+            "CAP-P1",
+            "CAP-P2",
+            "CAP-P3",
+            "CAP-P4",
+            "EXP-P1",
+            "EXP-P2",
+            "EXP-P3",
+            "EXP-P4",
+        ]
+    ]
+    return {
+        "p_evidence_ledger_id": evidence_ledger_id,
+        "p_idempotency_key": idempotency_key,
+        "p_dimension_engine_version": "soulscope-dimension-engine-0.1.0",
+        "p_dimension_registry_version": "0.1",
+        "p_dimension_scoring_version": "CALIBRATION_REQUIRED",
+        "p_result_schema_version": "0.1",
+        "p_dimensions": dimensions,
+        "p_status_counts": {"unresolved": 16, "resolved": 0, "invalid": 0},
+        "p_provenance": {
+            "source": "evidence_ledger",
+            "raw_audio_consumed": False,
+            "measurement_record_consumed_directly": False,
+            "downstream_state_generated": False,
+            "downstream_pattern_generated": False,
+            "narrative_generated": False,
+            "resonance_generated": False,
+        },
+    }
