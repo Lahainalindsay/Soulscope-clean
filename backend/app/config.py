@@ -4,19 +4,19 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-EXTRACTOR_VERSION = "soulscope-measurement-worker-0.1.0"
+EXTRACTOR_VERSION = "soulscope-measurement-worker-0.2.0"
 QUALITY_RULES_VERSION = "0.1"
 PROTOCOL_VERSION = "1.3"
 RENDERER_REGISTRY_VERSION = "CALIBRATION_REQUIRED"
-EVIDENCE_ENGINE_VERSION = "soulscope-evidence-engine-0.1.0"
-EVIDENCE_RULE_VERSION = "evidence-structural-v1"
+EVIDENCE_ENGINE_VERSION = "soulscope-evidence-engine-0.2.0"
+EVIDENCE_RULE_VERSION = "evidence-canonical-structural-v2"
 EVIDENCE_LEDGER_SCHEMA_VERSION = "0.1"
 EVIDENCE_REGISTRY_VERSION = "0.1"
-DIMENSION_ENGINE_VERSION = "soulscope-dimension-engine-0.1.0"
+DIMENSION_ENGINE_VERSION = "soulscope-dimension-engine-0.2.0"
 DIMENSION_RESULT_SCHEMA_VERSION = "0.1"
 DIMENSION_REGISTRY_VERSION = "0.1"
 DIMENSION_SCORING_VERSION = "CALIBRATION_REQUIRED"
-DIMENSION_CALIBRATION_REGISTRY_VERSION = "dimension-calibration-foundation-v0.1"
+DIMENSION_CALIBRATION_REGISTRY_VERSION = "dimension-calibration-foundation-v0.2"
 DIMENSION_CALIBRATION_CONTRACT_VERSION = "0.1"
 
 

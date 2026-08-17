@@ -7,6 +7,7 @@ from pathlib import Path
 from ..config import EXTRACTOR_VERSION
 from .formants import formant_measurements_unavailable
 from .pitch import estimate_pitch_hz
+from .registry import NON_CANONICAL_REGISTRY_VERSION, registry_version_for
 from .spectral import estimate_spectral_centroid_hz
 from .temporal import summarize_temporal_activity
 
@@ -74,27 +75,33 @@ def extract_measurements(path: Path, capture_id: str, prompt_id: str, threshold:
     clipping_ratio = clipping_count / len(wav.samples) if wav.samples else 0.0
     temporal = summarize_temporal_activity(wav.samples, wav.sample_rate, threshold)
 
+    response_onset_latency = _response_onset_latency_ms(wav.samples, wav.sample_rate, threshold)
     measurements: list[dict[str, object]] = [
-        measurement("AC_DURATION_MS", duration_ms, "ms", capture_id, prompt_id, "wave_header"),
-        measurement("AC_RMS_ENERGY", rms, "ratio", capture_id, prompt_id, "pcm_rms"),
-        measurement("AC_PEAK_AMPLITUDE", peak, "ratio", capture_id, prompt_id, "pcm_peak"),
-        measurement("AC_CLIPPING_RATIO", clipping_ratio, "ratio", capture_id, prompt_id, "pcm_peak_count"),
-        measurement("AC_SPEECH_RATIO", temporal.speech_ratio, "ratio", capture_id, prompt_id, "energy_vad"),
-        measurement("AC_SILENCE_RATIO", temporal.silence_ratio, "ratio", capture_id, prompt_id, "energy_vad"),
+        measurement("SS_RESPONSE_ONSET_LATENCY", response_onset_latency, "ms", capture_id, prompt_id, "energy_vad_first_speech_frame"),
+        measurement("SS_PAUSE_LOAD", temporal.silence_ratio, "ratio", capture_id, prompt_id, "energy_vad_silence_ratio"),
+        measurement("Q_CLIPPING_RATIO", clipping_ratio, "ratio", capture_id, prompt_id, "pcm_peak_count"),
+        measurement("Q_VOICED_RATIO", temporal.speech_ratio, "ratio", capture_id, prompt_id, "energy_vad_voiced_ratio"),
+        measurement("PROVISIONAL_DURATION_MS", duration_ms, "ms", capture_id, prompt_id, "wave_header"),
+        measurement("PROVISIONAL_RMS_ENERGY", rms, "ratio", capture_id, prompt_id, "pcm_rms"),
+        measurement("PROVISIONAL_PEAK_AMPLITUDE", peak, "ratio", capture_id, prompt_id, "pcm_peak"),
+        measurement("PROVISIONAL_ENERGY_SPEECH_RATIO", temporal.speech_ratio, "ratio", capture_id, prompt_id, "energy_vad"),
+        measurement("PROVISIONAL_ENERGY_SILENCE_RATIO", temporal.silence_ratio, "ratio", capture_id, prompt_id, "energy_vad"),
     ]
 
     pitch_hz = estimate_pitch_hz(wav.samples, wav.sample_rate)
-    measurements.append(measurement("AC_PITCH_ZCR_HZ", pitch_hz, "Hz", capture_id, prompt_id, "zero_crossing"))
+    measurements.append(measurement("PROVISIONAL_PITCH_ZCR_HZ", pitch_hz, "Hz", capture_id, prompt_id, "zero_crossing"))
 
     centroid_hz = estimate_spectral_centroid_hz(wav.samples, wav.sample_rate)
     measurements.append(
-        measurement("AC_SPECTRAL_CENTROID_HZ", centroid_hz, "Hz", capture_id, prompt_id, "naive_dft")
+        measurement("PROVISIONAL_SPECTRAL_CENTROID_HZ", centroid_hz, "Hz", capture_id, prompt_id, "naive_dft")
     )
 
     formants = formant_measurements_unavailable()
     formants.update(
         {
             "feature_version": "0.1",
+            "feature_registry_version": NON_CANONICAL_REGISTRY_VERSION,
+            "implementation_status": "PROVISIONAL_NON_CANONICAL",
             "source_capture_id": capture_id,
             "capture_kind": prompt_id,
             "segment_start_ms": 0,
@@ -126,9 +133,17 @@ def measurement(
     prompt_id: str,
     method: str,
 ) -> dict[str, object]:
+    feature_registry_version = registry_version_for(feature_id)
+    implementation_status = (
+        "PROVISIONAL_IMPLEMENTATION_OF_CANONICAL_PARAMETER"
+        if feature_registry_version != NON_CANONICAL_REGISTRY_VERSION
+        else "PROVISIONAL_NON_CANONICAL"
+    )
     return {
         "feature_id": feature_id,
         "feature_version": "0.1",
+        "feature_registry_version": feature_registry_version,
+        "implementation_status": implementation_status,
         "value": value,
         "unit": unit,
         "method": method,
@@ -144,3 +159,17 @@ def measurement(
         "parameters": {},
         "device_metadata": {},
     }
+
+
+def _response_onset_latency_ms(samples: list[float], sample_rate: int, threshold: float) -> int | None:
+    if not samples or sample_rate <= 0:
+        return None
+    frame_size = max(1, int(sample_rate * 0.03))
+    for index in range(0, len(samples), frame_size):
+        frame = samples[index : index + frame_size]
+        if not frame:
+            continue
+        rms = (sum(value * value for value in frame) / len(frame)) ** 0.5
+        if rms >= threshold:
+            return round(index / sample_rate * 1000)
+    return None

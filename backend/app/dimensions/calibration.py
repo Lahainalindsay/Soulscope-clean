@@ -81,7 +81,7 @@ class DimensionCalibrationSpec:
                 "source": "dimension_calibration_foundation",
                 "contract_version": DIMENSION_CALIBRATION_CONTRACT_VERSION,
                 "scientific_status": "CALIBRATION_REQUIRED",
-                "note": "No repository-approved calibrated Dimension scoring specification exists.",
+                "note": "Canon-defined structural mappings may exist, but no repository-approved calibrated Dimension scoring specification exists.",
             },
         )
 
@@ -108,6 +108,7 @@ class DimensionScoringEligibility:
 
 CALIBRATION_GAP_CATEGORIES = (
     "evidence_to_dimension_mapping",
+    "calibrated_scoring_mapping",
     "weights",
     "thresholds",
     "normalization",
@@ -138,8 +139,13 @@ def audit_calibration_gaps(spec: DimensionCalibrationSpec) -> tuple[CalibrationG
     return (
         CalibrationGap(
             "evidence_to_dimension_mapping",
-            "NOT_DEFINED" if not spec.eligible_evidence_marker_ids and not spec.required_evidence_marker_ids else "PARTIALLY_DEFINED",
-            "No repository-approved Evidence-to-Dimension marker mapping exists.",
+            "PARTIALLY_DEFINED",
+            "Canon v1.3 registries define structural Evidence-to-Dimension family and candidate-marker requirements.",
+        ),
+        CalibrationGap(
+            "calibrated_scoring_mapping",
+            "NOT_DEFINED",
+            "No calibrated marker directionality, coefficients, or posterior mapping exists.",
         ),
         CalibrationGap("weights", "NOT_DEFINED" if spec.weights is None else "DEFINED", "No calibrated weights exist."),
         CalibrationGap(
@@ -208,7 +214,7 @@ def assess_dimension_scoring_eligibility(
     if spec.status != "CALIBRATION_VALIDATED":
         blockers.append("CALIBRATION_NOT_VALIDATED")
     for gap in gaps:
-        if gap.status != "DEFINED":
+        if gap.status != "DEFINED" and gap.category != "evidence_to_dimension_mapping":
             blockers.append(f"{gap.category.upper()}_NOT_DEFINED")
 
     if spec.required_evidence_marker_ids:

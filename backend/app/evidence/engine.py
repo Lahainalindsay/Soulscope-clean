@@ -11,7 +11,7 @@ from ..config import (
     EVIDENCE_REGISTRY_VERSION,
     EVIDENCE_RULE_VERSION,
 )
-from .markers import EXPECTED_FEATURE_IDS, MARKER_VERSION, PROMPT_IDS, marker_for_feature
+from .markers import MARKER_RULES, MARKER_VERSION, PROMPT_IDS
 from .models import EvidenceLedger, EvidenceStatus, MeasurementInput, MeasurementRecordInput
 
 
@@ -19,10 +19,9 @@ def evaluate_evidence(record: MeasurementRecordInput) -> EvidenceLedger:
     measurements = _flatten_measurements(record)
     by_prompt_feature = {(item.capture_kind, item.feature_id): item for item in measurements}
     entries: list[dict[str, Any]] = []
-    for prompt_id in PROMPT_IDS:
-        for feature_id in EXPECTED_FEATURE_IDS:
-            measurement = by_prompt_feature.get((prompt_id, feature_id))
-            entries.append(_entry_for_expected_measurement(record, prompt_id, feature_id, measurement))
+    for marker in MARKER_RULES:
+        for prompt_scope in marker.prompt_scopes:
+            entries.append(_entry_for_marker(record, marker, prompt_scope, by_prompt_feature, entries))
 
     ordered = tuple(sorted(entries, key=lambda item: item["evidence_id"]))
     status_counts = {status: 0 for status in ("supported", "contradicted", "unavailable", "rejected", "insufficient")}
@@ -78,12 +77,17 @@ def _flatten_measurements(record: MeasurementRecordInput) -> tuple[MeasurementIn
                 str(index),
             )
             parameters = raw.get("parameters")
+            parsed_parameters = deepcopy(parameters) if isinstance(parameters, dict) else {}
+            if raw.get("implementation_status") is not None:
+                parsed_parameters["implementation_status"] = str(raw.get("implementation_status"))
+            if raw.get("feature_registry_version") is not None:
+                parsed_parameters["feature_registry_version"] = str(raw.get("feature_registry_version"))
             device_metadata = raw.get("device_metadata")
             flattened.append(
                 MeasurementInput(
                     measurement_id=measurement_id,
                     feature_id=feature_id,
-                    feature_version=str(raw.get("feature_version") or "unknown"),
+            feature_version=str(raw.get("feature_version") or "unknown"),
                     value=raw.get("value") if _json_scalar_or_none(raw.get("value")) else None,
                     unit=None if raw.get("unit") is None else str(raw.get("unit")),
                     method=None if raw.get("method") is None else str(raw.get("method")),
@@ -96,88 +100,70 @@ def _flatten_measurements(record: MeasurementRecordInput) -> tuple[MeasurementIn
                     rejection_reason=None if raw.get("rejection_reason") is None else str(raw.get("rejection_reason")),
                     extractor=None if raw.get("extractor") is None else str(raw.get("extractor")),
                     extractor_version=None if raw.get("extractor_version") is None else str(raw.get("extractor_version")),
-                    parameters=deepcopy(parameters) if isinstance(parameters, dict) else {},
+                    parameters=parsed_parameters,
                     device_metadata=deepcopy(device_metadata) if isinstance(device_metadata, dict) else {},
                 )
             )
     return tuple(flattened)
 
 
-def _entry_for_expected_measurement(
+def _entry_for_marker(
     record: MeasurementRecordInput,
-    prompt_id: str,
-    feature_id: str,
-    measurement: MeasurementInput | None,
+    marker: Any,
+    prompt_scope: str,
+    by_prompt_feature: dict[tuple[str, str], MeasurementInput],
+    prior_entries: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    marker = marker_for_feature(feature_id)
     timestamp = record.created_at or "1970-01-01T00:00:00+00:00"
-    if measurement is None:
-        evidence_status: EvidenceStatus = "unavailable"
-        source_measurement_ids: list[str] = []
-        missing_components = [feature_id]
-        rejected_components: list[str] = []
-        supporting_components: list[str] = []
-        quality: dict[str, object] = {"measurement_quality": "not_available"}
-        value = None
-        unit = None
-        resolution_reason = "MISSING_REQUIRED_EVIDENCE"
+    component_states = _component_states(marker, prompt_scope, by_prompt_feature, prior_entries)
+    source_measurement_ids = [state["measurement_id"] for state in component_states if state.get("measurement_id")]
+    supporting_components = [state["component_id"] for state in component_states if state["state"] == "supported"]
+    rejected_components = [state["component_id"] for state in component_states if state["state"] == "rejected"]
+    insufficient_components = [state["component_id"] for state in component_states if state["state"] == "insufficient"]
+    missing_components = [state["component_id"] for state in component_states if state["state"] == "unavailable"]
+    eligible_count = len(supporting_components)
+    if rejected_components:
+        evidence_status: EvidenceStatus = "rejected"
         status = "UNRESOLVED"
-        source_capture_id = None
-        method = None
-        extractor_version: str | None = record.extractor_version
-        feature_version = "unknown"
-        segment_start_ms = None
-        segment_end_ms = None
+        resolution_reason = "QUALITY_GATE_FAILED"
+    elif eligible_count >= marker.minimum_independent_inputs:
+        evidence_status = "supported"
+        status = "RESOLVED"
+        resolution_reason = None
+    elif insufficient_components or eligible_count > 0:
+        evidence_status = "insufficient"
+        status = "UNRESOLVED"
+        resolution_reason = "INSUFFICIENT_ELIGIBLE_COMPONENTS"
     else:
-        source_measurement_ids = [measurement.measurement_id]
-        source_capture_id = measurement.source_capture_id
-        method = measurement.method
-        extractor_version = measurement.extractor_version
-        feature_version = measurement.feature_version
-        segment_start_ms = measurement.segment_start_ms
-        segment_end_ms = measurement.segment_end_ms
-        value = measurement.value
-        unit = measurement.unit
-        rejected = measurement.quality in {"rejected", "not_available"} or measurement.rejection_reason is not None
-        if measurement.value is None and rejected:
-            evidence_status = "rejected"
-            status = "UNRESOLVED"
-            resolution_reason = "QUALITY_GATE_FAILED"
-            missing_components = []
-            rejected_components = [feature_id]
-            supporting_components = []
-        elif measurement.value is None:
-            evidence_status = "unavailable"
-            status = "UNRESOLVED"
-            resolution_reason = "MISSING_REQUIRED_EVIDENCE"
-            missing_components = [feature_id]
-            rejected_components = []
-            supporting_components = []
-        elif measurement.quality == "limited":
-            evidence_status = "insufficient"
-            status = "UNRESOLVED"
-            resolution_reason = "QUALITY_GATE_FAILED"
-            missing_components = []
-            rejected_components = []
-            supporting_components = []
-        else:
-            evidence_status = "supported"
-            status = "RESOLVED"
-            resolution_reason = None
-            missing_components = []
-            rejected_components = []
-            supporting_components = [feature_id]
-        quality = {
-            "measurement_quality": measurement.quality,
-            "confidence": measurement.confidence,
-            "rejection_reason": measurement.rejection_reason,
-        }
+        evidence_status = "unavailable"
+        status = "UNRESOLVED"
+        resolution_reason = "MISSING_REQUIRED_EVIDENCE"
+
+    first_measurement = next((state["measurement"] for state in component_states if state.get("measurement") is not None), None)
+    source_capture_id = first_measurement.source_capture_id if first_measurement is not None else None
+    method = first_measurement.method if first_measurement is not None else None
+    extractor_version = first_measurement.extractor_version if first_measurement is not None else record.extractor_version
+    segment_start_ms = first_measurement.segment_start_ms if first_measurement is not None else None
+    segment_end_ms = first_measurement.segment_end_ms if first_measurement is not None else None
+    quality = {
+        "component_states": [
+            {
+                "component_id": state["component_id"],
+                "state": state["state"],
+                "quality": state.get("quality"),
+                "rejection_reason": state.get("rejection_reason"),
+            }
+            for state in component_states
+        ],
+        "minimum_independent_inputs": marker.minimum_independent_inputs,
+        "eligible_component_count": eligible_count,
+    }
 
     evidence_id = _stable_id(
         "evidence",
         record.measurement_record_id,
-        prompt_id,
-        feature_id,
+        prompt_scope,
+        marker.marker_id,
         EVIDENCE_ENGINE_VERSION,
         EVIDENCE_RULE_VERSION,
     )
@@ -187,16 +173,16 @@ def _entry_for_expected_measurement(
         "marker_id": marker.marker_id,
         "marker_version": MARKER_VERSION,
         "scan_id": record.scan_id,
-        "prompt_scope": [prompt_id],
+        "prompt_scope": [prompt_scope],
         "time_scope": {"start_time": segment_start_ms, "end_time": segment_end_ms},
-        "reference_scope": {"reference_type": "WITHIN_SCAN_PROMPT_MEASUREMENT", "reference_id": record.measurement_record_id},
+        "reference_scope": _reference_scope(prompt_scope, record.measurement_record_id),
         "source_measurement_ids": source_measurement_ids,
         "source_feature_families": [marker.family],
-        "source_feature_id": feature_id,
-        "source_feature_version": feature_version,
+        "source_feature_id": None,
+        "source_feature_version": None,
         "source_capture_id": source_capture_id,
-        "value": value,
-        "unit": unit,
+        "value": None,
+        "unit": None,
         "direction": "NONE" if evidence_status == "supported" else "UNRESOLVED",
         "magnitude": None,
         "uncertainty": None,
@@ -208,8 +194,9 @@ def _entry_for_expected_measurement(
         "contradicting_components": [],
         "missing_components": missing_components,
         "rejected_components": rejected_components,
+        "insufficient_components": insufficient_components,
         "confound_flags": [],
-        "rule_id": "STRUCTURAL_MEASUREMENT_AVAILABILITY",
+        "rule_id": f"{marker.marker_id}:STRUCTURAL_COMPONENT_ELIGIBILITY",
         "rule_version": EVIDENCE_RULE_VERSION,
         "status": status,
         "timestamp": timestamp,
@@ -221,6 +208,11 @@ def _entry_for_expected_measurement(
             "extractor_version": extractor_version,
             "engine_version": EVIDENCE_ENGINE_VERSION,
             "raw_audio_consumed": False,
+            "accepted_inputs": supporting_components,
+            "rejected_inputs": rejected_components,
+            "missing_inputs": missing_components,
+            "insufficient_inputs": insufficient_components,
+            "source_evidence_families": [marker.family],
         },
         "version": {
             "protocol": record.protocol_version,
@@ -233,6 +225,76 @@ def _entry_for_expected_measurement(
     if resolution_reason is not None:
         entry["resolution_reason"] = resolution_reason
     return entry
+
+
+def _component_states(
+    marker: Any,
+    prompt_scope: str,
+    by_prompt_feature: dict[tuple[str, str], MeasurementInput],
+    prior_entries: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    states: list[dict[str, Any]] = []
+    for component_id in marker.candidate_feature_ids:
+        if component_id.startswith("EV_"):
+            matched_entries = [
+                entry
+                for entry in prior_entries
+                if entry.get("marker_id") == component_id and _scope_compatible(prompt_scope, entry.get("prompt_scope"))
+            ]
+            if not matched_entries:
+                states.append({"component_id": component_id, "state": "unavailable", "measurement_id": None, "measurement": None})
+                continue
+            if any(entry.get("evidence_status") == "supported" for entry in matched_entries):
+                states.append({"component_id": component_id, "state": "supported", "measurement_id": None, "measurement": None})
+            elif any(entry.get("evidence_status") == "rejected" for entry in matched_entries):
+                states.append({"component_id": component_id, "state": "rejected", "measurement_id": None, "measurement": None})
+            else:
+                states.append({"component_id": component_id, "state": "insufficient", "measurement_id": None, "measurement": None})
+            continue
+
+        prompt_ids = PROMPT_IDS if prompt_scope == "ALL_PROMPTS" or "_VS_" in prompt_scope else (prompt_scope,)
+        measurements = [by_prompt_feature[(prompt_id, component_id)] for prompt_id in prompt_ids if (prompt_id, component_id) in by_prompt_feature]
+        if not measurements:
+            states.append({"component_id": component_id, "state": "unavailable", "measurement_id": None, "measurement": None})
+            continue
+        measurement = measurements[0]
+        rejected = measurement.quality in {"rejected", "not_available"} or measurement.rejection_reason is not None
+        implementation_status = str(measurement.parameters.get("implementation_status") or "")
+        if measurement.value is None and rejected:
+            state = "rejected"
+        elif measurement.value is None:
+            state = "unavailable"
+        elif measurement.quality == "limited" or implementation_status == "PROVISIONAL_NON_CANONICAL":
+            state = "insufficient"
+        else:
+            state = "supported"
+        states.append(
+            {
+                "component_id": component_id,
+                "state": state,
+                "measurement_id": measurement.measurement_id,
+                "measurement": measurement,
+                "quality": measurement.quality,
+                "rejection_reason": measurement.rejection_reason,
+            }
+        )
+    return states
+
+
+def _scope_compatible(prompt_scope: str, entry_scope: object) -> bool:
+    if prompt_scope == "ALL_PROMPTS":
+        return True
+    if isinstance(entry_scope, list):
+        return prompt_scope in entry_scope or "ALL_PROMPTS" in entry_scope
+    return False
+
+
+def _reference_scope(prompt_scope: str, measurement_record_id: str) -> dict[str, str]:
+    if "_VS_" in prompt_scope or prompt_scope == "ALL_PROMPTS":
+        reference_type = "WITHIN_SESSION"
+    else:
+        reference_type = "WITHIN_PROMPT"
+    return {"reference_type": reference_type, "reference_id": measurement_record_id}
 
 
 def _stable_id(*parts: str) -> str:

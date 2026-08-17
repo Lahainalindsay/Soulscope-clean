@@ -177,3 +177,32 @@ Scope should be limited to:
 - no numeric Dimension scoring.
 
 This milestone should occur before any further calibration/scoring or State/Interaction/Pattern work.
+
+## Milestone 5.1 Resolution Record
+
+Status: IMPLEMENTED
+Date: 2026-08-17
+Scope: Canonical ID and structural mapping reconciliation only. No numeric Dimension scoring, State inference, Interaction inference, Pattern inference, Narrative generation, Resonance output, or frontend integration was implemented.
+
+### Resolution Summary
+
+| Original Finding | Resolution Status | Resolution |
+| --- | --- | --- |
+| P0: Measurement outputs use provisional non-registry acoustic feature IDs while claiming registry `0.1` | RESOLVED | Future extractor output now separates canonical `SS_*`/`Q_*` IDs from explicit `PROVISIONAL_*` compatibility measurements. Historical `AC_*` aliases are documented and interpreted as compatibility aliases, not active canonical IDs. |
+| P0: Evidence runtime/contracts use simplified marker labels rather than authoritative `EV_*` marker IDs | RESOLVED | Evidence Engine v2 and canonical contracts emit canonical `EV_*` marker IDs. Simplified labels are retained only as compatibility aliases in code, not as new canonical ledger output. |
+| P1: Canon-defined Evidence composite rules are missing | RESOLVED | Structural composite rules are encoded for canonical composite markers including `EV_TIM_008`, `EV_TIM_009`, `EV_PHO_004`, `EV_DYN_001`, `EV_DYN_003`, `EV_DYN_005`, `EV_DYN_007`, `EV_DYN_008`, and `EV_DYN_009`. Outputs preserve accepted, rejected, missing, and insufficient source components with rule provenance. |
+| P1: Canon-defined structural Evidence-to-Dimension requirements are not fully encoded | RESOLVED | Dimension Engine v2 and canonical contracts encode required families, optional families, candidate markers, required markers, prompt prerequisites, independent-family minimums, structural eligibility, and D3 abstentions for all 16 Dimensions. Numeric scoring remains disabled. |
+| P1: Duplicate Evidence persistence concepts remain | RESOLVED | `evidence_ledgers` is documented and constrained as the active canonical immutable write path. `evidence_records` remains immutable legacy compatibility data. A forward migration adds canonical `result_manifest_evidence_ledgers` membership while leaving legacy `result_manifest_evidence` intact for historical rows. |
+
+### Versioning
+
+- Measurement extractor: `soulscope-measurement-worker-0.1.0` -> `soulscope-measurement-worker-0.2.0` because emitted feature identities changed.
+- Evidence engine: `soulscope-evidence-engine-0.1.0` -> `soulscope-evidence-engine-0.2.0` because ledger marker IDs and composite structural behavior changed.
+- Evidence rule version: `evidence-structural-v1` -> `evidence-canonical-structural-v2` because canonical `EV_*` rules replaced simplified availability labels.
+- Dimension engine: `soulscope-dimension-engine-0.1.0` -> `soulscope-dimension-engine-0.2.0` because structural mapping metadata and family qualification were added.
+- Dimension calibration registry: `dimension-calibration-foundation-v0.1` -> `dimension-calibration-foundation-v0.2` because calibration blockers now distinguish structural mappings from missing calibrated scoring mappings.
+- Canon registry versions remain `0.1`; Canon v1.3 remains the governing source. Historical records retain their stored versions and are not rewritten.
+
+### Calibration Boundary
+
+Resolved structural mappings do not authorize numeric scoring. The following remain `CALIBRATION_REQUIRED`: marker directionality by Dimension, weights, thresholds, normalization, posterior construction, confidence formulas, validation datasets, validation criteria, publication cutoffs, State boundaries, Interaction models, Pattern models, and Narrative generation policy execution.

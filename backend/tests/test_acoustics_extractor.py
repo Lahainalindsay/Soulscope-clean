@@ -24,17 +24,35 @@ class AcousticExtractorTests(unittest.TestCase):
 
         self.assertEqual(first, second)
         feature_ids = {item["feature_id"] for item in first["measurements"]}  # type: ignore[index]
-        self.assertIn("AC_DURATION_MS", feature_ids)
-        self.assertIn("AC_RMS_ENERGY", feature_ids)
-        self.assertIn("AC_SPEECH_RATIO", feature_ids)
-        self.assertIn("AC_PITCH_ZCR_HZ", feature_ids)
-        self.assertIn("AC_FORMANT_TRACKING", feature_ids)
+        self.assertIn("SS_RESPONSE_ONSET_LATENCY", feature_ids)
+        self.assertIn("SS_PAUSE_LOAD", feature_ids)
+        self.assertIn("Q_CLIPPING_RATIO", feature_ids)
+        self.assertIn("Q_VOICED_RATIO", feature_ids)
+        self.assertIn("PROVISIONAL_DURATION_MS", feature_ids)
+        self.assertIn("PROVISIONAL_RMS_ENERGY", feature_ids)
+        self.assertIn("PROVISIONAL_PITCH_ZCR_HZ", feature_ids)
+        self.assertIn("PROVISIONAL_FORMANT_TRACKING", feature_ids)
+        self.assertNotIn("AC_DURATION_MS", feature_ids)
+        self.assertNotIn("AC_RMS_ENERGY", feature_ids)
 
         formant = next(
-            item for item in first["measurements"] if item["feature_id"] == "AC_FORMANT_TRACKING"  # type: ignore[index]
+            item for item in first["measurements"] if item["feature_id"] == "PROVISIONAL_FORMANT_TRACKING"  # type: ignore[index]
         )
         self.assertIsNone(formant["value"])  # type: ignore[index]
         self.assertEqual(formant["rejection_reason"], "CALIBRATION_REQUIRED")  # type: ignore[index]
+
+        canonical = [
+            item for item in first["measurements"] if item.get("feature_registry_version") == "0.1"  # type: ignore[union-attr]
+        ]
+        provisional = [
+            item
+            for item in first["measurements"]
+            if item.get("feature_registry_version") == "PROVISIONAL_NON_CANONICAL"  # type: ignore[union-attr]
+        ]
+        self.assertTrue(canonical)
+        self.assertTrue(provisional)
+        self.assertTrue(all(str(item["feature_id"]).startswith(("SS_", "Q_")) for item in canonical))  # type: ignore[index]
+        self.assertTrue(all(str(item["feature_id"]).startswith("PROVISIONAL_") for item in provisional))  # type: ignore[index]
 
     def test_missing_values_remain_null_not_zero(self) -> None:
         result = extract_measurements(

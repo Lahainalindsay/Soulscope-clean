@@ -8,6 +8,8 @@ from app.config import (
     DIMENSION_REGISTRY_VERSION,
     DIMENSION_RESULT_SCHEMA_VERSION,
     DIMENSION_SCORING_VERSION,
+    EVIDENCE_ENGINE_VERSION,
+    EVIDENCE_RULE_VERSION,
 )
 from app.dimensions.engine import evaluate_dimensions
 from app.dimensions.models import EvidenceLedgerInput
@@ -18,9 +20,9 @@ def evidence_entry(evidence_id: str, status: str) -> dict[str, object]:
     return {
         "evidence_id": evidence_id,
         "evidence_status": status,
-        "marker_id": "OUTPUT_CONTINUITY",
+        "marker_id": "EV_TIM_008",
         "source_measurement_ids": ["measurement-1"] if status == "supported" else [],
-        "source_feature_families": ["DYN"],
+        "source_feature_families": ["TIM"],
     }
 
 
@@ -35,8 +37,8 @@ def ledger_with(entries: list[dict[str, object]]) -> EvidenceLedgerInput:
             "processing_run_id": "run-1",
             "measurement_record_id": "measurement-record-1",
             "ledger_schema_version": "0.1",
-            "evidence_engine_version": "soulscope-evidence-engine-0.1.0",
-            "evidence_rule_version": "evidence-structural-v1",
+            "evidence_engine_version": EVIDENCE_ENGINE_VERSION,
+            "evidence_rule_version": EVIDENCE_RULE_VERSION,
             "evidence_registry_version": "0.1",
             "status": "complete",
             "entries": entries,
@@ -134,7 +136,8 @@ class DimensionEngineTests(unittest.TestCase):
         self.assertFalse(dimension["scoreProduced"])
         self.assertFalse(dimension["scoringPermitted"])
         self.assertIn("CALIBRATION_NOT_VALIDATED", dimension["scoringBlockers"])
-        self.assertIn("EVIDENCE_TO_DIMENSION_MAPPING_NOT_DEFINED", dimension["scoringBlockers"])
+        self.assertEqual(dimension["structuralMappingStatus"], "STRUCTURAL_MAPPING_DEFINED")
+        self.assertIn("CALIBRATED_SCORING_MAPPING_NOT_DEFINED", dimension["scoringBlockers"])
 
     def test_all_dimensions_remain_unscored_when_calibration_is_required(self) -> None:
         result = evaluate_dimensions(ledger_with([evidence_entry("ev_supported", "supported")]))

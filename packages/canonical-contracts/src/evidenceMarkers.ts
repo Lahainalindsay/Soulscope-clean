@@ -6,17 +6,12 @@ export const EVIDENCE_FAMILIES = Object.freeze(["PRO", "ENG", "TIM", "PHO", "SPE
 export type EvidenceFamily = (typeof EVIDENCE_FAMILIES)[number];
 
 export const EVIDENCE_MARKER_IDS = Object.freeze([
-  "PROSODIC_EXPANSION",
-  "PROSODIC_COMPRESSION",
-  "PAUSE_LOAD_INCREASE",
-  "TEMPORAL_FRAGMENTATION",
-  "OUTPUT_CONTINUITY",
-  "PHONATORY_SHIFT",
-  "PHONATORY_STABILITY",
-  "MODULATION_BREADTH",
-  "CONTEXT_RECONFIGURATION",
-  "CONTEXT_CONSISTENCY",
-  "WITHIN_PROMPT_DRIFT",
+  "EV_PRO_001", "EV_PRO_002", "EV_PRO_003", "EV_PRO_004",
+  "EV_ENG_001", "EV_ENG_002", "EV_ENG_003",
+  "EV_TIM_001", "EV_TIM_002", "EV_TIM_003", "EV_TIM_004", "EV_TIM_005", "EV_TIM_006", "EV_TIM_007", "EV_TIM_008", "EV_TIM_009",
+  "EV_PHO_001", "EV_PHO_002", "EV_PHO_003", "EV_PHO_004",
+  "EV_SPE_001", "EV_SPE_002", "EV_SPE_003",
+  "EV_DYN_001", "EV_DYN_002", "EV_DYN_003", "EV_DYN_004", "EV_DYN_005", "EV_DYN_006", "EV_DYN_007", "EV_DYN_008", "EV_DYN_009",
 ] as const);
 
 export type EvidenceMarkerId = (typeof EVIDENCE_MARKER_IDS)[number];
@@ -28,24 +23,27 @@ export type EvidenceMarkerRegistryEntry = Readonly<{
   prohibitedDirectTargets: readonly string[];
   registryVersion: typeof REGISTRY_VERSION;
   provenance: ReturnType<typeof provenance>;
+  composite: boolean;
 }>;
 
 const evidenceSource = sourceReference("evidenceMarkerRegistry", "Evidence Marker families and examples", "CANON");
 
 export const EVIDENCE_MARKER_REGISTRY: readonly EvidenceMarkerRegistryEntry[] = Object.freeze([
-  Object.freeze({ id: "PROSODIC_EXPANSION", family: "PRO", definition: "Broader qualified prosodic variation relative to an explicit reference.", prohibitedDirectTargets: Object.freeze(["emotion", "personality", "diagnosis", "deception"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
-  Object.freeze({ id: "PROSODIC_COMPRESSION", family: "PRO", definition: "Narrower qualified prosodic variation relative to an explicit reference.", prohibitedDirectTargets: Object.freeze(["emotion", "personality", "diagnosis", "deception"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
-  Object.freeze({ id: "PAUSE_LOAD_INCREASE", family: "TIM", definition: "Increased qualified pause load relative to an explicit reference.", prohibitedDirectTargets: Object.freeze(["stress", "anxiety", "diagnosis"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
-  Object.freeze({ id: "TEMPORAL_FRAGMENTATION", family: "TIM", definition: "Reduced temporal continuity or increased segmentation in qualified speech timing.", prohibitedDirectTargets: Object.freeze(["emotion", "identity", "hidden_truth"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
-  Object.freeze({ id: "OUTPUT_CONTINUITY", family: "DYN", definition: "Qualified continuity of output across a prompt or prompt contrast.", prohibitedDirectTargets: Object.freeze(["personality", "diagnosis"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
-  Object.freeze({ id: "PHONATORY_SHIFT", family: "PHO", definition: "Qualified change in phonatory voice-quality measurements.", prohibitedDirectTargets: Object.freeze(["disease", "organ_state", "diagnosis"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
-  Object.freeze({ id: "PHONATORY_STABILITY", family: "PHO", definition: "Qualified stability in phonatory voice-quality measurements.", prohibitedDirectTargets: Object.freeze(["health_status", "diagnosis"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
-  Object.freeze({ id: "MODULATION_BREADTH", family: "ENG", definition: "Qualified breadth of energy or modulation behavior.", prohibitedDirectTargets: Object.freeze(["confidence", "emotion"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
-  Object.freeze({ id: "CONTEXT_RECONFIGURATION", family: "DYN", definition: "Qualified acoustic reconfiguration across prompt contexts.", prohibitedDirectTargets: Object.freeze(["causality", "recovery", "improvement"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
-  Object.freeze({ id: "CONTEXT_CONSISTENCY", family: "DYN", definition: "Qualified preservation of acoustic structure across prompt contexts.", prohibitedDirectTargets: Object.freeze(["trait", "identity"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
-  Object.freeze({ id: "WITHIN_PROMPT_DRIFT", family: "DYN", definition: "Qualified temporal movement inside one prompt window.", prohibitedDirectTargets: Object.freeze(["hidden_motive", "deception"] as const), registryVersion: REGISTRY_VERSION, provenance: provenance(evidenceSource) }),
+  ...EVIDENCE_MARKER_IDS.map((id) => Object.freeze({
+    id,
+    family: id.split("_")[1] as EvidenceFamily,
+    definition: "Canonical Evidence Marker Registry v0.1 EV_* marker.",
+    prohibitedDirectTargets: Object.freeze(["emotion", "personality", "diagnosis", "deception", "identity"] as const),
+    registryVersion: REGISTRY_VERSION,
+    provenance: provenance(evidenceSource),
+    composite: ["EV_TIM_008", "EV_TIM_009", "EV_PHO_004", "EV_DYN_001", "EV_DYN_002", "EV_DYN_003", "EV_DYN_004", "EV_DYN_005", "EV_DYN_006", "EV_DYN_007", "EV_DYN_008", "EV_DYN_009"].includes(id),
+  })),
 ]);
 
 export function isEvidenceFamily(value: string): value is EvidenceFamily {
   return (EVIDENCE_FAMILIES as readonly string[]).includes(value);
+}
+
+export function isEvidenceMarkerId(value: string): value is EvidenceMarkerId {
+  return (EVIDENCE_MARKER_IDS as readonly string[]).includes(value);
 }

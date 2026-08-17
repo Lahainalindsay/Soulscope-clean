@@ -1,4 +1,5 @@
 export * from "./authority";
+export * from "./acousticParameters";
 export * from "./baselineHierarchy";
 export * from "./constellationIds";
 export * from "./dimensionIds";

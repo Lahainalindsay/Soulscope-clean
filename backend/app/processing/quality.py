@@ -24,9 +24,9 @@ def evaluate_prompt_quality(prompt_measurement: dict[str, object], settings: Set
         for item in measurements
         if isinstance(item, dict) and "feature_id" in item
     }
-    speech_ratio = float(lookup.get("AC_SPEECH_RATIO") or 0.0)
-    clipping_ratio = float(lookup.get("AC_CLIPPING_RATIO") or 0.0)
-    rms = float(lookup.get("AC_RMS_ENERGY") or 0.0)
+    speech_ratio = float(lookup.get("Q_VOICED_RATIO") or lookup.get("AC_SPEECH_RATIO") or 0.0)
+    clipping_ratio = float(lookup.get("Q_CLIPPING_RATIO") or lookup.get("AC_CLIPPING_RATIO") or 0.0)
+    rms = float(lookup.get("PROVISIONAL_RMS_ENERGY") or lookup.get("AC_RMS_ENERGY") or 0.0)
 
     rejection_reasons: list[str] = []
     warnings: list[str] = []

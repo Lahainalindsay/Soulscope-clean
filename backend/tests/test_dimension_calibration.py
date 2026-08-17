@@ -48,9 +48,12 @@ class DimensionCalibrationTests(unittest.TestCase):
 
         self.assertFalse(eligibility.scoring_permitted)
         self.assertIn("CALIBRATION_NOT_VALIDATED", eligibility.blockers)
-        self.assertIn("EVIDENCE_TO_DIMENSION_MAPPING_NOT_DEFINED", eligibility.blockers)
+        self.assertNotIn("EVIDENCE_TO_DIMENSION_MAPPING_NOT_DEFINED", eligibility.blockers)
+        self.assertIn("CALIBRATED_SCORING_MAPPING_NOT_DEFINED", eligibility.blockers)
         self.assertEqual([gap.category for gap in eligibility.gaps], list(CALIBRATION_GAP_CATEGORIES))
-        self.assertTrue(all(gap.status == "NOT_DEFINED" for gap in eligibility.gaps))
+        gaps = {gap.category: gap for gap in eligibility.gaps}
+        self.assertEqual(gaps["evidence_to_dimension_mapping"].status, "PARTIALLY_DEFINED")
+        self.assertEqual(gaps["calibrated_scoring_mapping"].status, "NOT_DEFINED")
 
     def test_incompatible_evidence_versions_block_scoring(self) -> None:
         row_ledger = ledger_with([evidence_entry("ev_supported", "supported")])

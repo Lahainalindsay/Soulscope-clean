@@ -23,13 +23,16 @@ class MeasurementRecordV1ContractTests(unittest.TestCase):
         self.assertIsInstance(measurements, list)
 
         by_feature = {item["feature_id"]: item for item in measurements}  # type: ignore[index]
-        self.assertEqual(by_feature["AC_DURATION_MS"]["unit"], "ms")
-        self.assertEqual(by_feature["AC_RMS_ENERGY"]["unit"], "ratio")
-        self.assertEqual(by_feature["AC_SPEECH_RATIO"]["unit"], "ratio")
-        self.assertEqual(by_feature["AC_PITCH_ZCR_HZ"]["unit"], "Hz")
-        self.assertEqual(by_feature["AC_SPECTRAL_CENTROID_HZ"]["unit"], "Hz")
-        self.assertIsNone(by_feature["AC_FORMANT_TRACKING"]["value"])
-        self.assertEqual(by_feature["AC_FORMANT_TRACKING"]["rejection_reason"], "CALIBRATION_REQUIRED")
+        self.assertEqual(by_feature["SS_RESPONSE_ONSET_LATENCY"]["unit"], "ms")
+        self.assertEqual(by_feature["SS_PAUSE_LOAD"]["unit"], "ratio")
+        self.assertEqual(by_feature["Q_CLIPPING_RATIO"]["unit"], "ratio")
+        self.assertEqual(by_feature["Q_VOICED_RATIO"]["unit"], "ratio")
+        self.assertEqual(by_feature["PROVISIONAL_DURATION_MS"]["unit"], "ms")
+        self.assertEqual(by_feature["PROVISIONAL_RMS_ENERGY"]["unit"], "ratio")
+        self.assertEqual(by_feature["PROVISIONAL_PITCH_ZCR_HZ"]["unit"], "Hz")
+        self.assertEqual(by_feature["PROVISIONAL_SPECTRAL_CENTROID_HZ"]["unit"], "Hz")
+        self.assertIsNone(by_feature["PROVISIONAL_FORMANT_TRACKING"]["value"])
+        self.assertEqual(by_feature["PROVISIONAL_FORMANT_TRACKING"]["rejection_reason"], "CALIBRATION_REQUIRED")
 
         for measurement in measurements:  # type: ignore[assignment]
             self.assertEqual(measurement.get("source_capture_id"), "capture-p3")
@@ -61,7 +64,7 @@ class MeasurementRecordV1ContractTests(unittest.TestCase):
         self.assertEqual(quality.status, "rejected")
         self.assertIn("NO_SPEECH_OR_MOSTLY_SILENCE", quality.rejection_reasons)
         formant = next(
-            item for item in result["measurements"] if item["feature_id"] == "AC_FORMANT_TRACKING"  # type: ignore[index]
+            item for item in result["measurements"] if item["feature_id"] == "PROVISIONAL_FORMANT_TRACKING"  # type: ignore[index]
         )
         self.assertIsNone(formant["value"])  # type: ignore[index]
 

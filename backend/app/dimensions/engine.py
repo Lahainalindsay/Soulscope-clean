@@ -10,6 +10,7 @@ from ..config import (
     DIMENSION_RESULT_SCHEMA_VERSION,
     DIMENSION_SCORING_VERSION,
 )
+from ..evidence.registry import marker_family
 from .calibration import assess_dimension_scoring_eligibility, get_calibration_spec
 from .models import DimensionResultSet, EvidenceLedgerInput
 from .registry import D3_ABSTENTION_REASONS, DIMENSION_DEFINITIONS, DimensionDefinition
@@ -60,6 +61,7 @@ def _dimension_result(
     d3_reason = D3_ABSTENTION_REASONS.get(definition.dimension_id)
     calibration_spec = get_calibration_spec(definition.dimension_id)
     eligibility = assess_dimension_scoring_eligibility(ledger, calibration_spec)
+    structural = _assess_structural_eligibility(definition, ledger.entries)
     reason = d3_reason or "CONSTRUCT_MODEL_NOT_VALIDATED"
     all_evidence_ids = evidence_summary["all_evidence_ids"]
     return {
@@ -73,6 +75,19 @@ def _dimension_result(
         "dimensionCalibrationVersion": calibration_spec.calibration_version,
         "dimensionScoringVersion": DIMENSION_SCORING_VERSION,
         "calibrationStatus": eligibility.calibration_status,
+        "structuralMappingStatus": "STRUCTURAL_MAPPING_DEFINED",
+        "structuralEligibility": structural["eligible"],
+        "structuralEligibilityReason": structural["reason"],
+        "requiredEvidenceFamilies": list(definition.required_evidence_families),
+        "optionalEvidenceFamilies": list(definition.optional_evidence_families),
+        "candidateEvidenceMarkerIds": list(definition.candidate_marker_ids),
+        "requiredEvidenceMarkerIds": list(definition.required_marker_ids),
+        "minimumIndependentFamilies": definition.minimum_independent_families,
+        "qualifiedEvidenceFamilies": structural["qualified_families"],
+        "missingRequiredEvidenceFamilies": structural["missing_required_families"],
+        "familyQualification": structural["family_qualification"],
+        "requiredPromptScopes": list(definition.required_prompt_scopes),
+        "structuralPrerequisites": list(definition.structural_prerequisites),
         "resolutionStatus": "UNRESOLVED",
         "resolutionReason": reason,
         "posteriorMean": None,
@@ -92,9 +107,9 @@ def _dimension_result(
             {"category": gap.category, "status": gap.status, "reason": gap.reason}
             for gap in eligibility.gaps
         ],
-        "relevantEvidenceIds": [],
-        "ignoredEvidenceIds": all_evidence_ids,
-        "ignoredEvidenceReason": "NO_CALIBRATED_DIMENSION_EVIDENCE_MAPPING",
+        "relevantEvidenceIds": structural["relevant_evidence_ids"],
+        "ignoredEvidenceIds": sorted(set(all_evidence_ids) - set(structural["relevant_evidence_ids"])),
+        "ignoredEvidenceReason": "NOT_A_CANDIDATE_FOR_THIS_DIMENSION_OR_SCORING_CALIBRATION_REQUIRED",
         "evidenceStatusCounts": deepcopy(evidence_summary["status_counts"]),
         "supportedEvidenceIds": evidence_summary["supported_evidence_ids"],
         "contradictedEvidenceIds": evidence_summary["contradicted_evidence_ids"],
@@ -113,6 +128,7 @@ def _dimension_result(
                 "blockers": list(eligibility.blockers),
                 "compatibleVersions": eligibility.compatible_versions,
             },
+            "structuralEligibility": structural,
             "reason": reason,
         },
     }
@@ -144,3 +160,103 @@ def _summarize_evidence(entries: tuple[dict[str, Any], ...]) -> dict[str, Any]:
         "rejected_evidence_ids": sorted(by_status["rejected"]),
         "insufficient_evidence_ids": sorted(by_status["insufficient"]),
     }
+
+
+def _assess_structural_eligibility(
+    definition: DimensionDefinition,
+    entries: tuple[dict[str, Any], ...],
+) -> dict[str, Any]:
+    if definition.dimension_id in D3_ABSTENTION_REASONS:
+        return {
+            "eligible": False,
+            "reason": "PROTOCOL_UNOBSERVABLE",
+            "qualified_families": [],
+            "missing_required_families": [],
+            "family_qualification": {},
+            "relevant_evidence_ids": [],
+        }
+
+    candidate_ids = set(definition.candidate_marker_ids) | set(definition.required_marker_ids)
+    relevant_entries = [entry for entry in entries if str(entry.get("marker_id")) in candidate_ids]
+    supported_entries = [entry for entry in relevant_entries if entry.get("evidence_status") == "supported"]
+    family_qualification = _family_qualification(relevant_entries)
+    qualified_families = sorted(
+        family for family, state in family_qualification.items() if state["qualification_status"] == "QUALIFIED"
+    )
+    missing_required_families = [
+        family for family in definition.required_evidence_families if family not in qualified_families
+    ]
+    missing_required_markers = [
+        marker_id
+        for marker_id in definition.required_marker_ids
+        if not any(entry.get("marker_id") == marker_id and entry.get("evidence_status") == "supported" for entry in relevant_entries)
+    ]
+
+    minimum = definition.minimum_independent_families
+    enough_families = minimum is None or len(qualified_families) >= minimum
+    required_families_present = not missing_required_families
+    required_markers_present = not missing_required_markers
+    enough_markers = len(supported_entries) >= 2 or definition.scientific_class.startswith("D2")
+    eligible = enough_families and required_families_present and required_markers_present and enough_markers
+
+    if eligible:
+        reason = "STRUCTURAL_EVIDENCE_REQUIREMENTS_MET"
+    elif missing_required_families:
+        reason = "MISSING_REQUIRED_EVIDENCE_FAMILY"
+    elif missing_required_markers:
+        reason = "MISSING_REQUIRED_EVIDENCE_MARKER"
+    elif not enough_families:
+        reason = "INSUFFICIENT_INDEPENDENT_EVIDENCE_FAMILIES"
+    else:
+        reason = "INSUFFICIENT_COMPATIBLE_EVIDENCE_MARKERS"
+
+    return {
+        "eligible": eligible,
+        "reason": reason,
+        "qualified_families": qualified_families,
+        "missing_required_families": missing_required_families,
+        "missing_required_markers": missing_required_markers,
+        "family_qualification": family_qualification,
+        "relevant_evidence_ids": sorted(str(entry.get("evidence_id")) for entry in relevant_entries if entry.get("evidence_id")),
+    }
+
+
+def _family_qualification(entries: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    families: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        marker_id = str(entry.get("marker_id", ""))
+        family = marker_family(marker_id)
+        if family is None:
+            continue
+        summary = families.setdefault(
+            family,
+            {
+                "qualified_marker_ids": [],
+                "rejected_marker_ids": [],
+                "missing_marker_ids": [],
+                "insufficient_marker_ids": [],
+                "qualification_status": "MISSING",
+            },
+        )
+        status = str(entry.get("evidence_status"))
+        if status == "supported":
+            summary["qualified_marker_ids"].append(marker_id)
+        elif status == "rejected":
+            summary["rejected_marker_ids"].append(marker_id)
+        elif status == "insufficient":
+            summary["insufficient_marker_ids"].append(marker_id)
+        else:
+            summary["missing_marker_ids"].append(marker_id)
+
+    for summary in families.values():
+        for key in ("qualified_marker_ids", "rejected_marker_ids", "missing_marker_ids", "insufficient_marker_ids"):
+            summary[key] = sorted(set(summary[key]))
+        if summary["qualified_marker_ids"]:
+            summary["qualification_status"] = "QUALIFIED"
+        elif summary["rejected_marker_ids"]:
+            summary["qualification_status"] = "REJECTED"
+        elif summary["insufficient_marker_ids"]:
+            summary["qualification_status"] = "INSUFFICIENT"
+        else:
+            summary["qualification_status"] = "MISSING"
+    return families

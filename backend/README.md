@@ -1,6 +1,6 @@
 # SoulScope Backend
 
-This directory contains the Python/FastAPI backend worker for Backend Milestones 1, 2, 3, and 4.
+This directory contains the Python/FastAPI backend worker through Milestone 5.1.
 
 The worker uses the service-owned Supabase RPC boundary established by the foundation migrations:
 
@@ -19,9 +19,9 @@ It implements:
 - deterministic raw acoustic measurement extraction from three prompt WAVs
 - signal quality qualification
 - immutable measurement-record payload creation
-- deterministic Evidence Engine v1 over immutable MeasurementRecords
+- deterministic Evidence Engine v2 over immutable MeasurementRecords with canonical `EV_*` marker IDs
 - immutable Evidence Ledger persistence
-- deterministic Dimension Engine v1 over immutable Evidence Ledgers
+- deterministic Dimension Engine v2 over immutable Evidence Ledgers with structural Dimension requirements
 - immutable Dimension Result persistence
 - Dimension Calibration Foundation with immutable `CALIBRATION_REQUIRED` specs
 - unresolved semantic result creation
@@ -78,9 +78,9 @@ Hosted integration tests additionally require:
 
 The hosted staging project must already have all repository migrations applied, a private audio bucket, and an active three-prompt prompt set. Tests do not create public audio URLs and do not log service-role secrets.
 
-## Evidence Engine v1
+## Evidence Engine v2
 
-Evidence Engine v1 is a deterministic transformation:
+Evidence Engine v2 is a deterministic transformation:
 
 ```text
 immutable MeasurementRecord
@@ -92,19 +92,19 @@ It consumes persisted `measurement_records.prompt_measurements` and related meas
 
 Evidence status semantics:
 
-- `supported`: the source measurement is present and usable as neutral measurement evidence
+- `supported`: the required source components are present and usable as neutral measurement evidence
 - `contradicted`: represented in the status model, but not produced by v1 because no calibrated contradiction rules are active
 - `unavailable`: expected measurement input is absent or null without a rejection reason
 - `rejected`: measurement input is explicitly rejected or unsupported
 - `insufficient`: measurement input exists but quality is limited for evidence use
 
-Every entry includes source measurement IDs, feature ID/version, prompt scope, measurement quality, missing/rejected components, rule/version metadata, and provenance back to the MeasurementRecord. Missing and rejected values remain `null`; they are not coerced to `0`, average, normal, or contradiction.
+Every entry uses a canonical `EV_*` marker ID and includes source measurement IDs, prompt scope, measurement quality, accepted/missing/rejected/insufficient components, rule/version metadata, and provenance back to the MeasurementRecord. Missing and rejected values remain `null`; they are not coerced to `0`, average, normal, or contradiction.
 
 Evidence persistence uses the service-only `create_evidence_ledger(...)` RPC. Ledgers are immutable, owner-readable through RLS, non-owner isolated, and idempotent by MeasurementRecord plus Evidence Engine/rule version.
 
-## Dimension Engine v1
+## Dimension Engine v2
 
-Dimension Engine v1 is a deterministic transformation:
+Dimension Engine v2 is a deterministic transformation:
 
 ```text
 immutable Evidence Ledger
@@ -114,7 +114,7 @@ immutable Evidence Ledger
 
 It consumes persisted `evidence_ledgers.entries`, status counts, and ledger provenance. It does not consume raw audio, Storage objects, MeasurementRecords directly, frontend data, or semantic-result payloads.
 
-The engine enumerates the 16 canonical Dimensions from the Constellation Dimension Registry. Calibrated Dimension scoring, weights, normalization, posterior construction, and confidence formulas are not yet defined, so v1 abstains from scoring. Every Dimension Result entry has `posteriorMean`, posterior bounds, and `confidence` set to `null`, with `scoreProduced=false` and `confidenceProduced=false`.
+The engine enumerates the 16 canonical Dimensions from the Constellation Dimension Registry and records Canon-defined structural requirements: required Evidence families, candidate markers, required markers, prompt prerequisites, independent-family coverage, and D3 abstentions. Calibrated Dimension scoring, weights, normalization, posterior construction, and confidence formulas are not yet defined, so v2 abstains from scoring. Every Dimension Result entry has `posteriorMean`, posterior bounds, and `confidence` set to `null`, with `scoreProduced=false` and `confidenceProduced=false`.
 
 Dimension status semantics:
 
@@ -143,7 +143,8 @@ It does not calculate scores. It records whether a Dimension has the required sc
 Current calibration status:
 
 - all 16 Dimensions have immutable `CALIBRATION_REQUIRED` specs
-- no Evidence-to-Dimension mappings are defined
+- Canon-defined structural Evidence-to-Dimension mappings are present where defined
+- no calibrated Evidence-to-Dimension scoring mappings are defined
 - no directionality, weights, thresholds, normalization, score ranges, confidence model, posterior model, reference dataset, or validation criteria are defined
 - no calibration is activated as validated
 

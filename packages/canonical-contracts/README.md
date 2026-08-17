@@ -14,7 +14,8 @@ Source authority:
 6. `../../docs/canonical/SoulScope Inference Rule Registry v0.1.pdf`
 7. `../../docs/canonical/SoulScope Constellation State Registry v0.1.pdf`
 8. `../../docs/canonical/SoulScope Cross-Constellation Interaction Registry v0.1.pdf`
-9. `../../docs/canonical/SoulScope Narrative Registry.pdf`
+9. `../../docs/canonical/SoulScope Whole-Scan Pattern Registry v0.1.pdf`
+10. `../../docs/canonical/SoulScope Narrative Registry.pdf`
 
 ## Scope
 
@@ -23,7 +24,9 @@ Included:
 - Canon v1.3 prompt IDs, roles, durations, and prohibited prompt assumptions.
 - Constellation IDs and labels.
 - Sixteen permanent dimension IDs, labels, D1/D2/D3 classes, and D3 abstention contracts.
-- Evidence family IDs and neutral Evidence Marker IDs.
+- Evidence family IDs and canonical `EV_*` Evidence Marker IDs.
+- Acoustic registry separation between canonical `SS_*`/`Q_*` IDs and explicit `PROVISIONAL_*` compatibility outputs.
+- Structural Evidence-to-Dimension requirements without numeric scoring.
 - Compact state IDs and state-outcome categories without exhaustive classification.
 - Interaction verbs and downstream-only boundaries.
 - Optional Pattern publication policy.
@@ -51,9 +54,9 @@ Deferred:
 - Resonance Signature behavior.
 - Frontend and renderer integration.
 
-Known authority gap:
+Pattern authority note:
 
-- `SoulScope Whole-Scan Pattern Registry v0.1` is current authority at `docs/canonical/SoulScope Whole-Scan Pattern Registry v0.1.pdf`. Its initial seven Pattern motifs are `RESEARCH_ONLY` until calibrated and promoted by a later adopted authority.
+- `SoulScope Whole-Scan Pattern Registry v0.1` is current authority. Its initial seven Pattern motifs are `RESEARCH_ONLY` until calibrated and promoted by a later adopted authority.
 
 ## JSON Schema Draft
 

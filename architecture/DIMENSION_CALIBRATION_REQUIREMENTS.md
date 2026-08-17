@@ -18,13 +18,14 @@ Implemented infrastructure:
 - explicit blocker reasons
 - provenance for why scoring is unavailable
 - database immutability and service-owned calibration metadata writes
+- Canon-defined structural Evidence-to-Dimension requirements separated from numeric scoring eligibility
 
 Not implemented:
 
 - numeric Dimension scoring
 - confidence scoring
 - posterior interval construction
-- Evidence-to-Dimension semantic inference
+- calibrated Evidence-to-Dimension semantic scoring inference
 - State, Constellation, Pattern, Narrative, or Resonance output
 
 ## Global Missing Scientific Inputs
@@ -33,13 +34,14 @@ These are absent for every current Dimension:
 
 | Requirement | Status | Needed Before Scoring |
 | --- | --- | --- |
-| Evidence-to-Dimension mapping | NOT_DEFINED | Approved marker IDs, required/eligible evidence, and family-independence behavior per Dimension |
+| Evidence-to-Dimension structural mapping | STRUCTURAL_MAPPING_DEFINED | Already encoded where Canon defines required families, candidate markers, required markers, and independent-family coverage |
+| Calibrated scoring mapping | NOT_DEFINED | Approved marker directionality, coefficients/model, posterior construction, and calibrated scoring behavior per Dimension |
 | Directionality | NOT_DEFINED | Approved direction for each Evidence marker relative to each Dimension |
 | Weights | NOT_DEFINED | Calibrated, versioned weights or an approved non-weighted model |
 | Thresholds | NOT_DEFINED | Calibrated decision thresholds or explicit no-threshold model |
 | Normalization | NOT_DEFINED | Versioned normalization/reference procedure |
 | Score range | NOT_DEFINED | Approved numeric range and interpretation constraints |
-| Minimum evidence | NOT_DEFINED | Required evidence coverage and missing/rejection handling rules |
+| Minimum evidence | PARTIALLY_DEFINED | Structural family coverage is encoded where Canon defines it; calibrated coverage thresholds remain absent |
 | Confidence | NOT_DEFINED | Calibrated confidence model independent from score |
 | Priors/posteriors | NOT_DEFINED | Prior and posterior construction method, if Bayesian/posterior output is retained |
 | Reference dataset | NOT_DEFINED | Governed calibration cohort or approved reference dataset identity |
