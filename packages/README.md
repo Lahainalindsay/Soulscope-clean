@@ -1,5 +1,5 @@
 # packages
 
-Implementation intentionally not migrated yet.
+Packages contain shared contracts for the clean SoulScope rebuild.
 
-This directory is reserved for the clean SoulScope rebuild stage that owns this layer. Do not copy old repository code here wholesale.
+`packages/canonical-contracts` is the current executable source of truth for canonical backend identifiers, registries, boundaries, immutable result contracts, and version manifests.

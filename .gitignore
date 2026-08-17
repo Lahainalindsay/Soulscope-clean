@@ -2,7 +2,11 @@ node_modules/
 .next/
 .git/
 .env*
+__pycache__/
+*.pyc
+*.egg-info/
 *.wav
+!backend/tests/fixtures/*.wav
 *.mp3
 *.webm
 *.tsbuildinfo
@@ -10,6 +14,7 @@ build/
 dist/
 coverage/
 backend/.private_audio/
+supabase/.temp/
 .DS_Store
 
 # Local visual-review screenshots

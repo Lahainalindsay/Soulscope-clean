@@ -19,9 +19,9 @@ create type public.prompt_set_status as enum (
 );
 
 create type public.prompt_canonical_key as enum (
-  'opening_reference',
-  'demanding_reflection',
-  'hope_future_orientation'
+  'P1_OPEN_REFERENCE',
+  'P2_TROUBLING_CONTEXT',
+  'P3_FUTURE_CONTEXT'
 );
 
 create type public.scan_lifecycle_state as enum (
@@ -131,10 +131,10 @@ create table public.prompt_definitions (
 );
 
 comment on table public.prompt_definitions is
-  'Three launch prompt definitions only: opening reference, demanding reflection, and hope/future orientation.';
+  'Three launch prompt definitions only: P1 open reference, P2 troubling context, and P3 future context from SoulScope Canon v1.3.';
 
 comment on column public.prompt_definitions.prompt_text is
-  'Placeholder wording is not production wording. Owner-approved wording is required before production.';
+  'Prompt wording follows SoulScope Canon v1.3. P1 is not neutral; P2 is not negative-emotion ground truth; P3 is not positive-emotion or recovery ground truth.';
 
 create table public.scan_sessions (
   id uuid primary key default gen_random_uuid(),
@@ -615,11 +615,10 @@ grant all on public.scan_sessions to service_role;
 grant all on public.scan_prompt_captures to service_role;
 grant all on public.audit_events to service_role;
 
--- Placeholder wording below preserves the approved canonical intent only.
--- Owner-approved production prompt wording is required before production use.
+-- Prompt wording follows SoulScope Canon v1.3.
 with launch_prompt_set as (
   insert into public.prompt_sets (version, status, name, activated_at)
-  values ('launch-v1', 'draft', 'Launch prompt set v1 - placeholder wording requires owner approval', null)
+  values ('launch-v1', 'draft', 'Launch prompt set v1 - Canon v1.3 three-prompt protocol', null)
   on conflict (version) do update
     set status = excluded.status,
         name = excluded.name,
@@ -639,25 +638,25 @@ from launch_prompt_set
 cross join (
   values
     (
-      'opening_reference'::public.prompt_canonical_key,
+      'P1_OPEN_REFERENCE'::public.prompt_canonical_key,
       1,
-      'Opening / within-session reference',
-      'PLACEHOLDER - owner-approved wording required before production: Opening / within-session reference.',
-      60
+      'Open Reference',
+      'Speak about yourself, your day, or whatever comes to mind.',
+      30
     ),
     (
-      'demanding_reflection'::public.prompt_canonical_key,
+      'P2_TROUBLING_CONTEXT'::public.prompt_canonical_key,
       2,
-      'Emotionally demanding reflection',
-      'PLACEHOLDER - owner-approved wording required before production: Emotionally demanding reflection.',
-      60
+      'Troubling Context',
+      'Speak about something troubling you.',
+      30
     ),
     (
-      'hope_future_orientation'::public.prompt_canonical_key,
+      'P3_FUTURE_CONTEXT'::public.prompt_canonical_key,
       3,
-      'Hope / future orientation',
-      'PLACEHOLDER - owner-approved wording required before production: Hope / future orientation.',
-      60
+      'Future Context',
+      'Speak about your hopes or goals for the future.',
+      30
     )
 ) as prompts(canonical_key, prompt_order, title, prompt_text, expected_duration_seconds)
 on conflict (prompt_set_id, canonical_key) do update

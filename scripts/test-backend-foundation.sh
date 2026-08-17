@@ -54,9 +54,9 @@ echo "Applying local auth compatibility scaffold"
 "${psql_postgres[@]}" -d "$db_name" -f supabase/tests/local_auth_compatibility.sql
 
 echo "Applying backend foundation migrations"
-"${psql_postgres[@]}" -d "$db_name" -f supabase/migrations/202608050001_backend_foundation.sql
-"${psql_postgres[@]}" -d "$db_name" -f supabase/migrations/202608050002_capture_processing_evidence.sql
-"${psql_postgres[@]}" -d "$db_name" -f supabase/migrations/202608050003_result_history_baseline.sql
+for migration in supabase/migrations/*.sql; do
+  "${psql_postgres[@]}" -d "$db_name" -f "$migration"
+done
 
 echo "Running backend foundation runtime assertions"
 "${psql_postgres[@]}" -d "$db_name" -f supabase/tests/backend_foundation_runtime.sql

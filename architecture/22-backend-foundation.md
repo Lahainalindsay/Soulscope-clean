@@ -7,7 +7,7 @@ Implementation status: DATABASE MIGRATIONS AUTHORED AND LOCALLY VALIDATED - NOT 
 
 This document proposes a backend foundation for SoulScope scan ownership, capture, evidence persistence, result versioning, privacy, and auditability. It is not Canon, does not amend the Canon, and does not approve production scientific inference, scoring, narrative interpretation, or Resonance Signature rendering.
 
-This proposal also does not adopt exploratory rendering contracts or visual-renderer persistence. Any future backend implementation must continue to obey the SoulScope Foundational Canon, the Constellation Bible where approved, and the approved `@soulscope/canonical-contracts` package boundaries.
+This proposal also does not adopt exploratory rendering contracts or visual-renderer persistence. Any future backend implementation must continue to obey `docs/CANONICAL_AUTHORITY_LEDGER.md`, SoulScope Canon v1.3, the current scientific/backend registries, and the approved `@soulscope/canonical-contracts` package boundaries.
 
 ## 1. Purpose and scope
 
@@ -47,13 +47,15 @@ The backend may reference only the four canonical constellations approved for co
 | `CAP` | Available Capacity |
 | `EXP` | Expressive Interface |
 
-The launch scan uses the fixed three-prompt arc:
+The launch scan uses the fixed three-prompt arc from SoulScope Canon v1.3:
 
-1. Opening / within-session reference
-2. Emotionally demanding reflection
-3. Hope / future orientation
+1. `P1_OPEN_REFERENCE` - Open Reference; speak about yourself, your day, or whatever comes to mind.
+2. `P2_TROUBLING_CONTEXT` - Troubling Context; speak about something troubling you.
+3. `P3_FUTURE_CONTEXT` - Future Context; speak about your hopes or goals for the future.
 
 Prompt wording and prompt order are versioned. A prompt set is an explicit versioned contract, and captures must record the prompt definition and order used at capture time.
+
+P1 is an open spontaneous within-session reference, not an emotionally neutral baseline. P2 is a personally salient troubling-material context, not negative emotion, stress, anxiety, or distress ground truth. P3 is a personally salient future-oriented context, not positive emotion, optimism, or recovery ground truth.
 
 The backend must preserve the foundational principle:
 

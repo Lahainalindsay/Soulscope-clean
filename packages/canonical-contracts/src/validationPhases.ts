@@ -21,6 +21,6 @@ export const VALIDATION_PHASES = Object.freeze([
 ].map((entry) =>
   Object.freeze({
     ...entry,
-    provenance: provenance(sourceReference("constellationBible", "Section 16.1 Phase gates", "BIBLE", "Table 80")),
+    provenance: provenance(sourceReference("inferenceRuleRegistry", "Scientific status and validation status", "CANON")),
   }),
 ));

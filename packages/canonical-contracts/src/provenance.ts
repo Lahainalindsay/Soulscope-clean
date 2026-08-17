@@ -1,10 +1,15 @@
 export const SOURCE_DOCUMENTS = Object.freeze({
-  canon: "docs/SOULSCOPE_CANON.md",
-  constellationBible: "docs/CONSTELLATION_BIBLE.md",
-  sourceDocx: "docs/source/SoulScope_Constellation_Bible_v0.1.docx",
-  fidelityAudit: "architecture/17-constellation-bible-fidelity-audit.md",
-  readinessReview: "architecture/18-constellation-bible-implementation-readiness.md",
-  ownerApproval: "owner decision: limited contract extraction",
+  authorityLedger: "docs/CANONICAL_AUTHORITY_LEDGER.md",
+  canon: "docs/canonical/The SoulScope Canon v1.3.pdf",
+  acousticParameterRegistry: "docs/canonical/SoulScope Acoustic Parameter Registry v0.1.pdf",
+  evidenceMarkerRegistry: "docs/canonical/SoulScope Evidence Marker Registry.pdf",
+  dimensionRegistry: "docs/canonical/SoulScope Constellation Dimension Registry v0.1.pdf",
+  inferenceRuleRegistry: "docs/canonical/SoulScope Inference Rule Registry v0.1.pdf",
+  stateRegistry: "docs/canonical/SoulScope Constellation State Registry v0.1.pdf",
+  interactionRegistry: "docs/canonical/SoulScope Cross-Constellation Interaction Registry v0.1.pdf",
+  patternRegistry: "docs/canonical/SoulScope Whole-Scan Pattern Registry v0.1.pdf",
+  narrativeRegistry: "docs/canonical/SoulScope Narrative Registry.pdf",
+  ownerApproval: "owner decision: canonical backend integration",
 } as const);
 
 export type SourceDocumentId = keyof typeof SOURCE_DOCUMENTS;
@@ -24,7 +29,21 @@ export type Provenance = Readonly<{
   extractionDate: string;
 }>;
 
-export const CONTRACT_EXTRACTION_DATE = "2026-08-03" as const;
+export const CONTRACT_EXTRACTION_DATE = "2026-08-14" as const;
+
+export const SOURCE_DOCUMENT_VERSIONS: Readonly<Record<SourceDocumentId, string>> = Object.freeze({
+  authorityLedger: "2026-08-14",
+  canon: "1.3",
+  acousticParameterRegistry: "0.1",
+  evidenceMarkerRegistry: "0.1",
+  dimensionRegistry: "0.1",
+  inferenceRuleRegistry: "0.1",
+  stateRegistry: "0.1",
+  interactionRegistry: "0.1",
+  patternRegistry: "0.1",
+  narrativeRegistry: "0.1",
+  ownerApproval: "2026-08-14",
+});
 
 export function sourceReference(
   sourceDocument: SourceDocumentId,
@@ -35,7 +54,7 @@ export function sourceReference(
   return Object.freeze({
     sourceDocument,
     sourcePath: SOURCE_DOCUMENTS[sourceDocument],
-    sourceVersion: sourceDocument === "constellationBible" || sourceDocument === "sourceDocx" ? "0.1" : "1.0",
+    sourceVersion: SOURCE_DOCUMENT_VERSIONS[sourceDocument],
     sourceSection,
     ...(sourceTable ? { sourceTable } : {}),
     extractionStatus,

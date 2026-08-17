@@ -21,7 +21,13 @@ declare
     'result_manifests',
     'result_manifest_evidence',
     'personal_baselines',
-    'baseline_scan_members'
+    'baseline_scan_members',
+    'scan_processing_runs',
+    'measurement_records',
+    'semantic_result_records',
+    'evidence_ledgers',
+    'dimension_results',
+    'dimension_calibration_specs'
   ];
   expected_privileged_functions text[] := array[
     'transition_scan_lifecycle',
@@ -29,7 +35,14 @@ declare
     'record_audio_deletion_result',
     'create_scan_result_version',
     'add_result_manifest_evidence',
-    'finalize_scan_result_version'
+    'finalize_scan_result_version',
+    'register_uploaded_capture_artifact',
+    'start_scan_processing_run',
+    'create_measurement_record',
+    'create_unresolved_semantic_result',
+    'create_evidence_ledger',
+    'create_dimension_result',
+    'create_dimension_calibration_spec'
   ];
   expected_policy_names text[] := array[
     'profiles_select_own',
@@ -52,7 +65,12 @@ declare
     'result_manifests_select_own_finalized',
     'result_manifest_evidence_select_own_finalized',
     'personal_baselines_select_own',
-    'baseline_scan_members_select_own'
+    'baseline_scan_members_select_own',
+    'scan_processing_runs_select_own_scan',
+    'measurement_records_select_own_scan',
+    'semantic_result_records_select_own_scan',
+    'evidence_ledgers_select_own_scan',
+    'dimension_results_select_own_scan'
   ];
   missing_count integer;
   bad_count integer;
@@ -63,9 +81,9 @@ begin
    where to_regclass('public.' || expected.table_name) is null;
 
   if missing_count <> 0 then
-    raise exception 'ASSERTION_FAILED: expected all 15 backend tables to exist; missing count %', missing_count;
+    raise exception 'ASSERTION_FAILED: expected all backend tables to exist; missing count %', missing_count;
   end if;
-  raise notice 'PASS: all 15 backend tables exist';
+  raise notice 'PASS: all backend tables exist';
 
   select count(*)
     into bad_count
@@ -74,9 +92,9 @@ begin
    where not (c.relrowsecurity and c.relforcerowsecurity);
 
   if bad_count <> 0 then
-    raise exception 'ASSERTION_FAILED: expected RLS enabled and forced on all 15 tables; bad count %', bad_count;
+    raise exception 'ASSERTION_FAILED: expected RLS enabled and forced on all backend tables; bad count %', bad_count;
   end if;
-  raise notice 'PASS: RLS is enabled and forced on all 15 backend tables';
+  raise notice 'PASS: RLS is enabled and forced on all backend tables';
 
   if not exists (
     select 1
@@ -109,9 +127,9 @@ begin
       ) actual
       full join (
         values
-          ('opening_reference', 1),
-          ('demanding_reflection', 2),
-          ('hope_future_orientation', 3)
+          ('P1_OPEN_REFERENCE', 1),
+          ('P2_TROUBLING_CONTEXT', 2),
+          ('P3_FUTURE_CONTEXT', 3)
       ) expected(canonical_key, prompt_order)
         on expected.canonical_key = actual.canonical_key
        and expected.prompt_order = actual.prompt_order
@@ -120,6 +138,21 @@ begin
     raise exception 'ASSERTION_FAILED: launch-v1 canonical prompt keys or orders are incorrect';
   end if;
   raise notice 'PASS: launch-v1 has exactly 3 canonical prompt definitions in the expected order';
+
+  if exists (
+    select 1
+      from public.prompt_definitions
+      join public.prompt_sets on prompt_sets.id = prompt_definitions.prompt_set_id
+     where prompt_sets.version = 'launch-v1'
+       and (
+         (canonical_key = 'P1_OPEN_REFERENCE' and prompt_text ~* 'neutral')
+         or (canonical_key = 'P2_TROUBLING_CONTEXT' and prompt_text ~* 'negative emotion|stress|anxiety|distress')
+         or (canonical_key = 'P3_FUTURE_CONTEXT' and prompt_text ~* 'positive emotion|optimism|recovery')
+       )
+  ) then
+    raise exception 'ASSERTION_FAILED: launch-v1 prompt text includes prohibited prompt assumptions';
+  end if;
+  raise notice 'PASS: launch-v1 prompt wording preserves Canon v1.3 prompt semantics';
 
   select count(*)
     into bad_count
@@ -159,6 +192,133 @@ begin
   raise notice 'PASS: no anon RLS policies exist';
 end;
 $$;
+
+do $$
+declare
+  spec_count integer;
+begin
+  select count(*)
+    into spec_count
+    from public.dimension_calibration_specs
+   where calibration_version = 'dimension-calibration-foundation-v0.1'
+     and status = 'CALIBRATION_REQUIRED'
+     and eligible_evidence_marker_ids = '[]'::jsonb
+     and required_evidence_marker_ids = '[]'::jsonb
+     and weights is null
+     and normalization is null
+     and thresholds is null
+     and confidence_model is null
+     and posterior_model is null
+     and reference_dataset is null
+     and validation_criteria is null
+     and activated_at is null;
+
+  if spec_count <> 16 then
+    raise exception 'ASSERTION_FAILED: expected 16 calibration-required Dimension specs without fake science; found %', spec_count;
+  end if;
+  raise notice 'PASS: calibration foundation seeds 16 CALIBRATION_REQUIRED specs without scoring constants';
+end;
+$$;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000101', false);
+select set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}', false);
+
+do $$
+begin
+  begin
+    perform * from public.create_dimension_calibration_spec(
+      'runtime:calibration:user-denied',
+      'dimension-calibration-foundation-v0.1',
+      'COG-P1',
+      '0.1',
+      'soulscope-evidence-engine-0.1.0',
+      'evidence-structural-v1',
+      '0.1',
+      'soulscope-dimension-engine-0.1.0',
+      'CALIBRATION_REQUIRED',
+      '[]'::jsonb,
+      '[]'::jsonb,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      jsonb_build_object('source', 'runtime-denied')
+    );
+    raise exception 'ASSERTION_FAILED: authenticated user created dimension calibration spec';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: dimension calibration spec creation is service-only';
+  end;
+end;
+$$;
+
+set role service_role;
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '{"role": "service_role"}', false);
+
+select * from public.create_dimension_calibration_spec(
+  'COG-P1:calibration-required',
+  'dimension-calibration-foundation-v0.1',
+  'COG-P1',
+  '0.1',
+  'soulscope-evidence-engine-0.1.0',
+  'evidence-structural-v1',
+  '0.1',
+  'soulscope-dimension-engine-0.1.0',
+  'CALIBRATION_REQUIRED',
+  '[]'::jsonb,
+  '[]'::jsonb,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  jsonb_build_object(
+    'source', 'dimension_calibration_foundation',
+    'contract_version', '0.1',
+    'scientific_status', 'CALIBRATION_REQUIRED',
+    'note', 'No repository-approved calibrated Dimension scoring specification exists.'
+  )
+)
+\gset calibration_seed_repeat_
+
+select set_config('test.calibration_seed_repeat_id', :'calibration_seed_repeat_calibration_spec_id', false);
+
+do $$
+declare
+  affected_count integer;
+begin
+  begin
+    update public.dimension_calibration_specs
+       set status = 'CALIBRATION_VALIDATED'
+     where id = current_setting('test.calibration_seed_repeat_id')::uuid;
+    get diagnostics affected_count = row_count;
+    if affected_count <> 0 then
+      raise exception 'ASSERTION_FAILED: immutable dimension calibration spec update was accepted';
+    end if;
+    raise notice 'PASS: dimension calibration specs are immutable';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: dimension calibration specs are immutable';
+  end;
+end;
+$$;
+
+reset role;
 
 begin;
 
@@ -1096,6 +1256,660 @@ begin
     when check_violation then
       raise notice 'PASS: baseline/result compatibility validators reject invalid relationships';
   end;
+end;
+$$;
+
+reset role;
+insert into public.scan_sessions (user_id, prompt_set_id)
+values (
+  current_setting('test.owner_user_id')::uuid,
+  current_setting('test.prompt_set_id')::uuid
+)
+returning id as pipeline_scan_id
+\gset
+
+select set_config('test.pipeline_scan_id', :'pipeline_scan_id', true);
+
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claims', '{"role": "service_role"}', true);
+
+select * from public.transition_scan_lifecycle(
+  current_setting('test.pipeline_scan_id')::uuid,
+  'capturing'::public.scan_lifecycle_state,
+  '{"test": "pipeline scan created to capturing"}'::jsonb
+);
+
+reset role;
+
+insert into public.scan_prompt_captures (
+  scan_id,
+  prompt_definition_id,
+  prompt_order,
+  capture_status,
+  duration_ms,
+  upload_status,
+  completed_at
+)
+select
+  current_setting('test.pipeline_scan_id')::uuid,
+  prompt_definitions.id,
+  prompt_definitions.prompt_order,
+  'uploaded'::public.capture_status,
+  30000,
+  'uploaded'::public.capture_upload_status,
+  now()
+from public.prompt_definitions
+where prompt_definitions.prompt_set_id = current_setting('test.prompt_set_id')::uuid
+order by prompt_definitions.prompt_order;
+
+select id as pipeline_capture_one_id
+from public.scan_prompt_captures
+where scan_id = current_setting('test.pipeline_scan_id')::uuid
+  and prompt_order = 1
+\gset
+
+select id as pipeline_capture_two_id
+from public.scan_prompt_captures
+where scan_id = current_setting('test.pipeline_scan_id')::uuid
+  and prompt_order = 2
+\gset
+
+select id as pipeline_capture_three_id
+from public.scan_prompt_captures
+where scan_id = current_setting('test.pipeline_scan_id')::uuid
+  and prompt_order = 3
+\gset
+
+select set_config('test.pipeline_capture_one_id', :'pipeline_capture_one_id', true);
+select set_config('test.pipeline_capture_two_id', :'pipeline_capture_two_id', true);
+select set_config('test.pipeline_capture_three_id', :'pipeline_capture_three_id', true);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', current_setting('test.owner_user_id'), true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.owner_user_id'), 'role', 'authenticated')::text, true);
+
+do $$
+begin
+  begin
+    perform * from public.register_uploaded_capture_artifact(
+      current_setting('test.pipeline_capture_one_id')::uuid,
+      'private-audio',
+      'runtime/pipeline-p1.webm',
+      'audio/webm',
+      2048,
+      repeat('b', 64),
+      'runtime:pipeline:artifact:p1'
+    );
+    raise exception 'ASSERTION_FAILED: authenticated user registered capture artifact';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: artifact registration is service-only';
+  end;
+end;
+$$;
+
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claims', '{"role": "service_role"}', true);
+
+select * from public.register_uploaded_capture_artifact(
+  current_setting('test.pipeline_capture_one_id')::uuid,
+  'private-audio',
+  'runtime/pipeline-p1.webm',
+  'audio/webm',
+  2048,
+  repeat('b', 64),
+  'runtime:pipeline:artifact:p1'
+)
+\gset pipeline_artifact_one_
+
+select * from public.register_uploaded_capture_artifact(
+  current_setting('test.pipeline_capture_two_id')::uuid,
+  'private-audio',
+  'runtime/pipeline-p2.webm',
+  'audio/webm',
+  2049,
+  repeat('c', 64),
+  'runtime:pipeline:artifact:p2'
+)
+\gset pipeline_artifact_two_
+
+select * from public.register_uploaded_capture_artifact(
+  current_setting('test.pipeline_capture_three_id')::uuid,
+  'private-audio',
+  'runtime/pipeline-p3.webm',
+  'audio/webm',
+  2050,
+  repeat('d', 64),
+  'runtime:pipeline:artifact:p3'
+)
+\gset pipeline_artifact_three_
+
+select * from public.transition_scan_lifecycle(
+  current_setting('test.pipeline_scan_id')::uuid,
+  'capture_complete'::public.scan_lifecycle_state,
+  '{"test": "pipeline capture complete"}'::jsonb
+);
+
+select * from public.transition_scan_lifecycle(
+  current_setting('test.pipeline_scan_id')::uuid,
+  'queued'::public.scan_lifecycle_state,
+  '{"test": "pipeline queued"}'::jsonb
+);
+
+select * from public.start_scan_processing_run(
+  current_setting('test.pipeline_scan_id')::uuid,
+  'runtime:pipeline:run',
+  'extractor-calibration-required',
+  'CALIBRATION_REQUIRED'
+)
+\gset pipeline_run_
+
+select set_config('test.pipeline_run_id', :'pipeline_run_processing_run_id', true);
+
+select * from public.create_measurement_record(
+  current_setting('test.pipeline_run_id')::uuid,
+  'runtime:pipeline:measurement',
+  'limited',
+  jsonb_build_array(
+    jsonb_build_object('promptId', 'P1_OPEN_REFERENCE', 'measurements', jsonb_build_array()),
+    jsonb_build_object('promptId', 'P2_TROUBLING_CONTEXT', 'measurements', jsonb_build_array()),
+    jsonb_build_object('promptId', 'P3_FUTURE_CONTEXT', 'measurements', jsonb_build_array())
+  ),
+  jsonb_build_array(),
+  jsonb_build_object('overallQuality', 'limited', 'calibrationStatus', 'CALIBRATION_REQUIRED'),
+  jsonb_build_object('extractor', 'adapter-placeholder', 'version', 'extractor-calibration-required'),
+  false,
+  true
+)
+\gset pipeline_measurement_
+
+select set_config('test.pipeline_measurement_id', :'pipeline_measurement_measurement_record_id', true);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', current_setting('test.owner_user_id'), true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.owner_user_id'), 'role', 'authenticated')::text, true);
+
+do $$
+begin
+  begin
+    perform * from public.create_evidence_ledger(
+      current_setting('test.pipeline_measurement_id')::uuid,
+      'runtime:pipeline:evidence-ledger:authenticated-denied',
+      'soulscope-evidence-engine-0.1.0',
+      'evidence-structural-v1',
+      '0.1',
+      '0.1',
+      jsonb_build_array(jsonb_build_object(
+        'evidence_id', 'ev_denied',
+        'evidence_status', 'supported',
+        'marker_id', 'EV_TIM_008',
+        'source_measurement_ids', jsonb_build_array('m_denied')
+      )),
+      jsonb_build_object('supported', 1, 'contradicted', 0, 'unavailable', 0, 'rejected', 0, 'insufficient', 0),
+      jsonb_build_object('raw_audio_consumed', false, 'acoustic_extraction_rerun', false)
+    );
+    raise exception 'ASSERTION_FAILED: authenticated user created evidence ledger';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: evidence ledger creation is service-only';
+  end;
+end;
+$$;
+
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claims', '{"role": "service_role"}', true);
+
+select * from public.create_evidence_ledger(
+  current_setting('test.pipeline_measurement_id')::uuid,
+  'runtime:pipeline:evidence-ledger',
+  'soulscope-evidence-engine-0.1.0',
+  'evidence-structural-v1',
+  '0.1',
+  '0.1',
+  jsonb_build_array(
+    jsonb_build_object(
+      'evidence_id', 'ev_runtime_supported',
+      'evidence_status', 'supported',
+        'marker_id', 'EV_TIM_008',
+      'marker_version', '0.1',
+      'scan_id', current_setting('test.pipeline_scan_id'),
+      'prompt_scope', jsonb_build_array('P1_OPEN_REFERENCE'),
+      'source_measurement_ids', jsonb_build_array('runtime_measurement_supported'),
+      'source_feature_families', jsonb_build_array('TIM'),
+      'direction', 'NONE',
+      'supporting_components', jsonb_build_array('SS_PAUSE_LOAD', 'Q_VOICED_RATIO'),
+      'contradicting_components', jsonb_build_array(),
+      'missing_components', jsonb_build_array(),
+      'confound_flags', jsonb_build_array(),
+      'status', 'RESOLVED'
+    ),
+    jsonb_build_object(
+      'evidence_id', 'ev_runtime_unavailable',
+      'evidence_status', 'unavailable',
+      'marker_id', 'EV_PHO_004',
+      'marker_version', '0.1',
+      'scan_id', current_setting('test.pipeline_scan_id'),
+      'prompt_scope', jsonb_build_array('P1_OPEN_REFERENCE'),
+      'source_measurement_ids', jsonb_build_array(),
+      'source_feature_families', jsonb_build_array('PHO'),
+      'direction', 'UNRESOLVED',
+      'supporting_components', jsonb_build_array(),
+      'contradicting_components', jsonb_build_array(),
+      'missing_components', jsonb_build_array('SS_CPP_MEAN', 'AC_LLD_HNR'),
+      'confound_flags', jsonb_build_array(),
+      'status', 'UNRESOLVED',
+      'resolution_reason', 'MISSING_REQUIRED_EVIDENCE'
+    )
+  ),
+  jsonb_build_object('supported', 1, 'contradicted', 0, 'unavailable', 1, 'rejected', 0, 'insufficient', 0),
+  jsonb_build_object(
+    'source', 'measurement_record',
+    'measurement_record_id', current_setting('test.pipeline_measurement_id'),
+    'raw_audio_consumed', false,
+    'acoustic_extraction_rerun', false
+  )
+)
+\gset pipeline_evidence_
+
+select set_config('test.pipeline_evidence_ledger_id', :'pipeline_evidence_evidence_ledger_id', true);
+
+select * from public.create_evidence_ledger(
+  current_setting('test.pipeline_measurement_id')::uuid,
+  'runtime:pipeline:evidence-ledger',
+  'soulscope-evidence-engine-0.1.0',
+  'evidence-structural-v1',
+  '0.1',
+  '0.1',
+  jsonb_build_array(
+    jsonb_build_object(
+      'evidence_id', 'ev_runtime_supported',
+      'evidence_status', 'supported',
+      'marker_id', 'EV_TIM_008',
+      'marker_version', '0.1',
+      'scan_id', current_setting('test.pipeline_scan_id'),
+      'prompt_scope', jsonb_build_array('P1_OPEN_REFERENCE'),
+      'source_measurement_ids', jsonb_build_array('runtime_measurement_supported'),
+      'source_feature_families', jsonb_build_array('TIM'),
+      'direction', 'NONE',
+      'supporting_components', jsonb_build_array('SS_PAUSE_LOAD', 'Q_VOICED_RATIO'),
+      'contradicting_components', jsonb_build_array(),
+      'missing_components', jsonb_build_array(),
+      'confound_flags', jsonb_build_array(),
+      'status', 'RESOLVED'
+    ),
+    jsonb_build_object(
+      'evidence_id', 'ev_runtime_unavailable',
+      'evidence_status', 'unavailable',
+      'marker_id', 'EV_PHO_004',
+      'marker_version', '0.1',
+      'scan_id', current_setting('test.pipeline_scan_id'),
+      'prompt_scope', jsonb_build_array('P1_OPEN_REFERENCE'),
+      'source_measurement_ids', jsonb_build_array(),
+      'source_feature_families', jsonb_build_array('PHO'),
+      'direction', 'UNRESOLVED',
+      'supporting_components', jsonb_build_array(),
+      'contradicting_components', jsonb_build_array(),
+      'missing_components', jsonb_build_array('SS_CPP_MEAN', 'AC_LLD_HNR'),
+      'confound_flags', jsonb_build_array(),
+      'status', 'UNRESOLVED',
+      'resolution_reason', 'MISSING_REQUIRED_EVIDENCE'
+    )
+  ),
+  jsonb_build_object('supported', 1, 'contradicted', 0, 'unavailable', 1, 'rejected', 0, 'insufficient', 0),
+  jsonb_build_object(
+    'source', 'measurement_record',
+    'measurement_record_id', current_setting('test.pipeline_measurement_id'),
+    'raw_audio_consumed', false,
+    'acoustic_extraction_rerun', false
+  )
+)
+\gset pipeline_evidence_repeat_
+
+select set_config('test.pipeline_evidence_repeat_ledger_id', :'pipeline_evidence_repeat_evidence_ledger_id', true);
+
+do $$
+begin
+  if current_setting('test.pipeline_evidence_ledger_id') <> current_setting('test.pipeline_evidence_repeat_ledger_id') then
+    raise exception 'ASSERTION_FAILED: duplicate evidence ledger request was not idempotent';
+  end if;
+  raise notice 'PASS: evidence ledger creation is idempotent';
+end;
+$$;
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', current_setting('test.owner_user_id'), true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.owner_user_id'), 'role', 'authenticated')::text, true);
+
+do $$
+begin
+  begin
+    perform * from public.create_dimension_result(
+      current_setting('test.pipeline_evidence_ledger_id')::uuid,
+      'runtime:pipeline:dimension-result:authenticated-denied',
+      'soulscope-dimension-engine-0.1.0',
+      '0.1',
+      'CALIBRATION_REQUIRED',
+      '0.1',
+      (
+        select jsonb_agg(jsonb_build_object(
+          'dimensionId', dimension_id,
+          'resolutionStatus', 'UNRESOLVED',
+          'resolutionReason', 'CONSTRUCT_MODEL_NOT_VALIDATED',
+          'posteriorMean', null,
+          'confidence', null
+        ) order by ord)
+        from unnest(array[
+          'COG-P1','COG-P2','COG-P3','COG-P4',
+          'REG-P1','REG-P2','REG-P3','REG-P4',
+          'CAP-P1','CAP-P2','CAP-P3','CAP-P4',
+          'EXP-P1','EXP-P2','EXP-P3','EXP-P4'
+        ]) with ordinality as dims(dimension_id, ord)
+      ),
+      jsonb_build_object('unresolved', 16, 'resolved', 0, 'invalid', 0),
+      jsonb_build_object(
+        'source', 'evidence_ledger',
+        'evidence_ledger_id', current_setting('test.pipeline_evidence_ledger_id'),
+        'raw_audio_consumed', false,
+        'measurement_record_consumed_directly', false,
+        'downstream_state_generated', false,
+        'downstream_pattern_generated', false,
+        'narrative_generated', false,
+        'resonance_generated', false
+      )
+    );
+    raise exception 'ASSERTION_FAILED: authenticated user created dimension result';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: dimension result creation is service-only';
+  end;
+end;
+$$;
+
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claims', '{"role": "service_role"}', true);
+
+select * from public.create_dimension_result(
+  current_setting('test.pipeline_evidence_ledger_id')::uuid,
+  'runtime:pipeline:dimension-result',
+  'soulscope-dimension-engine-0.1.0',
+  '0.1',
+  'CALIBRATION_REQUIRED',
+  '0.1',
+  (
+    select jsonb_agg(jsonb_build_object(
+      'dimensionId', dimension_id,
+      'resolutionStatus', 'UNRESOLVED',
+      'resolutionReason',
+        case dimension_id
+          when 'REG-P4' then 'NO_RECOVERY_COMPATIBLE_CONDITION'
+          when 'CAP-P2' then 'NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL'
+          when 'EXP-P4' then 'NO_RELATIONAL_OBSERVATION'
+          else 'CONSTRUCT_MODEL_NOT_VALIDATED'
+        end,
+      'posteriorMean', null,
+      'confidence', null,
+      'scoreProduced', false,
+      'confidenceProduced', false
+    ) order by ord)
+    from unnest(array[
+      'COG-P1','COG-P2','COG-P3','COG-P4',
+      'REG-P1','REG-P2','REG-P3','REG-P4',
+      'CAP-P1','CAP-P2','CAP-P3','CAP-P4',
+      'EXP-P1','EXP-P2','EXP-P3','EXP-P4'
+    ]) with ordinality as dims(dimension_id, ord)
+  ),
+  jsonb_build_object('unresolved', 16, 'resolved', 0, 'invalid', 0),
+  jsonb_build_object(
+    'source', 'evidence_ledger',
+    'evidence_ledger_id', current_setting('test.pipeline_evidence_ledger_id'),
+    'raw_audio_consumed', false,
+    'measurement_record_consumed_directly', false,
+    'downstream_state_generated', false,
+    'downstream_pattern_generated', false,
+    'narrative_generated', false,
+    'resonance_generated', false
+  )
+)
+\gset pipeline_dimension_
+
+select set_config('test.pipeline_dimension_result_id', :'pipeline_dimension_dimension_result_id', true);
+
+select * from public.create_dimension_result(
+  current_setting('test.pipeline_evidence_ledger_id')::uuid,
+  'runtime:pipeline:dimension-result',
+  'soulscope-dimension-engine-0.1.0',
+  '0.1',
+  'CALIBRATION_REQUIRED',
+  '0.1',
+  (
+    select jsonb_agg(jsonb_build_object(
+      'dimensionId', dimension_id,
+      'resolutionStatus', 'UNRESOLVED',
+      'resolutionReason',
+        case dimension_id
+          when 'REG-P4' then 'NO_RECOVERY_COMPATIBLE_CONDITION'
+          when 'CAP-P2' then 'NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL'
+          when 'EXP-P4' then 'NO_RELATIONAL_OBSERVATION'
+          else 'CONSTRUCT_MODEL_NOT_VALIDATED'
+        end,
+      'posteriorMean', null,
+      'confidence', null,
+      'scoreProduced', false,
+      'confidenceProduced', false
+    ) order by ord)
+    from unnest(array[
+      'COG-P1','COG-P2','COG-P3','COG-P4',
+      'REG-P1','REG-P2','REG-P3','REG-P4',
+      'CAP-P1','CAP-P2','CAP-P3','CAP-P4',
+      'EXP-P1','EXP-P2','EXP-P3','EXP-P4'
+    ]) with ordinality as dims(dimension_id, ord)
+  ),
+  jsonb_build_object('unresolved', 16, 'resolved', 0, 'invalid', 0),
+  jsonb_build_object(
+    'source', 'evidence_ledger',
+    'evidence_ledger_id', current_setting('test.pipeline_evidence_ledger_id'),
+    'raw_audio_consumed', false,
+    'measurement_record_consumed_directly', false,
+    'downstream_state_generated', false,
+    'downstream_pattern_generated', false,
+    'narrative_generated', false,
+    'resonance_generated', false
+  )
+)
+\gset pipeline_dimension_repeat_
+
+select set_config('test.pipeline_dimension_repeat_result_id', :'pipeline_dimension_repeat_dimension_result_id', true);
+
+do $$
+begin
+  if current_setting('test.pipeline_dimension_result_id') <> current_setting('test.pipeline_dimension_repeat_result_id') then
+    raise exception 'ASSERTION_FAILED: duplicate dimension result request was not idempotent';
+  end if;
+  raise notice 'PASS: dimension result creation is idempotent';
+end;
+$$;
+
+select * from public.create_dimension_result(
+  current_setting('test.pipeline_evidence_ledger_id')::uuid,
+  'runtime:pipeline:dimension-result-second-key',
+  'soulscope-dimension-engine-0.1.0',
+  '0.1',
+  'CALIBRATION_REQUIRED',
+  '0.1',
+  (
+    select jsonb_agg(jsonb_build_object(
+      'dimensionId', dimension_id,
+      'resolutionStatus', 'UNRESOLVED',
+      'resolutionReason',
+        case dimension_id
+          when 'REG-P4' then 'NO_RECOVERY_COMPATIBLE_CONDITION'
+          when 'CAP-P2' then 'NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL'
+          when 'EXP-P4' then 'NO_RELATIONAL_OBSERVATION'
+          else 'CONSTRUCT_MODEL_NOT_VALIDATED'
+        end,
+      'posteriorMean', null,
+      'confidence', null,
+      'scoreProduced', false,
+      'confidenceProduced', false
+    ) order by ord)
+    from unnest(array[
+      'COG-P1','COG-P2','COG-P3','COG-P4',
+      'REG-P1','REG-P2','REG-P3','REG-P4',
+      'CAP-P1','CAP-P2','CAP-P3','CAP-P4',
+      'EXP-P1','EXP-P2','EXP-P3','EXP-P4'
+    ]) with ordinality as dims(dimension_id, ord)
+  ),
+  jsonb_build_object('unresolved', 16, 'resolved', 0, 'invalid', 0),
+  jsonb_build_object(
+    'source', 'evidence_ledger',
+    'evidence_ledger_id', current_setting('test.pipeline_evidence_ledger_id'),
+    'raw_audio_consumed', false,
+    'measurement_record_consumed_directly', false,
+    'downstream_state_generated', false,
+    'downstream_pattern_generated', false,
+    'narrative_generated', false,
+    'resonance_generated', false
+  )
+)
+\gset pipeline_dimension_second_key_
+
+select set_config('test.pipeline_dimension_second_key_result_id', :'pipeline_dimension_second_key_dimension_result_id', true);
+
+do $$
+begin
+  if current_setting('test.pipeline_dimension_result_id') <> current_setting('test.pipeline_dimension_second_key_result_id') then
+    raise exception 'ASSERTION_FAILED: duplicate logical dimension result with a different retry key created a second row';
+  end if;
+  raise notice 'PASS: dimension result logical uniqueness is database-enforced';
+end;
+$$;
+
+select * from public.create_unresolved_semantic_result(
+  current_setting('test.pipeline_measurement_id')::uuid,
+  'runtime:pipeline:semantic-unresolved'
+)
+\gset pipeline_semantic_
+
+select set_config('test.pipeline_semantic_id', :'pipeline_semantic_semantic_result_id', true);
+
+reset role;
+
+do $$
+declare
+  semantic_record public.semantic_result_records%rowtype;
+begin
+  select *
+    into semantic_record
+    from public.semantic_result_records
+   where id = current_setting('test.pipeline_semantic_id')::uuid;
+
+  if semantic_record.pattern_result ->> 'publicationStatus' <> 'NO_PATTERN_PUBLISHED' then
+    raise exception 'ASSERTION_FAILED: unresolved semantic result forced a Pattern';
+  end if;
+
+  if not (
+    semantic_record.dimensions @> '[{"dimensionId":"REG-P4","resolutionStatus":"UNRESOLVED","resolutionReason":"NO_RECOVERY_COMPATIBLE_CONDITION"}]'::jsonb
+    and semantic_record.dimensions @> '[{"dimensionId":"CAP-P2","resolutionStatus":"UNRESOLVED","resolutionReason":"NO_RESERVE_COMPATIBLE_LOAD_PROTOCOL"}]'::jsonb
+    and semantic_record.dimensions @> '[{"dimensionId":"EXP-P4","resolutionStatus":"UNRESOLVED","resolutionReason":"NO_RELATIONAL_OBSERVATION"}]'::jsonb
+  ) then
+    raise exception 'ASSERTION_FAILED: unresolved semantic result did not preserve D3 hard abstentions';
+  end if;
+
+  if not exists (
+    select 1
+      from public.scan_sessions
+     where id = current_setting('test.pipeline_scan_id')::uuid
+       and lifecycle_state = 'evidence_ready'
+  ) then
+    raise exception 'ASSERTION_FAILED: pipeline scan did not reach evidence_ready';
+  end if;
+
+  raise notice 'PASS: real-scan pipeline foundation creates measurement and unresolved semantic records without forced Pattern or D3 leakage';
+
+  begin
+    update public.measurement_records
+       set measurement_status = 'qualified'
+     where id = current_setting('test.pipeline_measurement_id')::uuid;
+    raise exception 'ASSERTION_FAILED: immutable measurement record update was accepted';
+  exception
+    when insufficient_privilege then
+      raise notice 'PASS: measurement records are immutable';
+  end;
+
+  begin
+    update public.semantic_result_records
+       set status = 'invalid'
+     where id = current_setting('test.pipeline_semantic_id')::uuid;
+    raise exception 'ASSERTION_FAILED: immutable semantic result update was accepted';
+	  exception
+	    when insufficient_privilege then
+	      raise notice 'PASS: semantic result records are immutable';
+	  end;
+
+	  begin
+	    update public.evidence_ledgers
+	       set status = 'invalid'
+	     where id = current_setting('test.pipeline_evidence_ledger_id')::uuid;
+	    raise exception 'ASSERTION_FAILED: immutable evidence ledger update was accepted';
+	  exception
+	    when insufficient_privilege then
+	      raise notice 'PASS: evidence ledgers are immutable';
+	  end;
+
+	  begin
+	    update public.dimension_results
+	       set status = 'invalid'
+	     where id = current_setting('test.pipeline_dimension_result_id')::uuid;
+	    raise exception 'ASSERTION_FAILED: immutable dimension result update was accepted';
+	  exception
+	    when insufficient_privilege then
+	      raise notice 'PASS: dimension results are immutable';
+	  end;
+	end;
+	$$;
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', current_setting('test.owner_user_id'), true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.owner_user_id'), 'role', 'authenticated')::text, true);
+
+do $$
+begin
+  if not exists (
+    select 1 from public.measurement_records where id = current_setting('test.pipeline_measurement_id')::uuid
+  ) or not exists (
+    select 1 from public.semantic_result_records where id = current_setting('test.pipeline_semantic_id')::uuid
+  ) or not exists (
+    select 1 from public.evidence_ledgers where id = current_setting('test.pipeline_evidence_ledger_id')::uuid
+  ) or not exists (
+    select 1 from public.dimension_results where id = current_setting('test.pipeline_dimension_result_id')::uuid
+  ) then
+    raise exception 'ASSERTION_FAILED: owner cannot read pipeline measurement, evidence, dimension, and semantic records';
+  end if;
+  raise notice 'PASS: owner can read their pipeline measurement, evidence, dimension, and semantic records';
+end;
+$$;
+
+select set_config('request.jwt.claim.sub', current_setting('test.other_user_id'), true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.other_user_id'), 'role', 'authenticated')::text, true);
+
+do $$
+begin
+  if exists (
+    select 1 from public.measurement_records where id = current_setting('test.pipeline_measurement_id')::uuid
+  ) or exists (
+    select 1 from public.semantic_result_records where id = current_setting('test.pipeline_semantic_id')::uuid
+  ) or exists (
+    select 1 from public.evidence_ledgers where id = current_setting('test.pipeline_evidence_ledger_id')::uuid
+  ) or exists (
+    select 1 from public.dimension_results where id = current_setting('test.pipeline_dimension_result_id')::uuid
+  ) then
+    raise exception 'ASSERTION_FAILED: another user can read pipeline measurement, evidence, dimension, or semantic records';
+  end if;
+  raise notice 'PASS: another user cannot read pipeline measurement, evidence, dimension, or semantic records';
 end;
 $$;
 

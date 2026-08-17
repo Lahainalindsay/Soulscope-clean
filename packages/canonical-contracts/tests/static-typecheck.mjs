@@ -15,14 +15,24 @@ for (const file of tsFiles) {
 
 const indexSource = readText("src/index.ts");
 for (const expectedExport of [
+  "authority",
   "baselineHierarchy",
   "constellationIds",
   "dimensionIds",
+  "dimensionInference",
+  "evidenceMarkers",
   "evidenceLedger",
+  "interactionRegistry",
   "narrativeSections",
+  "narrativePolicy",
+  "patternRegistry",
+  "promptProtocol",
   "processingStages",
   "provenance",
-  "seedStateIds",
+  "resultContracts",
+  "scanProcessing",
+  "scientificStatus",
+  "stateRegistry",
   "validationPhases",
   "versioning",
 ]) {

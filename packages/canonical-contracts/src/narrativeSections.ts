@@ -19,7 +19,7 @@ export const NARRATIVE_SECTIONS = Object.freeze([
 ].map((entry) =>
   Object.freeze({
     ...entry,
-    provenance: provenance(sourceReference("constellationBible", "Section 14.1 Approved structure", "BIBLE")),
+    provenance: provenance(sourceReference("narrativeRegistry", "Narrative output", "CANON")),
   }),
 ));
 
@@ -32,5 +32,5 @@ export type NarrativeCitationRequirement = Readonly<{
 export const NARRATIVE_CITATION_REQUIREMENT: NarrativeCitationRequirement = Object.freeze({
   sentenceInternalCitationRequired: true,
   allowedCitationTargets: Object.freeze(["state_id", "interaction_id", "evidence_ledger_id"] as const),
-  provenance: provenance(sourceReference("constellationBible", "Section 14.2 Narrative generation contract", "BIBLE")),
+  provenance: provenance(sourceReference("narrativeRegistry", "Narrative authority boundary", "CANON")),
 });

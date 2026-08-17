@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soulscope.local/schemas/immutable-scan-result.schema.json",
+  "title": "SoulScope Immutable Scan Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "acquisitionRecord",
+    "measurementRecord",
+    "semanticResult",
+    "resonanceRenderingRecord",
+    "versionManifest"
+  ],
+  "properties": {
+    "acquisitionRecord": {
+      "type": "object",
+      "required": ["scanId", "promptIds", "provenance"],
+      "properties": {
+        "scanId": { "type": "string", "minLength": 1 },
+        "promptIds": {
+          "type": "array",
+          "items": {
+            "enum": ["P1_OPEN_REFERENCE", "P2_TROUBLING_CONTEXT", "P3_FUTURE_CONTEXT"]
+          }
+        },
+        "provenance": { "$ref": "provenance.schema.json" }
+      }
+    },
+    "measurementRecord": {
+      "type": "object",
+      "required": ["timeResolvedMeasurements", "promptSummaries", "quality", "promptContrasts", "extractorProvenance"],
+      "properties": {
+        "timeResolvedMeasurements": { "type": "array", "items": { "type": "string" } },
+        "promptSummaries": { "type": "array", "items": { "type": "string" } },
+        "quality": { "type": "object" },
+        "promptContrasts": { "type": "array", "items": { "type": "string" } },
+        "extractorProvenance": { "$ref": "provenance.schema.json" }
+      }
+    },
+    "semanticResult": {
+      "type": "object",
+      "required": ["evidenceLedger", "dimensions", "constellationGeometry", "statesOrBlends", "qualifiers", "interactions", "pattern", "decisionLedger"],
+      "properties": {
+        "evidenceLedger": { "type": "array" },
+        "dimensions": { "type": "array" },
+        "constellationGeometry": { "type": "array" },
+        "statesOrBlends": { "type": "array" },
+        "qualifiers": { "type": "array" },
+        "interactions": { "type": "array" },
+        "pattern": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scanId",
+            "outcomeType",
+            "candidatePatterns",
+            "supportingConstellations",
+            "supportingDimensions",
+            "supportingInteractions",
+            "contradictingStructures",
+            "coverage",
+            "independence",
+            "uncertainty",
+            "temporalScope",
+            "publicationStatus",
+            "patternDecisionRecord",
+            "registryVersions"
+          ],
+          "properties": {
+            "scanId": { "type": "string", "minLength": 1 },
+            "outcomeType": { "enum": ["PATTERN", "PATTERN_WITH_MODIFIER", "BOUNDARY_PATTERN", "NO_PATTERN_PUBLISHED", "SUPPRESSED", "INVALID"] },
+            "selectedPattern": { "enum": ["PTN-S01", "PTN-S02", "PTN-S03", "PTN-S04", "PTN-S05", "PTN-S06", "PTN-S07"] },
+            "selectedModifier": {
+              "enum": [
+                "GREATER_OBSERVABLE_COST",
+                "LOWER_OBSERVABLE_COST",
+                "HIGHER_MOBILIZATION",
+                "LOWER_MOBILIZATION",
+                "STRONGER_CONTEXT_SHIFT",
+                "LOWER_CONTEXT_SHIFT",
+                "BROADER_MODULATION",
+                "NARROWER_MODULATION"
+              ]
+            },
+            "candidatePatterns": {
+              "type": "array",
+              "items": { "enum": ["PTN-S01", "PTN-S02", "PTN-S03", "PTN-S04", "PTN-S05", "PTN-S06", "PTN-S07"] }
+            },
+            "patternFit": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "patternConfidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "supportingConstellations": { "type": "array", "items": { "type": "string" } },
+            "supportingDimensions": { "type": "array", "items": { "enum": ["COG-P1", "COG-P2", "COG-P3", "COG-P4", "REG-P1", "REG-P2", "REG-P3", "REG-P4", "CAP-P1", "CAP-P2", "CAP-P3", "CAP-P4", "EXP-P1", "EXP-P2", "EXP-P3", "EXP-P4"] } },
+            "supportingInteractions": { "type": "array", "items": { "type": "string" } },
+            "contradictingStructures": { "type": "array", "items": { "type": "string" } },
+            "coverage": { "type": "string" },
+            "independence": { "type": "string" },
+            "uncertainty": { "type": "string" },
+            "alternativePattern": { "enum": ["PTN-S01", "PTN-S02", "PTN-S03", "PTN-S04", "PTN-S05", "PTN-S06", "PTN-S07"] },
+            "temporalScope": { "enum": ["SINGLE_SCAN", "COMPATIBLE_LONGITUDINAL"] },
+            "publicationStatus": { "enum": ["PATTERN_PUBLISHED", "NO_PATTERN_PUBLISHED"] },
+            "resolutionReason": {
+              "enum": [
+                "INSUFFICIENT_CONSTELLATION_COVERAGE",
+                "REQUIRED_DIMENSION_UNRESOLVED",
+                "REQUIRED_INTERACTION_UNRESOLVED",
+                "PATTERN_MODEL_NOT_VALIDATED",
+                "PATTERN_FIT_TOO_LOW",
+                "LOW_PATTERN_CONFIDENCE",
+                "HIGH_CROSS_DOMAIN_CONTRADICTION",
+                "MULTIPLE_PLAUSIBLE_MOTIFS",
+                "NONADJACENT_COMPETING_PATTERNS",
+                "INSUFFICIENT_EVIDENCE_INDEPENDENCE",
+                "MODEL_OUT_OF_DISTRIBUTION",
+                "ACTIVE_HARD_CONFOUND",
+                "PROTOCOL_INCOMPATIBLE"
+              ]
+            },
+            "patternDecisionRecord": { "type": "object" },
+            "registryVersions": { "type": "object" }
+          }
+        },
+        "decisionLedger": { "type": "array" }
+      }
+    },
+    "resonanceRenderingRecord": {
+      "type": "object",
+      "required": ["inputPath", "semanticGeometryInputAllowed", "provenance"],
+      "properties": {
+        "inputPath": { "enum": ["QUALIFIED_ACOUSTIC_MEASUREMENTS_T"] },
+        "semanticGeometryInputAllowed": { "enum": [false] },
+        "provenance": { "$ref": "provenance.schema.json" }
+      }
+    },
+    "versionManifest": {
+      "type": "object",
+      "required": [
+        "protocol",
+        "extractor",
+        "featureRegistry",
+        "qualityRules",
+        "evidenceRegistry",
+        "dimensionRegistry",
+        "inferenceRules",
+        "stateRegistry",
+        "interactionRegistry",
+        "patternRegistry",
+        "narrativeRegistry",
+        "modelRegistry",
+        "rendererRegistry"
+      ],
+      "properties": {
+        "protocol": { "enum": ["1.3"] },
+        "extractor": { "type": "string", "minLength": 1 },
+        "featureRegistry": { "enum": ["0.1"] },
+        "qualityRules": { "enum": ["0.1"] },
+        "evidenceRegistry": { "enum": ["0.1"] },
+        "dimensionRegistry": { "enum": ["0.1"] },
+        "inferenceRules": { "enum": ["0.1"] },
+        "stateRegistry": { "enum": ["0.1"] },
+        "interactionRegistry": { "enum": ["0.1"] },
+        "patternRegistry": { "enum": ["0.1"] },
+        "narrativeRegistry": { "enum": ["0.1"] },
+        "modelRegistry": { "type": "string", "minLength": 1 },
+        "rendererRegistry": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

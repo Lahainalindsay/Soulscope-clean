@@ -122,10 +122,10 @@ export function validateSchema(schema, value, refs = {}) {
 
 export function validProvenance() {
   return {
-    sourceDocument: "docs/CONSTELLATION_BIBLE.md",
+    sourceDocument: "docs/canonical/SoulScope Evidence Marker Registry.pdf",
     sourceVersion: "0.1",
-    sourceSection: "Section 3.1 Minimum ledger record",
-    sourceTable: "Table 9",
+    sourceSection: "Evidence Marker object",
+    sourceTable: "Evidence Marker object",
   };
 }
 
@@ -134,6 +134,6 @@ export function validVersion() {
     packageVersion: "0.1.0",
     registryVersion: "0.1.0",
     schemaVersion: "0.1.0",
-    sourceVersion: "0.1",
+    sourceVersion: "1.3",
   };
 }
