@@ -14,7 +14,12 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from app.auth import ServiceAuth
-from app.config import DIMENSION_ENGINE_VERSION, EVIDENCE_ENGINE_VERSION, EVIDENCE_RULE_VERSION, Settings
+from app.config import (
+    DIMENSION_ENGINE_VERSION,
+    EVIDENCE_ENGINE_VERSION,
+    EVIDENCE_RULE_VERSION,
+    Settings,
+)
 from app.database import SupabaseRestRpc
 from app.dimensions.engine import evaluate_dimensions
 from app.dimensions.models import EvidenceLedgerInput
