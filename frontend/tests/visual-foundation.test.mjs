@@ -24,7 +24,7 @@ function files(dir) {
   return result;
 }
 
-const sourceRoots = ["components", "mocks", "pages", "styles", "tests"];
+const sourceRoots = ["components", "lib", "mocks", "pages", "styles", "tests"];
 const sourceFiles = sourceRoots
   .flatMap((dir) => files(dir))
   .filter((file) => /\.(tsx?|css|mjs|json)$/.test(file));
@@ -38,6 +38,7 @@ test("current product routes are present", () => {
     "pages/scan/question/[step].tsx",
     "pages/scan/analyzing.tsx",
     "pages/results/demo.tsx",
+    "pages/results/[scanId].tsx",
     "pages/history.tsx",
     "pages/profile.tsx",
     "pages/settings.tsx",
@@ -69,28 +70,30 @@ test("scan entry is quiet and direct", () => {
   assert.match(scanIntro, /Before you begin your scan/);
   assert.match(scanIntro, /Find a quiet place/);
   assert.match(scanIntro, /30 seconds for each response/);
-  assert.match(scanIntro, /href="\/scan\/question\/1"/);
+  assert.match(scanIntro, /startScan/);
   assert.doesNotMatch(scanIntro, /results\/demo|Review visual result|View demo/);
 });
 
-test("auth screens are visual only", () => {
+test("auth screens submit through the client-safe Supabase auth helper", () => {
   const authSources = [read("pages/login.tsx"), read("pages/signup.tsx")].join("\n");
   assert.match(authSources, /Email/);
   assert.match(authSources, /Password/);
   assert.match(authSources, /Create account/);
   assert.match(authSources, /Terms of Use and Privacy Policy/);
-  assert.doesNotMatch(authSources, /onSubmit|fetch\(|axios|createClient|router\.push|signIn|signUp/);
+  assert.match(authSources, /onSubmit/);
+  assert.match(authSources, /signInWithPassword/);
+  assert.match(authSources, /signUpWithPassword/);
+  assert.doesNotMatch(authSources, /SUPABASE_SERVICE_ROLE_KEY|SERVICE_ROLE/);
 });
 
-test("prompt flow remains presentation-only", () => {
+test("prompt flow records browser audio without client-side analysis", () => {
   const promptPage = read("pages/scan/question/[step].tsx");
   assert.match(promptPage, /Guided measurement/);
-  assert.match(promptPage, /Begin prompt/);
-  assert.match(promptPage, /Automatic completion/);
-  assert.match(promptPage, /No audio was recorded or saved/);
-  assert.doesNotMatch(promptPage, /Skip Prompt|Stop recording|Start recording|00:30/);
-  assert.doesNotMatch(promptPage, /useLocalAudioRecorder|getUserMedia|MediaRecorder|audioUrl|navigator/);
-  assert.equal(exists("hooks/useLocalAudioRecorder.ts"), false);
+  assert.match(promptPage, /Start recording/);
+  assert.match(read("lib/audioRecorder.ts"), /MediaRecorder/);
+  assert.match(read("lib/audioRecorder.ts"), /audio\/wav/);
+  assert.doesNotMatch(promptPage, /Skip Prompt|Stop recording|00:30/);
+  assert.doesNotMatch(promptPage, /scoreDimension|analyzeVoice|detectEmotion/);
 });
 
 test("canonical contract dependency remains available", () => {
@@ -101,6 +104,8 @@ test("canonical contract dependency remains available", () => {
 
 test("single scan result route owns the dashboard experience", () => {
   assert.match(read("pages/results/demo.tsx"), /ScanResultDashboard/);
+  assert.match(read("pages/results/[scanId].tsx"), /Structural Dimension status/);
+  assert.match(read("pages/results/[scanId].tsx"), /CALIBRATION_REQUIRED/);
   assert.match(read("components/results/ScanResultDashboard.tsx"), /SoulScope single scan result/);
   assert.doesNotMatch(read("pages/index.tsx"), /ScanResultDashboard/);
 });
@@ -129,9 +134,10 @@ test("result prototype remains isolated to the demo result component", () => {
 test("visible warnings keep the visual gate bounded", () => {
   const combined = [
     read("pages/scan/question/[step].tsx"),
+    read("pages/results/[scanId].tsx"),
     read("components/results/ScanResultDashboard.tsx"),
   ].join("\n");
-  assert.match(combined, /visual gate|not a diagnosis|No audio was recorded/);
+  assert.match(combined, /not a diagnosis|CALIBRATION_REQUIRED|Numeric scores remain unavailable/);
 });
 
 test("obsolete prototype component files are absent", () => {
@@ -154,8 +160,9 @@ test("no forbidden implementation imports exist", () => {
     .filter((file) => !file.startsWith("tests/"))
     .map((file) => read(file))
     .join("\n");
-  assert.equal(/from ["'].*supabase|createClient|@supabase/.test(combined), false);
+  assert.equal(/createClient|@supabase/.test(combined), false);
   assert.equal(/from ["'].*backend/.test(combined), false);
+  assert.equal(/SUPABASE_SERVICE_ROLE_KEY|SERVICE_ROLE_KEY|service_role/i.test(combined), false);
 });
 
 test("prohibited behavior terms are absent from implementation files", () => {

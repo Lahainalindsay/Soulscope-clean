@@ -25,6 +25,7 @@ class Settings:
     supabase_url: str
     supabase_service_role_key: str
     private_audio_root: Path
+    supabase_anon_key: str = ""
     max_upload_bytes: int = 25 * 1024 * 1024
     max_duration_seconds: float = 90.0
     min_speech_ratio: float = 0.05
@@ -34,12 +35,14 @@ class Settings:
     worker_internal_token: str | None = None
     storage_backend: str = "local"
     private_audio_bucket: str = "private-audio"
+    allowed_origins: tuple[str, ...] = ("http://localhost:3000", "http://localhost:3001")
 
     @classmethod
     def from_env(cls) -> Settings:
         return cls(
             supabase_url=os.environ.get("SUPABASE_URL", "").rstrip("/"),
             supabase_service_role_key=os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""),
+            supabase_anon_key=os.environ.get("SUPABASE_ANON_KEY", ""),
             private_audio_root=Path(
                 os.environ.get("SOULSCOPE_PRIVATE_AUDIO_ROOT", "backend/.private_audio")
             ),
@@ -48,6 +51,14 @@ class Settings:
             private_audio_bucket=os.environ.get(
                 "SOULSCOPE_SUPABASE_STORAGE_BUCKET",
                 os.environ.get("SOULSCOPE_PRIVATE_AUDIO_BUCKET", "private-audio"),
+            ),
+            allowed_origins=tuple(
+                origin.strip()
+                for origin in os.environ.get(
+                    "SOULSCOPE_ALLOWED_ORIGINS",
+                    "http://localhost:3000,http://localhost:3001",
+                ).split(",")
+                if origin.strip()
             ),
         )
 
@@ -58,6 +69,8 @@ def require_service_settings() -> Settings:
         raise RuntimeError("SUPABASE_URL is required")
     if not settings.supabase_service_role_key:
         raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required")
+    if not settings.supabase_anon_key:
+        raise RuntimeError("SUPABASE_ANON_KEY is required")
     if settings.storage_backend not in ("local", "supabase"):
         raise RuntimeError("SOULSCOPE_STORAGE_BACKEND must be 'local' or 'supabase'")
     if settings.storage_backend == "supabase" and not settings.private_audio_bucket:

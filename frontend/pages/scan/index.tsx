@@ -1,7 +1,35 @@
-import Link from "next/link";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { InstrumentLayout } from "../../components/instrument/InstrumentLayout";
+import { currentSession, startScan } from "../../lib/soulscopeApi";
 
 export default function ScanIntroPage() {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [starting, setStarting] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    setSignedIn(Boolean(currentSession()));
+  }, []);
+
+  async function beginScan() {
+    const session = currentSession();
+    if (!session) {
+      await router.push("/login");
+      return;
+    }
+    setError("");
+    setStarting(true);
+    try {
+      await startScan(session);
+      await router.push("/scan/question/1");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not start scan.");
+      setStarting(false);
+    }
+  }
+
   return (
     <InstrumentLayout
       title="SoulScope — Begin Scan"
@@ -20,9 +48,13 @@ export default function ScanIntroPage() {
             speak for the full time available.
           </li>
         </ol>
-        <Link href="/scan/question/1" className="ss-button ss-button-primary">
-          Begin scan
-        </Link>
+        <button type="button" className="ss-button ss-button-primary" onClick={beginScan} disabled={starting}>
+          {starting ? "Starting scan" : "Begin scan"}
+        </button>
+        {signedIn ? null : (
+          <p className="ss-recording-message">Sign in is required before a scan can be created.</p>
+        )}
+        {error ? <p className="ss-auth-error">{error}</p> : null}
       </section>
     </InstrumentLayout>
   );
