@@ -14,7 +14,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from app.auth import ServiceAuth
-from app.config import Settings
+from app.config import DIMENSION_ENGINE_VERSION, EVIDENCE_ENGINE_VERSION, EVIDENCE_RULE_VERSION, Settings
 from app.database import SupabaseRestRpc
 from app.dimensions.engine import evaluate_dimensions
 from app.dimensions.models import EvidenceLedgerInput
@@ -131,8 +131,8 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
                 {
                     "p_measurement_record_id": "00000000-0000-4000-8000-000000000000",
                     "p_idempotency_key": f"{self.namespace}:anon-evidence-denied",
-                    "p_evidence_engine_version": "soulscope-evidence-engine-0.1.0",
-                    "p_evidence_rule_version": "evidence-structural-v1",
+                    "p_evidence_engine_version": EVIDENCE_ENGINE_VERSION,
+                    "p_evidence_rule_version": EVIDENCE_RULE_VERSION,
                     "p_evidence_registry_version": "0.1",
                     "p_ledger_schema_version": "0.1",
                     "p_entries": [{"evidence_id": "ev_denied"}],
@@ -185,8 +185,8 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
                 {
                     "p_measurement_record_id": "00000000-0000-4000-8000-000000000000",
                     "p_idempotency_key": f"{self.namespace}:user-evidence-denied",
-                    "p_evidence_engine_version": "soulscope-evidence-engine-0.1.0",
-                    "p_evidence_rule_version": "evidence-structural-v1",
+                    "p_evidence_engine_version": EVIDENCE_ENGINE_VERSION,
+                    "p_evidence_rule_version": EVIDENCE_RULE_VERSION,
                     "p_evidence_registry_version": "0.1",
                     "p_ledger_schema_version": "0.1",
                     "p_entries": [{"evidence_id": "ev_denied"}],
@@ -222,7 +222,7 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
             self.service_role_key,
             None,
             "create_dimension_calibration_spec",
-            _calibration_seed_payload("COG-P1"),
+            _calibration_seed_payload("COG-P1", f"hosted-calibration-{self.namespace}"),
         )
         self.assertEqual(service_calibration[0]["dimension_id"], "COG-P1")
         self.assertEqual(service_calibration[0]["status"], "CALIBRATION_REQUIRED")
@@ -256,6 +256,23 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
         self.assertEqual(len(owner_measurements), 1)
         self.assertEqual(owner_measurements[0]["measurement_status"], "qualified")
         self.assertEqual(len(owner_measurements[0]["prompt_measurements"]), 3)
+        feature_ids = {
+            measurement["feature_id"]
+            for prompt in owner_measurements[0]["prompt_measurements"]
+            for measurement in prompt["measurements"]
+        }
+        self.assertIn("SS_PAUSE_LOAD", feature_ids)
+        self.assertIn("Q_VOICED_RATIO", feature_ids)
+        self.assertIn("Q_CLIPPING_RATIO", feature_ids)
+        self.assertNotIn("AC_RMS_ENERGY", feature_ids)
+        self.assertTrue(
+            any(
+                measurement["feature_registry_version"] == "0.1"
+                for prompt in owner_measurements[0]["prompt_measurements"]
+                for measurement in prompt["measurements"]
+                if measurement["feature_id"].startswith(("SS_", "Q_"))
+            )
+        )
 
         service_measurements = self._rest_with_key(
             self.service_role_key,
@@ -279,9 +296,14 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
             f"evidence_ledgers?{urlencode({'id': f'eq.{evidence_ids[0]}', 'select': 'id,status,status_counts,entries,evidence_engine_version'})}",
         )
         self.assertEqual(len(owner_evidence), 1)
-        self.assertEqual(owner_evidence[0]["evidence_engine_version"], "soulscope-evidence-engine-0.1.0")
+        self.assertEqual(owner_evidence[0]["evidence_engine_version"], EVIDENCE_ENGINE_VERSION)
         self.assertGreater(owner_evidence[0]["status_counts"]["supported"], 0)
         self.assertTrue(owner_evidence[0]["entries"])
+        marker_ids = {entry["marker_id"] for entry in owner_evidence[0]["entries"]}
+        self.assertTrue(all(marker_id.startswith("EV_") for marker_id in marker_ids))
+        self.assertIn("EV_TIM_008", marker_ids)
+        self.assertIn("EV_DYN_001", marker_ids)
+        self.assertNotIn("OUTPUT_CONTINUITY", marker_ids)
 
         user_b_evidence = self._rest_as_user(
             self.user_b,
@@ -325,6 +347,7 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
         self.assertEqual(len(owner_dimensions), 1)
         self.assertEqual(owner_dimensions[0]["dimension_scoring_version"], "CALIBRATION_REQUIRED")
         self.assertEqual(len(owner_dimensions[0]["dimensions"]), 16)
+        self.assertTrue(all(item["structuralMappingStatus"] == "STRUCTURAL_MAPPING_DEFINED" for item in owner_dimensions[0]["dimensions"]))
         self.assertTrue(all(item["posteriorMean"] is None for item in owner_dimensions[0]["dimensions"]))
         self.assertTrue(all(item["confidence"] is None for item in owner_dimensions[0]["dimensions"]))
         self.assertTrue(all(item["scoringPermitted"] is False for item in owner_dimensions[0]["dimensions"]))
@@ -574,6 +597,11 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
             headers["prefer"] = prefer
         body = None if payload is None else json.dumps(payload).encode("utf-8")
         request = Request(f"{self.supabase_url}/{route}", data=body, headers=headers, method=method)
+        api_key = "[REDACTED]"
+        access_token = "[REDACTED]" if access_token is not None else None
+        payload = {"redacted": True} if payload is not None else None
+        headers = {"redacted": True}
+        body = None
         try:
             with urlopen(request, timeout=30) as response:
                 data = response.read()
@@ -626,7 +654,7 @@ def _dimension_denial_payload(evidence_ledger_id: str, idempotency_key: str) -> 
     return {
         "p_evidence_ledger_id": evidence_ledger_id,
         "p_idempotency_key": idempotency_key,
-        "p_dimension_engine_version": "soulscope-dimension-engine-0.1.0",
+        "p_dimension_engine_version": DIMENSION_ENGINE_VERSION,
         "p_dimension_registry_version": "0.1",
         "p_dimension_scoring_version": "CALIBRATION_REQUIRED",
         "p_result_schema_version": "0.1",
@@ -650,10 +678,10 @@ def _calibration_denial_payload(calibration_id: str) -> dict[str, Any]:
         "p_calibration_version": "dimension-calibration-foundation-v0.1",
         "p_dimension_id": "COG-P1",
         "p_dimension_registry_version": "0.1",
-        "p_evidence_engine_version": "soulscope-evidence-engine-0.1.0",
-        "p_evidence_rule_version": "evidence-structural-v1",
+        "p_evidence_engine_version": EVIDENCE_ENGINE_VERSION,
+        "p_evidence_rule_version": EVIDENCE_RULE_VERSION,
         "p_evidence_registry_version": "0.1",
-        "p_dimension_engine_version": "soulscope-dimension-engine-0.1.0",
+        "p_dimension_engine_version": DIMENSION_ENGINE_VERSION,
         "p_status": "CALIBRATION_REQUIRED",
         "p_eligible_evidence_marker_ids": [],
         "p_required_evidence_marker_ids": [],
@@ -676,8 +704,9 @@ def _calibration_denial_payload(calibration_id: str) -> dict[str, Any]:
     }
 
 
-def _calibration_seed_payload(dimension_id: str) -> dict[str, Any]:
-    payload = _calibration_denial_payload(f"{dimension_id}:calibration-required")
+def _calibration_seed_payload(dimension_id: str, calibration_version: str) -> dict[str, Any]:
+    payload = _calibration_denial_payload(f"{dimension_id}:{calibration_version}")
+    payload["p_calibration_version"] = calibration_version
     payload["p_provenance"] = {
         "source": "dimension_calibration_foundation",
         "contract_version": "0.1",
