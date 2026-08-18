@@ -1,6 +1,7 @@
 # SoulScope Frontend
 
-This frontend connects the existing SoulScope visual shell to the current
+This frontend ports the Replit SoulScope instrument visual language into the
+existing Next.js shell and connects it to the current
 canonical backend path. It supports Supabase Auth, owner-scoped scan creation,
 browser microphone recording, private backend processing, and owner-only
 structural Dimension result display.
@@ -9,7 +10,7 @@ It does not perform scientific scoring, state inference, interaction inference,
 pattern inference, narrative generation, or production Resonance Signature
 rendering.
 
-It uses Next.js `14.2.35`, React `18.3.1`, TypeScript, CSS Modules, semantic HTML, and the local `@soulscope/canonical-contracts` package for approved labels and identifiers.
+It uses Next.js `14.2.35`, React `18.3.1`, TypeScript, CSS Modules, semantic HTML, and the local `@soulscope/canonical-contracts` package for approved labels and identifiers. Replit visual assets are retained under `public/soulscope/`.
 
 The original archived frontend used Next.js `14.2.5`; this clean shell pins the latest `14.2.x` patch because the `14.2.5` native compiler crashed during production build validation in this environment.
 
@@ -26,6 +27,7 @@ Included:
 - owner-only structural result route
 - history, profile, and settings presentation
 - visual-only Resonance Signature placeholder
+- structural Resonance Signature using only canonical eligibility/status data
 - accessibility and reduced-motion foundations
 
 Excluded:
@@ -37,6 +39,12 @@ Excluded:
 - pattern inference
 - narrative generation
 - production renderer behavior
+
+The imported Expo app's `analysis.ts`, Replit `api-server`, workspace API
+client, Replit authentication, database, and server runtime are deliberately
+excluded. The browser submits only authenticated multipart audio to the
+existing `/process-scan` FastAPI route; it never uses privileged Supabase
+credentials or direct scientific/scoring logic.
 
 ## Required Runtime Environment
 

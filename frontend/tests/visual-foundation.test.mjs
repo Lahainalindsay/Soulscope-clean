@@ -102,6 +102,19 @@ test("canonical contract dependency remains available", () => {
   assert.match(read("mocks/visualFoundation.ts"), /@soulscope\/canonical-contracts/);
 });
 
+test("Replit visual assets are present without importing Replit runtime infrastructure", () => {
+  assert.equal(exists("public/soulscope/soulscope-logo.jpeg"), true);
+  assert.equal(exists("public/soulscope/resonance-dashboard-reference.png"), true);
+  const combined = sourceFiles
+    .filter((file) => !file.startsWith("tests/"))
+    .map((file) => read(file))
+    .join("\n");
+  assert.doesNotMatch(combined, /@workspace\/api-client-react|EXPO_PUBLIC_DOMAIN|REPLIT_DEV_DOMAIN|api-server/i);
+  assert.match(read("components/resonance/StructuralResonanceSignature.tsx"), /CALIBRATION_REQUIRED/);
+  assert.match(read("components/resonance/StructuralResonanceSignature.tsx"), /structuralEligible/);
+  assert.doesNotMatch(read("components/resonance/StructuralResonanceSignature.tsx"), /posteriorMean|confidence\s*:/i);
+});
+
 test("single scan result route owns the dashboard experience", () => {
   assert.match(read("pages/results/demo.tsx"), /ScanResultDashboard/);
   assert.match(read("pages/results/[scanId].tsx"), /Structural Dimension status/);

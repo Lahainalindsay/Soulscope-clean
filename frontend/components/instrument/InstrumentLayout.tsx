@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { ReactNode } from "react";
@@ -44,7 +45,8 @@ export function InstrumentLayout({
       <div className="ss-app">
         <nav className="ss-topbar" aria-label="Primary navigation">
           <Link href="/" className="ss-wordmark" aria-label="SoulScope home">
-            Soul<span>Scope</span>
+            <Image src="/soulscope/soulscope-logo.jpeg" alt="" width={28} height={28} className="ss-wordmark-mark" />
+            <span>Soul</span><span>Scope</span>
           </Link>
 
           <div className="ss-nav-links">

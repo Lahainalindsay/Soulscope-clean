@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { InstrumentLayout } from "../../components/instrument/InstrumentLayout";
+import { StructuralResonanceSignature } from "../../components/resonance/StructuralResonanceSignature";
 import {
   DimensionResultRow,
   currentSession,
@@ -89,6 +90,10 @@ export default function ScanResultPage() {
             <Link href="/scan">New scan</Link>
           </div>
         </section>
+
+        {dimensionResult ? (
+          <StructuralResonanceSignature dimensions={dimensionResult.dimensions} />
+        ) : null}
 
         {dimensionResult ? (
           <section className="ss-pre-scan-panel" aria-label="Structural Dimension results">

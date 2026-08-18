@@ -2649,3 +2649,143 @@ button {
     transition-duration: 0.001ms !important;
   }
 }
+
+.ss-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.ss-wordmark-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  opacity: 0.9;
+}
+
+.ss-structural-signature {
+  border: 1px solid rgba(129, 192, 220, 0.18);
+  border-radius: var(--ss-radius-md);
+  background: linear-gradient(145deg, rgba(8, 19, 31, 0.96), rgba(4, 10, 18, 0.98));
+  padding: clamp(18px, 3vw, 32px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
+}
+
+.ss-structural-signature-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+
+.ss-structural-signature-header h2 {
+  margin: 5px 0 0;
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.05;
+}
+
+.ss-structural-badge {
+  border: 1px solid rgba(97, 231, 236, 0.4);
+  color: #b8f5ed;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.ss-structural-signature svg {
+  display: block;
+  width: min(100%, 580px);
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.ss-structural-ring {
+  fill: none;
+  stroke: rgba(129, 192, 220, 0.26);
+  stroke-width: 1;
+  stroke-dasharray: 4 10;
+}
+
+.ss-structural-ring-muted {
+  stroke: rgba(129, 192, 220, 0.12);
+  stroke-dasharray: 2 12;
+}
+
+.ss-structural-flow,
+.ss-structural-arc {
+  fill: none;
+  stroke: url(#structural-flow);
+  stroke-width: 2;
+  opacity: 0.46;
+}
+
+.ss-structural-flow-secondary {
+  opacity: 0.24;
+  stroke-dasharray: 5 8;
+}
+
+.ss-structural-arc {
+  stroke: rgba(184, 245, 237, 0.26);
+  stroke-width: 1;
+}
+
+.ss-structural-core {
+  fill: #f4f6ff;
+  stroke: #61e7ec;
+  stroke-width: 2;
+  opacity: 0.82;
+}
+
+.ss-structural-label,
+.ss-structural-status {
+  font-family: var(--ss-mono);
+  text-transform: uppercase;
+}
+
+.ss-structural-label {
+  fill: #e8f2f5;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+}
+
+.ss-structural-status {
+  fill: #8bb6c6;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.ss-structural-note {
+  max-width: 720px;
+  margin: 8px auto 0;
+  color: #8bb6c6;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .ss-wordmark-mark {
+    width: 24px;
+    height: 24px;
+  }
+
+  .ss-structural-signature-header {
+    display: grid;
+  }
+
+  .ss-structural-badge {
+    justify-self: start;
+  }
+
+  .ss-structural-label {
+    font-size: 13px;
+  }
+
+  .ss-structural-status {
+    font-size: 10px;
+  }
+}
