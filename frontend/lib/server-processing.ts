@@ -194,11 +194,26 @@ export async function processUpload(
       "The dimension record was not saved. Please retry.",
       502,
     );
+  const completedRows = await read(
+    `/rest/v1/semantic_result_records?dimension_result_id=eq.${dimensionId}&select=id,status&order=created_at.desc&limit=1`,
+  );
+  let semanticId = completedRows[0]?.id as string | undefined;
+  let semanticStatus = completedRows[0]?.status as string | undefined;
+  if (!semanticId) {
+    const f = new FormData();
+    f.set("dimension_result_id", dimensionId);
+    const completed = await invoke("/internal/process-result", f);
+    semanticId = completed.semantic_result_id;
+    semanticStatus = completed.status;
+  }
+  if (!semanticId || !uuid.test(semanticId) || !["unresolved_abstained", "invalid"].includes(semanticStatus ?? ""))
+    throw new ProcessingError("The completed result was not saved. Please retry.", 502);
   return {
     scan_id: id,
+    semantic_result_id: semanticId,
     measurement_record_id: measurementId,
     evidence_ledger_id: evidenceId,
     dimension_result_id: dimensionId,
-    status: "unresolved_abstained",
+    status: semanticStatus,
   };
 }

@@ -67,7 +67,7 @@ Three 30-second mono 16 kHz WAVs total roughly 2.9 MB, below Vercel's usual requ
 
 The browser uses the active canonical prompt set, creates an owner-scoped scan, creates capture workflow rows, and requests bounded lifecycle transitions using the existing RPC. Consent acknowledgment and disclosure version are attached to the capturing transition audit details.
 
-The server verifies the access token with Supabase Auth, checks scan ownership through RLS, checks canonical capture IDs/order/status, and validates the actual WAVs before privileged processing. The worker token never enters client code. The server invokes the existing measurement, evidence, and dimension endpoints in order. Retry discovers saved stages by their upstream immutable IDs and resumes without rerunning completed stages. Upstream error bodies are not echoed to the browser.
+The server verifies the access token with Supabase Auth, checks scan ownership through RLS, checks canonical capture IDs/order/status, and validates the actual WAVs before privileged processing. The worker token never enters client code. The server invokes the existing measurement, evidence, dimension, and canonical completion endpoints in order. Completion requires the backend canonical-result migration. Retry discovers saved stages by their upstream immutable IDs and resumes without rerunning completed stages. Upstream error bodies are not echoed to the browser.
 
 A submitted measurement test remains `extracting` in the foundation scan lifecycle because the worker has not published/finalized a canonical result. The UI reports saved evidence separately from that lifecycle. No frontend code forces finalization.
 
@@ -75,7 +75,7 @@ Recordings are in page memory, not localStorage or public storage. Leaving the s
 
 ## Scientific scope
 
-Current backend outputs are descriptive provisional measurements, structural evidence, and abstained/unresolved dimensions with `CALIBRATION_REQUIRED`. There is no calibrated constellation scoring, state/pattern inference, interpretation engine, integrated longitudinal field, or canonical time-resolved acoustic renderer.
+Current backend outputs are descriptive provisional measurements, structural evidence, abstained/unresolved dimensions, and immutable completed semantic results with `CALIBRATION_REQUIRED`. There is no calibrated constellation scoring, state/pattern inference, interpretation engine, integrated longitudinal field, or canonical time-resolved acoustic renderer.
 
 The luminous SVG is decorative, fixed artwork. It is never driven by constellation scores, never presented as a measured Resonance Signature, and never persisted as a rendering record. Future production rendering must obey Canon v1.3's time-as-radius, acoustic-only provenance boundary. The requested reference is an aesthetic reference, not an inference contract.
 

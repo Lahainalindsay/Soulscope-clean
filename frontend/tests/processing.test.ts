@@ -8,6 +8,7 @@ const mids = [
   "33333333-3333-4333-8333-333333333333",
   "44444444-4444-4444-8444-444444444444",
   "55555555-5555-4555-8555-555555555555",
+  "99999999-9999-4999-8999-999999999999",
 ];
 const captures = [
   "66666666-6666-4666-8666-666666666666",
@@ -81,8 +82,8 @@ function mock({ owner = true, auth = true, cached = 0, fail = false } = {}) {
         ? 0
         : url.includes("evidence_ledgers?")
           ? 1
-          : 2;
-      return json(cached > n ? [{ id: mids[n] }] : []);
+          : url.includes("dimension_results?") ? 2 : 3;
+      return json(cached > n ? [{ id: mids[n], ...(n === 3 ? { status: "unresolved_abstained" } : {}) }] : []);
     }
     assert.equal(
       (init?.headers as Record<string, string>)["x-worker-token"],
@@ -98,6 +99,10 @@ function mock({ owner = true, auth = true, cached = 0, fail = false } = {}) {
         mids[0],
       );
       return json({ evidence_ledger_id: mids[1] });
+    }
+    if (url.endsWith("process-result")) {
+      assert.equal((init?.body as FormData).get("dimension_result_id"), mids[2]);
+      return json({ semantic_result_id: mids[3], status: "unresolved_abstained" });
     }
     assert.equal((init?.body as FormData).get("evidence_ledger_id"), mids[1]);
     return json({ dimension_result_id: mids[2] });
@@ -136,16 +141,17 @@ test("capture mismatch, missing recordings and malformed WAVs are rejected befor
     assert.ok(!m.calls.some((s) => s.includes("worker.example")));
   }
 });
-test("runs measurement, evidence and dimensions in order using server-returned IDs", async () => {
+test("runs measurement, evidence, dimensions and finalization in order using server-returned IDs", async () => {
   const m = mock();
   const result = await processUpload(request(), config, m.fetcher);
   assert.equal(result.status, "unresolved_abstained");
   assert.equal(result.dimension_result_id, mids[2]);
+  assert.equal(result.semantic_result_id, mids[3]);
   assert.deepEqual(
     m.calls
       .filter((s) => s.includes("worker.example"))
       .map((s) => s.split("/").at(-1)),
-    ["process-scan", "process-evidence", "process-dimensions"],
+    ["process-scan", "process-evidence", "process-dimensions", "process-result"],
   );
 });
 test("retry resumes from saved measurement and evidence instead of reprocessing audio", async () => {
@@ -155,11 +161,11 @@ test("retry resumes from saved measurement and evidence instead of reprocessing 
     m.calls
       .filter((s) => s.includes("worker.example"))
       .map((s) => s.split("/").at(-1)),
-    ["process-dimensions"],
+    ["process-dimensions", "process-result"],
   );
 });
 test("fully saved stages are idempotent and worker failure details are not exposed", async () => {
-  const m = mock({ cached: 3 });
+  const m = mock({ cached: 4 });
   await processUpload(request(), config, m.fetcher);
   assert.ok(!m.calls.some((s) => s.includes("worker.example")));
   const failed = mock({ fail: true });
@@ -170,4 +176,10 @@ test("fully saved stages are idempotent and worker failure details are not expos
       e.status === 502 &&
       !e.message.includes("secret"),
   );
+});
+
+test("saved dimensions still complete the final semantic step", async () => {
+  const m = mock({ cached: 3 });
+  await processUpload(request(), config, m.fetcher);
+  assert.deepEqual(m.calls.filter(s => s.includes("worker.example")).map(s => s.split("/").at(-1)), ["process-result"]);
 });
