@@ -2,6 +2,7 @@ node_modules/
 .next/
 .git/
 .env*
+!frontend/.env.example
 __pycache__/
 *.pyc
 *.egg-info/
@@ -16,3 +17,5 @@ coverage/
 backend/.private_audio/
 supabase/.temp/
 .DS_Store
+
+frontend/next-env.d.ts

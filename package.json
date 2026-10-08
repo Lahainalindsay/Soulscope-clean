@@ -1,0 +1,11 @@
+{
+  "name": "soulscope-clean",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "typecheck": "npm --prefix frontend run typecheck",
+    "test:frontend": "npm --prefix frontend test",
+    "test:contracts": "npm --prefix packages/canonical-contracts test"
+  }
+}
