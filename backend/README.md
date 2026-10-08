@@ -1,6 +1,6 @@
 # SoulScope Backend
 
-This directory contains the Python/FastAPI backend worker through Milestone 5.1.
+This directory contains the Python/FastAPI backend worker and calibration-gated canonical completion.
 
 The worker uses the service-owned Supabase RPC boundary established by the foundation migrations:
 
@@ -9,7 +9,7 @@ The worker uses the service-owned Supabase RPC boundary established by the found
 - `create_measurement_record`
 - `create_evidence_ledger`
 - `create_dimension_result`
-- `create_unresolved_semantic_result`
+- `finalize_canonical_result` (historic `create_unresolved_semantic_result` remains for compatibility)
 
 It implements:
 
@@ -24,14 +24,14 @@ It implements:
 - deterministic Dimension Engine v2 over immutable Evidence Ledgers with structural Dimension requirements
 - immutable Dimension Result persistence
 - Dimension Calibration Foundation with immutable `CALIBRATION_REQUIRED` specs
-- unresolved semantic result creation
+- immutable source-linked semantic completion and atomic audited finalization
 - opt-in hosted Supabase tests for Storage, privileged RPCs, RLS, immutability, Evidence, Dimensions, and idempotency
 
 It intentionally does not implement calibrated Dimension scoring, State selection, Constellation scoring, Pattern inference, Narrative generation, Resonance Signature rendering, frontend integration, or calibrated psychological/scientific interpretation.
 
 ## Local checks
 
-The test suite is stdlib-only so it can run before optional scientific/runtime dependencies are installed:
+Install `backend[dev]` to run the full suite, including API boundary tests:
 
 ```bash
 PYTHONPATH=backend python3 -m unittest discover -s backend/tests -t backend
@@ -160,6 +160,7 @@ Local filesystem storage:
 SOULSCOPE_STORAGE_BACKEND=local \
 SUPABASE_URL=... \
 SUPABASE_SERVICE_ROLE_KEY=... \
+SOULSCOPE_WORKER_INTERNAL_TOKEN=... \
 uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8080
 ```
 
@@ -170,22 +171,51 @@ SOULSCOPE_STORAGE_BACKEND=supabase \
 SOULSCOPE_SUPABASE_STORAGE_BUCKET=... \
 SUPABASE_URL=... \
 SUPABASE_SERVICE_ROLE_KEY=... \
+SOULSCOPE_WORKER_INTERNAL_TOKEN=... \
 uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8080
 ```
 
 The `/health` endpoint returns a small deterministic JSON body and does not validate Supabase credentials. Processing endpoints validate required service settings when invoked.
 
+## Canonical completion
+
+`POST /internal/process-scan` now extracts measurements, persists evidence and
+all sixteen dimensions, and atomically finalizes an immutable semantic result.
+The measurement worker itself no longer creates a semantic placeholder before
+Evidence and Dimensions exist.
+
+For a saved scan, resume at either boundary (multipart form fields):
+
+- `/internal/complete-measurement`: `measurement_record_id`; runs the remaining evidence, dimension and completion stages.
+- `/internal/process-result`: `dimension_result_id`; finalizes from the persisted upstream chain.
+
+All processing endpoints require `x-worker-token`. Missing
+`SOULSCOPE_WORKER_INTERNAL_TOKEN` fails closed with 503; an invalid token returns
+401. Audio reads are bounded by the configured per-file limit. Local and Supabase
+captures are write-once: identical retries succeed, different bytes conflict.
+Blocking extraction and downstream processing run outside the ASGI event loop.
+
+Schema `0.2` rows in `semantic_result_records` link `evidence_ledger_id` and
+`dimension_result_id`, copy their immutable contents, retain four unresolved
+constellation/state outcomes and all seven rejected pattern candidates, and carry
+a version manifest and decision ledger. `result_report` exposes the availability
+of all five canonical narrative sections. There are no personal narrative
+sentences without supported findings. Rendering is explicitly unavailable.
+
+Finalization locks the scan, creates the result and audits the remaining
+`extracting -> evidence_ready -> finalizing -> finalized` transitions in one
+transaction. Repeated finalization returns the same result without extra audits.
+Saved measurement/run retries also remain valid after downstream completion.
+Historical schema `0.1` placeholders remain immutable and are not completed
+results. Select completions by their non-null `dimension_result_id`.
+
 ## Current limits
 
-The hosted pipeline currently stops at unresolved Dimension Results:
+No calibrated Dimension, State, Constellation, Interaction or Pattern scores are
+published. No personal narrative, production Resonance renderer or longitudinal
+semantic interpretation is implemented. The engineering completion pipeline
+preserves those abstentions instead of providing invented defaults.
 
-- no State inference
-- no Constellation scoring
-- no Pattern inference
-- no Narrative generation
-- no Resonance output
-- no frontend integration
-- no calibrated Dimension or psychological/scientific scoring
-- no production deployment in this repository
-
-Backend scientific authority lives in `docs/CANONICAL_AUTHORITY_LEDGER.md` and `packages/canonical-contracts`. The current Supabase migrations provide the service-owned real-scan processing scaffold: uploaded capture artifact registration, processing-run metadata, immutable measurement records, immutable Evidence Ledgers, immutable Dimension Results, and unresolved semantic result records.
+See [backend completion status](../architecture/BACKEND_COMPLETION_STATUS.md) for
+remaining science, hosted validation and deployment steps. Backend authority
+remains `docs/CANONICAL_AUTHORITY_LEDGER.md` and `packages/canonical-contracts`.

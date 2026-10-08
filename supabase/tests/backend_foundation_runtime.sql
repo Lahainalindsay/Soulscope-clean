@@ -42,7 +42,8 @@ declare
     'create_unresolved_semantic_result',
     'create_evidence_ledger',
     'create_dimension_result',
-    'create_dimension_calibration_spec'
+    'create_dimension_calibration_spec',
+    'finalize_canonical_result'
   ];
   expected_policy_names text[] := array[
     'profiles_select_own',
@@ -1872,6 +1873,107 @@ begin
 	end;
 	$$;
 
+-- Canonical completion must reject old structural-engine versions.
+do $$
+declare
+  ledger public.evidence_ledgers%rowtype;
+  dims public.dimension_results%rowtype;
+  result jsonb;
+  repeated jsonb;
+  semantic public.semantic_result_records%rowtype;
+  transition_count integer;
+  bad_measurement public.measurement_records%rowtype;
+  bad_ledger public.evidence_ledgers%rowtype;
+  bad_dims public.dimension_results%rowtype;
+begin
+  begin
+    perform public.finalize_canonical_result(current_setting('test.pipeline_dimension_result_id')::uuid);
+    raise exception 'ASSERTION_FAILED: old upstream versions finalized';
+  exception when check_violation then null; end;
+  select * into ledger from public.evidence_ledgers where id=current_setting('test.pipeline_evidence_ledger_id')::uuid;
+  ledger.id := gen_random_uuid();
+  ledger.evidence_engine_version := 'soulscope-evidence-engine-0.2.0';
+  ledger.evidence_rule_version := 'evidence-canonical-structural-v2';
+  ledger.idempotency_key := 'runtime:canonical:evidence';
+  insert into public.evidence_ledgers select ledger.*;
+  select * into dims from public.dimension_results where id=current_setting('test.pipeline_dimension_result_id')::uuid;
+  dims.id := gen_random_uuid();
+  dims.evidence_ledger_id := ledger.id;
+  dims.dimension_engine_version := 'soulscope-dimension-engine-0.2.0';
+  dims.idempotency_key := 'runtime:canonical:dimensions';
+  dims.provenance := jsonb_set(dims.provenance,'{evidence_ledger_id}',to_jsonb(ledger.id::text));
+  insert into public.dimension_results select dims.*;
+  -- Exercise the new normal path without the historic placeholder transition.
+  update public.scan_sessions set lifecycle_state='extracting' where id=dims.scan_id;
+  result := public.finalize_canonical_result(dims.id);
+  repeated := public.finalize_canonical_result(dims.id);
+  if result <> repeated or result->>'lifecycle_state' <> 'finalized' then
+    raise exception 'ASSERTION_FAILED: canonical finalization retry/lifecycle';
+  end if;
+  select * into semantic from public.semantic_result_records where id=(result->>'semantic_result_id')::uuid;
+  if semantic.evidence_ledger <> ledger.entries or semantic.dimensions <> dims.dimensions
+    or semantic.dimension_result_id <> dims.id or semantic.evidence_ledger_id <> ledger.id
+    or jsonb_array_length(semantic.constellation_geometry) <> 4
+    or jsonb_array_length(semantic.states_or_blends) <> 4
+    or semantic.interactions <> '[]'::jsonb
+    or jsonb_array_length(semantic.pattern_result->'candidatePatterns') <> 7
+    or semantic.pattern_result->>'publicationStatus' <> 'NO_PATTERN_PUBLISHED'
+    or jsonb_array_length(semantic.result_report->'sections') <> 5
+    or semantic.result_report->>'status' <> 'UNAVAILABLE' then
+    raise exception 'ASSERTION_FAILED: canonical lineage/abstentions/report';
+  end if;
+  if exists(select 1 from jsonb_array_elements(semantic.pattern_result->'candidatePatterns') x
+      where x->>'eligible' <> 'false' or x->'confidence' <> 'null'::jsonb)
+    or exists(select 1 from jsonb_array_elements(semantic.result_report->'sections') x
+      where x->'sentences' <> '[]'::jsonb) then
+    raise exception 'ASSERTION_FAILED: invented pattern/narrative';
+  end if;
+  select count(*) into transition_count from public.audit_events where scan_id=dims.scan_id
+    and details->>'source'='finalize_canonical_result';
+  if transition_count <> 3 then raise exception 'ASSERTION_FAILED: duplicate/missing finalization audits'; end if;
+  -- Numeric payloads cannot be smuggled through a service-created upstream row.
+  begin
+    select * into bad_measurement from public.measurement_records where id=dims.measurement_record_id;
+    bad_measurement.id := gen_random_uuid();
+    bad_measurement.idempotency_key := 'runtime:canonical:bad-measurement';
+    insert into public.measurement_records select bad_measurement.*;
+    bad_ledger := ledger;
+    bad_ledger.id := gen_random_uuid();
+    bad_ledger.measurement_record_id := bad_measurement.id;
+    bad_ledger.idempotency_key := 'runtime:canonical:bad-ledger';
+    insert into public.evidence_ledgers select bad_ledger.*;
+    bad_dims := dims;
+    bad_dims.id := gen_random_uuid();
+    bad_dims.measurement_record_id := bad_measurement.id;
+    bad_dims.evidence_ledger_id := bad_ledger.id;
+    bad_dims.idempotency_key := 'runtime:canonical:bad-dimensions';
+    bad_dims.dimensions := jsonb_set(bad_dims.dimensions,'{0,confidence}','0.5'::jsonb);
+    insert into public.dimension_results select bad_dims.*;
+    update public.scan_sessions set lifecycle_state='extracting' where id=dims.scan_id;
+    perform public.finalize_canonical_result(bad_dims.id);
+    raise exception 'ASSERTION_FAILED: numeric calibration bypass accepted';
+  exception when check_violation then
+    if sqlerrm <> 'invalid calibration-gated dimension payload' then raise; end if;
+  end;
+  -- Exact measurement/run retries remain valid after finalization.
+  perform public.start_scan_processing_run(dims.scan_id,
+    (select idempotency_key from public.scan_processing_runs where id=dims.processing_run_id),
+    (select extractor_version from public.scan_processing_runs where id=dims.processing_run_id),
+    (select renderer_registry_version from public.scan_processing_runs where id=dims.processing_run_id));
+  perform public.create_measurement_record(dims.processing_run_id,
+    m.idempotency_key,m.measurement_status,m.prompt_measurements,m.prompt_contrasts,
+    m.quality_summary,m.extractor_provenance,m.semantic_eligibility,m.renderer_eligibility)
+    from public.measurement_records m where m.id=dims.measurement_record_id;
+  perform set_config('test.canonical_semantic_id' ,semantic.id::text,true);
+  perform set_config('test.canonical_dimension_id',dims.id::text,true);
+  begin
+    update public.semantic_result_records set result_report='{}' where id=semantic.id;
+    raise exception 'ASSERTION_FAILED: canonical report mutable';
+  exception when insufficient_privilege then null; end;
+  raise notice 'PASS: canonical completion is immutable, calibration-gated, and retry-safe';
+end;
+$$;
+
 set local role authenticated;
 select set_config('request.jwt.claim.sub', current_setting('test.owner_user_id'), true);
 select set_config('request.jwt.claims', jsonb_build_object('sub', current_setting('test.owner_user_id'), 'role', 'authenticated')::text, true);
@@ -1889,6 +1991,13 @@ begin
   ) then
     raise exception 'ASSERTION_FAILED: owner cannot read pipeline measurement, evidence, dimension, and semantic records';
   end if;
+  if not exists (select 1 from public.semantic_result_records where id=current_setting('test.canonical_semantic_id')::uuid) then
+    raise exception 'ASSERTION_FAILED: owner cannot read canonical result';
+  end if;
+  begin
+    perform public.finalize_canonical_result(current_setting('test.canonical_dimension_id')::uuid);
+    raise exception 'ASSERTION_FAILED: authenticated finalization permitted';
+  exception when insufficient_privilege then null; end;
   raise notice 'PASS: owner can read their pipeline measurement, evidence, dimension, and semantic records';
 end;
 $$;
@@ -1908,6 +2017,9 @@ begin
     select 1 from public.dimension_results where id = current_setting('test.pipeline_dimension_result_id')::uuid
   ) then
     raise exception 'ASSERTION_FAILED: another user can read pipeline measurement, evidence, dimension, or semantic records';
+  end if;
+  if exists (select 1 from public.semantic_result_records where id=current_setting('test.canonical_semantic_id')::uuid) then
+    raise exception 'ASSERTION_FAILED: non-owner read canonical result';
   end if;
   raise notice 'PASS: another user cannot read pipeline measurement, evidence, dimension, or semantic records';
 end;

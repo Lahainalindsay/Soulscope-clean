@@ -44,7 +44,9 @@ class ScanWorker:
         self.storage = storage or LocalPrivateAudioStorage(settings)
 
     def process_scan(self, scan_id: str, prompts: list[PromptAudioInput]) -> ScanProcessingResult:
-        if len(prompts) != 3:
+        if (len(prompts) != 3 or {p.prompt_id for p in prompts} != {
+            "P1_OPEN_REFERENCE", "P2_TROUBLING_CONTEXT", "P3_FUTURE_CONTEXT"
+        } or len({p.capture_id for p in prompts}) != 3):
             raise ValueError("all three prompt inputs are required")
 
         logger.info("scan_processing_started", extra=safe_log_context(scan_id=scan_id))
@@ -109,10 +111,6 @@ class ScanWorker:
         )
 
         measurement_record_id = str(measurement["measurement_record_id"])
-        semantic = self.writer.create_unresolved_semantic_result(
-            measurement_record_id,
-            f"semantic-unresolved:{scan_id}:{measurement_record_id}",
-        )
 
         logger.info(
             "scan_processing_completed",
@@ -126,7 +124,7 @@ class ScanWorker:
             scan_id=scan_id,
             processing_run_id=processing_run_id,
             measurement_record_id=measurement_record_id,
-            semantic_result_id=str(semantic["semantic_result_id"]),
+            semantic_result_id="",
             measurement_status=str(measurement["measurement_status"]),
-            semantic_status=str(semantic["status"]),
+            semantic_status="pending_evidence",
         )

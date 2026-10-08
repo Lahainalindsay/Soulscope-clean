@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import shutil
 import wave
 from dataclasses import dataclass
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from ..config import Settings
 from .base import StoredAudio
@@ -55,11 +57,18 @@ class LocalPrivateAudioStorage:
         object_path = safe_object_path(scan_id, capture_id, prompt_id)
         target_path = self.settings.private_audio_root / object_path
         target_path.parent.mkdir(parents=True, exist_ok=True)
-        temporary_path = target_path.with_suffix(".wav.tmp")
-        shutil.copyfile(source_path, temporary_path)
-        temporary_path.replace(target_path)
-
-        digest = hashlib.sha256(target_path.read_bytes()).hexdigest()
+        digest = hashlib.sha256(source_path.read_bytes()).hexdigest()
+        # Publish a complete private file atomically, without replacing a capture.
+        with NamedTemporaryFile(dir=target_path.parent, suffix=".wav.tmp") as temporary:
+            with source_path.open("rb") as source:
+                shutil.copyfileobj(source, temporary)
+            temporary.flush()
+            os.fsync(temporary.fileno())
+            try:
+                os.link(temporary.name, target_path)
+            except FileExistsError:
+                if hashlib.sha256(target_path.read_bytes()).hexdigest() != digest:
+                    raise ValueError("CAPTURE_AUDIO_CONFLICT") from None
         return StoredAudio(
             path=target_path,
             storage_bucket=self.settings.private_audio_bucket,
