@@ -8,6 +8,7 @@ The old `~/soulscope` repository is preserved as the research archive. This repo
 
 Current implementation:
 
+- Next.js frontend: guided microphone capture, playback, canonical WAV conversion, authenticated staging submission, owner-scoped results/history, and an explicitly illustrative design preview
 - current Canonical Authority Ledger
 - current Canon v1.3 and eight uploaded scientific/backend companion registries preserved under `docs/canonical/`
 - approved canonical contract package
@@ -182,6 +183,10 @@ Not scientifically defined:
 - validation criteria
 
 Dimension Engine v2 reads this calibration state and continues to persist unresolved/abstained Dimension Results. No numeric Dimension scoring is enabled.
+
+## Frontend
+
+See `frontend/README.md` for local setup, staging connection, and Vercel configuration. Run `npm --prefix frontend ci` followed by `npm --prefix frontend run dev`. The interface uses the cyan/violet resonance aesthetic and keeps decorative artwork separate from measured results. Live interpretations remain blocked by the existing calibration gate.
 
 ## Canonical backend completion
 

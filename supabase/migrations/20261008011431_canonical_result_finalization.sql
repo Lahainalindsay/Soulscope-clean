@@ -471,4 +471,3 @@ begin
   return next;
 end;
 $$;
-
