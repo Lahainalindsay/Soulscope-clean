@@ -182,3 +182,11 @@ Not scientifically defined:
 - validation criteria
 
 Dimension Engine v2 reads this calibration state and continues to persist unresolved/abstained Dimension Results. No numeric Dimension scoring is enabled.
+
+## Canonical backend completion
+
+The worker now carries real uploads through measurement, evidence, dimensions and
+immutable semantic finalization with explicit calibration abstentions. Saved
+measurements and dimensions can resume through internal completion endpoints.
+See [backend completion status](architecture/BACKEND_COMPLETION_STATUS.md) and
+[worker setup](backend/README.md) for tested behavior and remaining validation.

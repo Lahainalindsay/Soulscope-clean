@@ -41,13 +41,13 @@ class WorkerIntegrationTests(unittest.TestCase):
 
         rpc_names = [name for name, _payload in rpc.calls]
         self.assertEqual(rpc_names.count("register_uploaded_capture_artifact"), 3)
-        self.assertEqual(rpc_names[-3:], [
+        self.assertEqual(rpc_names[-2:], [
             "start_scan_processing_run",
             "create_measurement_record",
-            "create_unresolved_semantic_result",
         ])
         self.assertEqual(result.measurement_status, "qualified")
-        self.assertEqual(result.semantic_status, "unresolved_abstained")
+        self.assertEqual(result.semantic_status, "pending_evidence")
+        self.assertNotIn("create_unresolved_semantic_result", rpc_names)
 
         measurement_payload = next(payload for name, payload in rpc.calls if name == "create_measurement_record")
         self.assertEqual(measurement_payload["p_semantic_eligibility"], True)
