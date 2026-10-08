@@ -68,13 +68,19 @@ class SupabasePrivateAudioStorage:
 
     def upload_bytes(self, object_path: str, body: bytes, content_type: str) -> None:
         safe_path = validate_object_path(object_path)
-        self._request_bytes(
-            "upload",
-            "POST",
-            f"object/{self.settings.private_audio_bucket}/{_quote_path(safe_path)}",
-            body=body,
-            extra_headers={"content-type": content_type, "x-upsert": "true"},
-        )
+        try:
+            self._request_bytes(
+                "upload",
+                "POST",
+                f"object/{self.settings.private_audio_bucket}/{_quote_path(safe_path)}",
+                body=body,
+                extra_headers={"content-type": content_type, "x-upsert": "false"},
+            )
+        except SupabaseStorageError as exc:
+            if exc.status_code != 409 and "OBJECT_ALREADY_EXISTS" not in str(exc):
+                raise
+            if hashlib.sha256(self.download_bytes(safe_path)).digest() != hashlib.sha256(body).digest():
+                raise ValueError("CAPTURE_AUDIO_CONFLICT") from None
 
     def download_to_private_cache(self, object_path: str) -> Path:
         safe_path = validate_object_path(object_path)
@@ -158,6 +164,8 @@ def _quote_path(value: str) -> str:
 
 def _safe_error_reason(detail: str) -> str:
     lowered = detail.lower()
+    if "already exists" in lowered or "duplicate" in lowered:
+        return "OBJECT_ALREADY_EXISTS"
     if "not found" in lowered or "does not exist" in lowered:
         return "NOT_FOUND"
     if "permission" in lowered or "unauthorized" in lowered or "forbidden" in lowered:

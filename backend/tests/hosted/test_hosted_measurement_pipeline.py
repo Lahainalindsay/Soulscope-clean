@@ -251,7 +251,7 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
             f"{scan_id}/{prompt_id}_{capture_id}.wav" for prompt_id, capture_id in captures.items()
         )
 
-        self.assertEqual(result.semantic_status, "unresolved_abstained")
+        self.assertEqual(result.semantic_status, "pending_evidence")
 
         owner_measurements = self._rest_as_user(
             self.user_a,
@@ -373,10 +373,22 @@ class HostedMeasurementPipelineTests(unittest.TestCase):
                 {"status": "invalid"},
             )
 
+        from app.results.service import ResultService
+
+        finalizer = ResultService(self.supabase_url, ServiceAuth(self.service_role_key),
+            SupabaseRestRpc(self.supabase_url, ServiceAuth(self.service_role_key)))
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            final_results = list(executor.map(lambda _: finalizer.finalize_dimensions(dimension_ids[0]), range(2)))
+        self.assertEqual(final_results[0], final_results[1])
+        self.assertEqual(final_results[0]["lifecycle_state"], "finalized")
+        semantic_id = final_results[0]["semantic_result_id"]
+        with self.assertRaises(HostedHttpError):
+            self._rest_as_user(self.user_a, "POST", "rpc/finalize_canonical_result",
+                {"p_dimension_result_id": dimension_ids[0]})
         owner_semantic = self._rest_as_user(
             self.user_a,
             "GET",
-            f"semantic_result_records?{urlencode({'id': f'eq.{result.semantic_result_id}', 'select': 'id,status,pattern_result,dimensions'})}",
+            f"semantic_result_records?{urlencode({'id': f'eq.{semantic_id}', 'select': 'id,status,pattern_result,dimensions'})}",
         )
         self.assertEqual(owner_semantic[0]["status"], "unresolved_abstained")
         self.assertEqual(owner_semantic[0]["pattern_result"]["publicationStatus"], "NO_PATTERN_PUBLISHED")

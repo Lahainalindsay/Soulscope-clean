@@ -20,7 +20,7 @@ class FastApiSmokeTests(unittest.TestCase):
             {
                 "status": "ok",
                 "service": "soulscope-backend",
-                "mode": "measurement-only",
+                "mode": "canonical-calibration-gated",
             },
         )
 

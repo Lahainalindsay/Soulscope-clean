@@ -186,4 +186,12 @@ Dimension Engine v2 reads this calibration state and continues to persist unreso
 
 ## Frontend
 
-See `frontend/README.md` for local setup, staging connection, and Vercel configuration. Run `npm --prefix frontend ci` followed by `npm run dev`. The interface uses the cyan/violet resonance aesthetic and keeps decorative artwork separate from measured results. Live interpretations remain blocked by the existing calibration gate.
+See `frontend/README.md` for local setup, staging connection, and Vercel configuration. Run `npm --prefix frontend ci` followed by `npm --prefix frontend run dev`. The interface uses the cyan/violet resonance aesthetic and keeps decorative artwork separate from measured results. Live interpretations remain blocked by the existing calibration gate.
+
+## Canonical backend completion
+
+The worker now carries real uploads through measurement, evidence, dimensions and
+immutable semantic finalization with explicit calibration abstentions. Saved
+measurements and dimensions can resume through internal completion endpoints.
+See [backend completion status](architecture/BACKEND_COMPLETION_STATUS.md) and
+[worker setup](backend/README.md) for tested behavior and remaining validation.
