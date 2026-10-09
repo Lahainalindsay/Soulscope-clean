@@ -4,14 +4,15 @@ export default function About() {
     <div className="reading-page">
       <p className="eyebrow">ABOUT SOULSCOPE</p>
       <h1>
-        A space to notice.
+        Observe your inner world.
         <br />
         <em>Room to decide for yourself.</em>
       </h1>
       <p className="lead">
-        SoulScope explores the acoustic structure of three short spoken
-        responses. The goal is to make reflection accessible without turning a
-        moment into a label.
+        Your voice naturally changes as you adapt to life. SoulScope begins by
+        listening to three short spoken responses, then organizing observable
+        features into a record you can revisit. The goal is to help you notice
+        change without turning a moment into a label.
       </p>
       <section className="panel">
         <h2>What happens in a scan?</h2>

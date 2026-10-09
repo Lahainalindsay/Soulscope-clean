@@ -6,27 +6,27 @@ export default function Home() {
     <>
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">A LITTLE SPACE TO HEAR YOURSELF</p>
+          <p className="eyebrow">OBSERVE YOUR INNER WORLD</p>
           <h1>
-            Your voice.
-            <br />A moment.
+            Your inner world
             <br />
-            <em>A new perspective.</em>
+            <em>is always moving.</em>
           </h1>
           <p className="lead">
-            Step out of the noise. Three short, guided responses create a space
-            to notice what is present and return to it with curiosity.
+            Your voice naturally changes as you adapt to life. SoulScope gives
+            you a way to observe the patterns in three short spoken responses
+            and return to them with curiosity.
           </p>
           <div className="actions">
             <Link className="button primary" href="/scan">
               Begin your scan <span>↗</span>
             </Link>
             <Link className="text-link" href="/results">
-              Explore the design preview <span>→</span>
+              Explore a sample reflection <span>→</span>
             </Link>
           </div>
           <p className="micro">
-            3 prompts · about 90 seconds of speaking · your own pace
+            3 prompts · about 90 seconds of speaking · private account
           </p>
         </div>
         <div className="hero-field">
@@ -37,15 +37,25 @@ export default function Home() {
         </div>
       </section>
       <section className="intro-strip">
-        <span className="eyebrow">A MOMENT, NOT A LABEL</span>
+        <span className="eyebrow">WHAT SOULSCOPE OBSERVES</span>
         <p>
-          You are more than any single response.
+          The patterns are already there.
           <br />
-          SoulScope is a place for reflection, with you at the center.
+          A scan gives you a moment to notice them.
         </p>
         <Link href="/about" className="text-link">
           How it works →
         </Link>
+      </section>
+      <section className="section story-section">
+        <p className="eyebrow">A DIFFERENT KIND OF SELF-REFLECTION</p>
+        <h2>SoulScope begins by listening.</h2>
+        <p className="lead">
+          You do not need to rate your stress, choose a mood, or explain how
+          you feel. Speak naturally in response to three guided prompts. The
+          scan checks the recording and describes observable features of your
+          voice. You decide what, if anything, those observations mean to you.
+        </p>
       </section>
       <section className="section">
         <div className="section-heading">
@@ -68,6 +78,44 @@ export default function Home() {
             </article>
           ))}
         </div>
+      </section>
+      <section className="section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">WHAT YOU RECEIVE</p>
+            <h2>Every scan becomes a new perspective.</h2>
+          </div>
+          <p>
+            Explore what is available today and see where SoulScope is headed.
+            Personal interpretations are awaiting scientific validation.
+          </p>
+        </div>
+        <div className="offering-grid">
+          <article className="panel">
+            <span className="eyebrow">01 · AVAILABLE NOW</span>
+            <h3>Your scan record</h3>
+            <p>Return to the recording details, quality checks, and measured features of each response.</p>
+          </article>
+          <article className="panel">
+            <span className="eyebrow">02 · DESIGN PREVIEW</span>
+            <h3>Your reflection & map</h3>
+            <p>See how a personal reflection and resonance map could look once their interpretations are validated.</p>
+          </article>
+          <article className="panel">
+            <span className="eyebrow">03 · IN DEVELOPMENT</span>
+            <h3>Your resonance timeline</h3>
+            <p>Individual scans are saved now. A meaningful view of change over time needs a validated longitudinal model.</p>
+          </article>
+        </div>
+      </section>
+      <section className="panel return-section">
+        <p className="eyebrow">WHY RETURN?</p>
+        <h2>Your inner world is always changing.</h2>
+        <p>
+          Some days bring more clarity. Some bring more recovery. Your saved
+          scans give you a place to revisit those moments as life changes.
+        </p>
+        <p className="return-line">One scan captures a moment. Many scans can tell a story.</p>
       </section>
       <section className="section process-section">
         <div>
@@ -111,8 +159,8 @@ export default function Home() {
       </section>
       <section className="panel closing-cta">
         <Glyph />
-        <h2>Take a moment for yourself.</h2>
-        <p>No right answers. No performance to give.</p>
+        <h2>Begin your first Resonance Scan.</h2>
+        <p>One moment to speak. A place to return to what you noticed.</p>
         <Link className="button primary" href="/scan">
           Begin your scan ↗
         </Link>

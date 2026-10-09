@@ -4,7 +4,7 @@ import { Shell } from "@/components/shell";
 export const metadata: Metadata = {
   title: { default: "SoulScope · Resonance Field", template: "%s · SoulScope" },
   description:
-    "A quiet space to explore your voice through three guided responses and return to your reflections over time.",
+    "Observe your inner world through three guided voice responses. Save each scan, revisit what you noticed, and explore SoulScope's reflection design.",
 };
 export default function RootLayout({
   children,
