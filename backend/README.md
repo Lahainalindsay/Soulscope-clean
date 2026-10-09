@@ -61,7 +61,7 @@ Required service variables:
 
 Optional variables:
 
-- `SOULSCOPE_PRIVATE_AUDIO_ROOT`, default `backend/.private_audio`
+- `SOULSCOPE_PRIVATE_AUDIO_ROOT`, default `backend/.private_audio` locally and `/tmp/soulscope-private-audio` on Vercel
 - `SOULSCOPE_WORKER_INTERNAL_TOKEN`, required for protected deployments that expose the internal HTTP route
 - `SOULSCOPE_STORAGE_BACKEND`, `local` or `supabase`; default `local`
 - `SOULSCOPE_SUPABASE_STORAGE_BUCKET`, private Supabase Storage bucket used when `SOULSCOPE_STORAGE_BACKEND=supabase`
@@ -77,6 +77,33 @@ Hosted integration tests additionally require:
 - `SOULSCOPE_STAGING_USER_B_PASSWORD`
 
 The hosted staging project must already have all repository migrations applied, a private audio bucket, and an active three-prompt prompt set. Tests do not create public audio URLs and do not log service-role secrets.
+
+## Vercel deployment
+
+Deploy this repository as a separate FastAPI project with Root Directory `backend`.
+The checked-in `.python-version` selects Python 3.12; `pyproject.toml` also supports
+Python 3.11 for existing local and container workflows. The explicit entrypoint is
+`app.main:app`, with a 300-second processing timeout.
+
+Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and a strong
+`SOULSCOPE_WORKER_INTERNAL_TOKEN` as server environment variables. Use
+`SOULSCOPE_STORAGE_BACKEND=supabase`,
+`SOULSCOPE_SUPABASE_STORAGE_BUCKET=private-audio`, and
+`SOULSCOPE_PRIVATE_AUDIO_ROOT=/tmp/soulscope-private-audio`. Raw audio is stored in
+the private bucket; the function filesystem only holds temporary working copies.
+Keep the service-role key and worker token out of client variables and Git.
+
+On the frontend project, set `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SOULSCOPE_BACKEND_URL` to the backend's
+production origin, and the same server-only `SOULSCOPE_WORKER_INTERNAL_TOKEN`.
+Redeploy after changing environment variables. In Supabase Auth, set Site URL to
+the frontend production origin and allow its `/account` URL for confirmations.
+
+`GET /health` confirms that the worker starts; it does not verify database or
+Storage access. Verify an authenticated scan before declaring processing ready.
+The frontend records three 30-second mono PCM16/16kHz WAVs, roughly 2.9 MB total,
+within Vercel's 4.5 MB request limit. Larger clients must use a direct private
+upload design rather than sending oversized multipart bodies through Functions.
 
 ## Evidence Engine v2
 

@@ -41,7 +41,12 @@ class Settings:
             supabase_url=os.environ.get("SUPABASE_URL", "").rstrip("/"),
             supabase_service_role_key=os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""),
             private_audio_root=Path(
-                os.environ.get("SOULSCOPE_PRIVATE_AUDIO_ROOT", "backend/.private_audio")
+                os.environ.get(
+                    "SOULSCOPE_PRIVATE_AUDIO_ROOT",
+                    "/tmp/soulscope-private-audio"
+                    if os.environ.get("VERCEL")
+                    else "backend/.private_audio",
+                )
             ),
             worker_internal_token=os.environ.get("SOULSCOPE_WORKER_INTERNAL_TOKEN") or None,
             storage_backend=os.environ.get("SOULSCOPE_STORAGE_BACKEND", "local"),
