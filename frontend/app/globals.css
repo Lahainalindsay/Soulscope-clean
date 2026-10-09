@@ -1879,7 +1879,7 @@ pre {
   margin-bottom: 24px;
 }
 .landing-hero h1 {
-  max-width: 720px;
+  max-width: 630px;
   margin-bottom: 34px;
   color: #f4f1ea;
   font-size: clamp(62px, 7.2vw, 108px);
