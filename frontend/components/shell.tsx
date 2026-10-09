@@ -20,36 +20,49 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <header className="site-header">
+      <header className={`site-header${path === "/" ? " landing-header" : ""}`}>
         <Link href="/" className="brand" aria-label="SoulScope home">
-          <span className="brand-mark">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span>
-            SOULSCOPE<small>RESONANCE FIELD</small>
-          </span>
+          <span className="brand-mark" aria-hidden="true">S</span>
+          <span className="brand-name">SOULSCOPE</span>
         </Link>
-        <nav aria-label="Main navigation">
-          {[
-            ["/scan", "New scan"],
-            ["/field", "Your field"],
-            ["/history", "History"],
-            ["/about", "About"],
-          ].map(([url, label]) => (
-            <Link
-              key={url}
-              href={url}
-              aria-current={path === url ? "page" : undefined}
-            >
-              {label}
+        {path === "/" ? (
+          <>
+            <nav aria-label="Main navigation">
+              <Link href="/#how-it-works">HOW IT WORKS</Link>
+              <Link href="/about#privacy">PRIVACY</Link>
+            </nav>
+            <div className="header-actions">
+              <Link className="account-link" href="/account">
+                {signedIn ? "Account" : "Sign In"}
+              </Link>
+              <Link className="header-cta" href={signedIn ? "/scan" : "/account"}>
+                Begin Scan
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <nav aria-label="Main navigation">
+              {[
+                ["/scan", "New scan"],
+                ["/field", "Your field"],
+                ["/history", "History"],
+                ["/about", "About"],
+              ].map(([url, label]) => (
+                <Link
+                  key={url}
+                  href={url}
+                  aria-current={path === url ? "page" : undefined}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+            <Link className="account-link" href="/account">
+              {signedIn ? "Account" : "Sign in"}
             </Link>
-          ))}
-        </nav>
-        <Link className="account-link" href="/account">
-          {signedIn ? "Account" : "Sign in"} <span aria-hidden="true">↗</span>
-        </Link>
+          </>
+        )}
       </header>
       <main id="main">{children}</main>
       <footer className="site-footer">
