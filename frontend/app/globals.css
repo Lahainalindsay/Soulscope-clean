@@ -1861,7 +1861,7 @@ pre {
   inset: 0 -48px;
   background:
     radial-gradient(ellipse 57% 58% at 52% 38%, #51caca1d, transparent 72%),
-    radial-gradient(ellipse 35% 50% at 82% 58%, #9b72d10b, transparent 76%);
+    radial-gradient(ellipse 39% 53% at 84% 62%, #9b72d11b, transparent 76%);
   pointer-events: none;
 }
 .landing-hero-copy {
@@ -1879,7 +1879,7 @@ pre {
   margin-bottom: 24px;
 }
 .landing-hero h1 {
-  max-width: 850px;
+  max-width: 720px;
   margin-bottom: 34px;
   color: #f4f1ea;
   font-size: clamp(62px, 7.2vw, 108px);
