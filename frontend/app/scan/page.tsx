@@ -13,7 +13,7 @@ export default function ScanPage() {
   const [step, setStep] = useState(0),
     [consent, setConsent] = useState(false),
     [recording, setRecording] = useState(false),
-    [seconds, setSeconds] = useState(0),
+    [seconds, setSeconds] = useState(30),
     [clips, setClips] = useState<(Clip | null)[]>([null, null, null]),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -116,13 +116,13 @@ export default function ScanPage() {
         void save(new Blob(chunks, { type: rec.mimeType }), step);
       };
       rec.start();
-      setSeconds(0);
+      setSeconds(30);
       setRecording(true);
-      const began = Date.now();
+      const deadline = Date.now() + 30_000;
       timer.current = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - began) / 1000);
-        setSeconds(Math.min(30, elapsed));
-        if (elapsed >= 30) stop();
+        const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        setSeconds(remaining);
+        if (remaining === 0) stop();
       }, 200);
     } catch (e) {
       stream.current?.getTracks().forEach((t) => t.stop());
@@ -200,8 +200,8 @@ export default function ScanPage() {
               >
                 <Glyph type={step} />
                 <span>
-                  {recording
-                    ? `${String(seconds).padStart(2, "0")}:30`
+                  {recording || busy
+                    ? `${seconds}s`
                     : clips[step]
                       ? "✓"
                       : "30s"}
@@ -238,7 +238,7 @@ export default function ScanPage() {
                 {recording ? (
                   <button
                     className="button primary"
-                    disabled={seconds < 5}
+                    disabled={seconds > 25}
                     onClick={stop}
                   >
                     Stop recording ■
