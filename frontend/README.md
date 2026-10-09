@@ -45,7 +45,7 @@ Prerequisites:
 
 ## Vercel
 
-Import `Lahainalindsay/Soulscope-clean`, set **Root Directory = `frontend`**, framework **Next.js**, and **Node.js 24.x**. Enable **Include source files outside of the Root Directory in the Build Step** so the canonical package is available. Use the standard install/build commands (`npm ci`, `npm run build`) and add the four variables above to the appropriate environment. Public variables are baked into the build; redeploy after changing them. The backend needs its own Python runtime; Vercel does not run the worker from this frontend.
+Import `Lahainalindsay/Soulscope-clean`, set **Root Directory = `frontend`**, framework **Next.js**, and **Node.js 24.x**. Enable **Include source files outside of the Root Directory in the Build Step** so the canonical package is available. `frontend/vercel.json` explicitly selects Next.js, `npm ci`, `npm run build`, and `.next`; these override corresponding dashboard settings. The Vercel project Root Directory must still be `frontend` (it cannot be set in `vercel.json`). Add the four variables above to the appropriate environment. Public variables are baked into the build; redeploy after changing them. The backend needs its own Python runtime; Vercel does not run the worker from this frontend.
 
 Three 30-second mono 16 kHz WAVs total roughly 2.9 MB, below Vercel's usual request-body limit. Route `maxDuration` is 300 seconds; confirm the chosen plan supports the worker duration. Longer processing should move to a durable queue before a production launch.
 
