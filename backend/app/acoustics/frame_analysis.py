@@ -18,6 +18,7 @@ PARAMETERS = {
     "spectral_frame_ms": 40, "spectral_hop_ms": 20,
     "pitch_step_seconds": 0.01, "pitch_floor_hz": 60.0, "pitch_ceiling_hz": 500.0,
     "formant_ceiling_hz": 5500.0, "formant_window_seconds": 0.025,
+    "formant_max_number": 5, "formant_preemphasis_hz": 50.0,
     "vad_frame_ms": 30, "vad_mode": 2,
 }
 

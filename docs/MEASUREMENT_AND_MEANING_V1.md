@@ -51,3 +51,9 @@ known synthetic signals; it has no audio upload, database access or persistence.
 It verifies native F0/HNR, late/high-frequency spectrum support, missingness and
 task gates in the deployed runtime. It returns 503 if a check fails. Success is
 measurement engineering verification, explicitly not psychological validation.
+
+The known-resonance native check uses a five-resonance synthetic vocal-tract
+filter matched to the five-formant Burg model. A lower-order synthetic filter
+produced a spurious third candidate, demonstrating why physical frequency bounds
+alone cannot establish formant validity. Real connected-speech vowel eligibility
+and accuracy remain unestablished; candidates are research-only.

@@ -21,10 +21,12 @@ def verify_measurement_runtime() -> dict[str, Any]:
     _, pauses, speech = summarize_speech_segments([False, True, False, True, False], 2400, sr, 480)
     f0 = pitch["values"]["F0_MEDIAN"]
     centroid = spectrum["values"]["SPECTRAL_CENTROID"]
-    # Known all-pole resonances test Burg estimates without person/emotion labels.
+    # Five known vocal-tract resonances match the declared five-formant Burg model;
+    # a lower-order signal is not a qualified test of its ordered F1-F3 candidates.
     denominator = np.array([1.0])
     expected_formants = (500.0, 1500.0, 2500.0)
-    for frequency, bandwidth in zip(expected_formants, (50.0, 80.0, 100.0)):
+    for frequency, bandwidth in zip((*expected_formants, 3500.0, 4500.0),
+                                    (50.0, 80.0, 100.0, 150.0, 200.0)):
         radius = np.exp(-np.pi*bandwidth/sr)
         denominator = np.convolve(denominator, [1, -2*radius*np.cos(2*np.pi*frequency/sr), radius**2])
     pulses = np.zeros(sr*2)
