@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from .profile import FEATURES
+
 ACOUSTIC_REGISTRY_VERSION = "0.1"
 NON_CANONICAL_REGISTRY_VERSION = "PROVISIONAL_NON_CANONICAL"
 
@@ -35,6 +37,10 @@ PROVISIONAL_PARAMETERS: tuple[AcousticParameter, ...] = (
 
 _CANONICAL_BY_ID = {parameter.feature_id: parameter for parameter in CANONICAL_PARAMETERS}
 _PROVISIONAL_BY_ID = {parameter.feature_id: parameter for parameter in PROVISIONAL_PARAMETERS}
+_PROVISIONAL_BY_ID.update({
+    feature.feature_id: AcousticParameter(feature.feature_id, feature.unit, "PROVISIONAL", False, False)
+    for feature in FEATURES
+})
 
 
 HISTORICAL_ALIASES = {

@@ -20,3 +20,4 @@ export * from "./scientificStatus";
 export * from "./stateRegistry";
 export * from "./validationPhases";
 export * from "./versioning";
+export * from "./acousticProfile";

@@ -1928,6 +1928,14 @@ begin
       where x->'sentences' <> '[]'::jsonb) then
     raise exception 'ASSERTION_FAILED: invented pattern/narrative';
   end if;
+  if semantic.result_report->'reflectionNarrative'->>'sourceResultId' <> semantic.id::text
+    or semantic.result_report->'reflectionNarrative'->>'status' <> 'UNRESOLVED'
+    or semantic.result_report->'reflectionNarrative'->'dailyLife' <> '[]'::jsonb
+    or semantic.result_report->'reflectionNarrative'->'questionToSitWith' <> 'null'::jsonb
+    or semantic.result_report->'reflectionNarrative'->'decisionRefs' <> jsonb_build_array(dims.id::text||':report')
+    or semantic.result_report->'selectedMeaningUnitIds' <> '[]'::jsonb then
+    raise exception 'ASSERTION_FAILED: immutable Language v1 projection';
+  end if;
   select count(*) into transition_count from public.audit_events where scan_id=dims.scan_id
     and details->>'source'='finalize_canonical_result';
   if transition_count <> 3 then raise exception 'ASSERTION_FAILED: duplicate/missing finalization audits'; end if;

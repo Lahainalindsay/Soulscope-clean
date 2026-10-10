@@ -8,7 +8,7 @@ export function ReflectionOverview({ narrative }: { narrative: ReflectionNarrati
       <p className="eyebrow">WHAT STOOD OUT</p>
       <h2>{narrative?.status === "READY"
         ? narrative.strongestObservation.text
-        : "There is no supported reflection to show yet."}</h2>
+        : "Your reflection is not available yet."}</h2>
       <p className="reflection-copy">
         {narrative?.status === "READY"
           ? narrative.overview.map((sentence) => sentence.text).join(" ")

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ..acoustics.profile import PROFILE_VERSION
 from ..config import EXTRACTOR_VERSION
 from ..database import SupabaseRpc
 
@@ -69,6 +70,8 @@ class MeasurementWriter:
                     "extractor": "soulscope_measurement_worker",
                     "extractor_version": EXTRACTOR_VERSION,
                     "calibration_status": "CALIBRATION_REQUIRED",
+                    "acoustic_profile_version": PROFILE_VERSION,
+                    "new_profile_semantic_use": False,
                 },
                 "p_semantic_eligibility": semantic_eligibility,
                 "p_renderer_eligibility": renderer_eligibility,

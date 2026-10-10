@@ -1,0 +1,33 @@
+name: Measurement Profile v1
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    paths: ['backend/**', 'packages/canonical-contracts/**', '.github/workflows/measurement-profile.yml']
+jobs:
+  native-measurements:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install exactly the declared analysis dependency pins
+        run: |
+          python - <<'PY'
+          import subprocess, sys, tomllib
+          from pathlib import Path
+          project = tomllib.loads(Path('backend/pyproject.toml').read_text())['project']
+          names = {'numpy', 'scipy', 'praat-parselmouth', 'webrtcvad-wheels'}
+          dependencies = [d for d in project['dependencies'] if d.split('==')[0] in names]
+          assert len(dependencies) == 4
+          subprocess.check_call([sys.executable, '-m', 'pip', 'install', *dependencies])
+          PY
+      - name: Require native libraries and verify actual F0, spectrum, and eligibility
+        run: |
+          python -c 'import parselmouth, webrtcvad; assert parselmouth.__version__ == "0.4.6"'
+          PYTHONPATH=backend python -m unittest tests.test_frame_analysis tests.test_acoustics_extractor tests.test_measurement_contract -v

@@ -74,6 +74,7 @@ export function ResultDetails({ bundle }: { bundle: ResultBundle }) {
               {JSON.stringify(
                 {
                   measurement_record_id: bundle.measurement.id,
+                  measurement: bundle.measurement,
                   evidence: bundle.evidence,
                   dimensions: bundle.dimensions,
                   semantic: bundle.semantic,

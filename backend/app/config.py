@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-EXTRACTOR_VERSION = "soulscope-measurement-worker-0.2.0"
+EXTRACTOR_VERSION = "soulscope-measurement-worker-0.3.0"
 QUALITY_RULES_VERSION = "0.1"
 PROTOCOL_VERSION = "1.3"
 RENDERER_REGISTRY_VERSION = "CALIBRATION_REQUIRED"

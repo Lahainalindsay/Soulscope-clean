@@ -1,3 +1,4 @@
+import { ACOUSTIC_PROFILE_FEATURES } from "./acousticProfile";
 import { provenance, sourceReference } from "./provenance";
 
 export const ACOUSTIC_REGISTRY_VERSION = "0.1" as const;
@@ -23,7 +24,7 @@ export const PROVISIONAL_ACOUSTIC_PARAMETER_IDS = Object.freeze([
   "PROVISIONAL_FORMANT_TRACKING",
 ] as const);
 
-export type ProvisionalAcousticParameterId = (typeof PROVISIONAL_ACOUSTIC_PARAMETER_IDS)[number];
+export type ProvisionalAcousticParameterId = (typeof PROVISIONAL_ACOUSTIC_PARAMETER_IDS)[number] | `PROVISIONAL_FRAME_${string}`;
 
 export const HISTORICAL_ACOUSTIC_ALIASES = Object.freeze({
   AC_DURATION_MS: "PROVISIONAL_DURATION_MS",
@@ -59,5 +60,6 @@ export function isCanonicalAcousticParameterId(value: string): value is Canonica
 }
 
 export function isProvisionalAcousticParameterId(value: string): value is ProvisionalAcousticParameterId {
-  return (PROVISIONAL_ACOUSTIC_PARAMETER_IDS as readonly string[]).includes(value);
+  return (PROVISIONAL_ACOUSTIC_PARAMETER_IDS as readonly string[]).includes(value)
+    || ACOUSTIC_PROFILE_FEATURES.some(feature => feature.id === value);
 }

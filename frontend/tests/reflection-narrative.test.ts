@@ -65,7 +65,7 @@ test("scores without supplied narrative never create interpretation or leak the 
     const saved = semantic("unresolved_abstained");
     const result = { ...saved, result_report: { schemaVersion: "0.1", status: "UNAVAILABLE", reason: "NO_PUBLISHABLE_SEMANTIC_FINDINGS" } };
     const html = renderToStaticMarkup(createElement(ResultsView, { bundle: bundle(score, result), demoResult: demo }));
-    assert.ok(html.includes("A supported summary is not available"));
+    assert.ok(html.includes("Your reflection is not available yet"));
     assert.ok(!html.includes("HOW THIS MAY SHOW UP IN DAILY LIFE"));
     assert.ok(!html.includes("A QUESTION TO SIT WITH"));
     assert.ok(!html.includes(demo.narrative.overview[0]?.text ?? "unexpected-fixture"));
@@ -182,4 +182,29 @@ test("reflection renderer and presentation adapter have no score or inference de
   const adapter = readFileSync(new URL("../lib/result-presentation.ts", import.meta.url), "utf8");
   assert.doesNotMatch(renderer, /\b(?:bundle|dimensions|posteriorMean|confidence)\b|selectState|scoreDimension|demo-result/);
   assert.doesNotMatch(adapter, /posteriorMean|selectState|scoreDimension|DEMO_RESULT|PREVIEW_REFLECTION/);
+});
+
+test("supplied unresolved backend narrative owns the main result instead of a recording summary", () => {
+  const saved = semantic("unresolved_abstained");
+  const decisionRefs = demo.source.decisionIds;
+  const narrative: ReflectionNarrativeV1 = {
+    schemaVersion: "reflection-narrative.v1", languageVersion: "1.0.0", canonVersion: "2.0",
+    sourceResultId: saved.id, status: "UNRESOLVED", strongestObservation: null,
+    overview: [], dailyLife: [], questionToSitWith: null, alternatives: [],
+    evidenceRefs: [], decisionRefs, meaningUnitRefs: [],
+    unresolved: { reasonCodes: ["MEANING_CALIBRATION_REQUIRED"], explanation: {
+      text: "Your recordings are saved, but a dependable personal reflection is not available for this moment yet.",
+      evidenceRefs: [], decisionRefs, meaningUnitRefs: [],
+    } },
+  };
+  const result = bundle(100, { ...saved, result_report: {
+    schemaVersion: "0.1", status: "UNAVAILABLE", reflectionNarrative: narrative, selectedMeaningUnitIds: [],
+  } });
+  result.recordingSummary = { strongestObservation: "This fabricated summary must never take precedence." };
+  const html = renderToStaticMarkup(createElement(ResultsView, { bundle: result }));
+  assert.ok(html.includes(narrative.unresolved.explanation.text));
+  assert.ok(!html.includes("fabricated summary"));
+  assert.ok(!html.includes("MEANING_CALIBRATION_REQUIRED"));
+  assert.ok(!html.includes("HOW THIS MAY SHOW UP IN DAILY LIFE"));
+  assert.ok(!html.includes("A QUESTION TO SIT WITH"));
 });

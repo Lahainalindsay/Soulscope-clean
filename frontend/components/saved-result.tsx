@@ -18,7 +18,7 @@ export default function SavedResult({
     let alive = true;
     setError("");
     setBundle(null);
-    loadResult(id)
+    loadResult(id, details)
       .then((data) => {
         if (alive) setBundle(data);
       })
@@ -28,7 +28,7 @@ export default function SavedResult({
     return () => {
       alive = false;
     };
-  }, [id, attempt]);
+  }, [id, attempt, details]);
   if (error)
     return (
       <div className="empty-state panel">

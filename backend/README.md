@@ -29,6 +29,10 @@ It implements:
 
 It intentionally does not implement calibrated Dimension scoring, State selection, Constellation scoring, Pattern inference, Narrative generation, Resonance Signature rendering, frontend integration, or calibrated psychological/scientific interpretation.
 
+The new full-response research profile and explicit Language v1 abstention are described in
+[Measurement and meaning v1](../docs/MEASUREMENT_AND_MEANING_V1.md). Native Praat and
+WebRTC dependencies are now normal runtime dependencies, not an unused optional extra.
+
 ## Local checks
 
 Install `backend[dev]` to run the full suite, including API boundary tests:

@@ -11,6 +11,8 @@ dependencies = [
   "soundfile==0.14.0",
   "scipy==1.17.1",
   "numpy==2.4.6",
+  "praat-parselmouth==0.4.6",
+  "webrtcvad-wheels==2.0.14",
 ]
 
 [build-system]
@@ -25,10 +27,6 @@ include = ["app*"]
 entrypoint = "app.main:app"
 
 [project.optional-dependencies]
-science = [
-  "praat-parselmouth==0.4.6",
-  "webrtcvad-wheels==2.0.14",
-]
 dev = [
   "pytest==8.4.2",
   "ruff==0.16.3",

@@ -61,3 +61,11 @@ Run `npm ci --prefix frontend` and `npm ci --prefix packages/canonical-contracts
 then `npm run test:frontend`, `npm run test:contracts`, `npm run typecheck`, and
 `npm run build`. The contract tests use Ajv rather than the older limited schema
 test helper.
+
+## Measurement upgrade and sealed abstention
+
+New result inserts now seal an explicit unresolved `ReflectionNarrativeV1` with
+the immutable narrative decision reference. Existing result JSON stays unchanged.
+The frontend gives this supplied projection precedence over a recording summary.
+The fuller research acoustic profile does not activate psychological publication.
+See `docs/MEASUREMENT_AND_MEANING_V1.md` for the scientific calibration gaps.

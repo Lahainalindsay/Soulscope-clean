@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..config import EXTRACTOR_VERSION
+from .frame_analysis import profile_measurements
 from .formants import formant_measurements_unavailable
 from .pitch import estimate_pitch_hz
 from .registry import NON_CANONICAL_REGISTRY_VERSION, registry_version_for
@@ -116,7 +117,13 @@ def extract_measurements(path: Path, capture_id: str, prompt_id: str, threshold:
     )
     measurements.append(formants)
 
+    frame_measurements, profile = profile_measurements(
+        wav.samples, wav.sample_rate, capture_id, prompt_id, EXTRACTOR_VERSION
+    )
+    measurements.extend(frame_measurements)
+
     return {
+        "acousticProfile": profile,
         "promptId": prompt_id,
         "captureId": capture_id,
         "sampleRate": wav.sample_rate,

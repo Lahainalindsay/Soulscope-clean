@@ -23,7 +23,7 @@ export async function loadHistory(): Promise<Scan[]> {
     );
   return data ?? [];
 }
-export async function loadResult(id: string): Promise<ResultBundle> {
+export async function loadResult(id: string, includeRecordingDetails = false): Promise<ResultBundle> {
   const token = await accessToken();
   const db = getSupabase()!;
   const { data: scan, error } = await db
@@ -74,7 +74,7 @@ export async function loadResult(id: string): Promise<ResultBundle> {
       )
     : null) as SemanticResultRecord | null;
   let recordingSummary: unknown = null;
-  if (semantic && scan.lifecycle_state === "finalized") {
+  if (includeRecordingDetails && semantic && scan.lifecycle_state === "finalized") {
     const response = await fetch(`/api/results/${encodeURIComponent(id)}/summary`, {
       headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: AbortSignal.timeout(30000),
     });

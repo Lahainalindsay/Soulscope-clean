@@ -84,11 +84,11 @@ test("summary consumer rejects wrong sources, duplicate evidence, multiple quest
       assert.equal(validate({ ...result, ...change }), null);
   }
 });
-test("main result renders supplied copy identically across scores and leaves technical records to details", () => {
+test("recording descriptions stay in details and never substitute for a personal reflection", () => {
   const b = bundle();
   const render = (value: ResultBundle) => renderToStaticMarkup(createElement(ResultsView, { bundle: value }));
   const html = render(b);
-  assert.match(html, /second response/); assert.match(html, /<time /); assert.match(html, /13:00|1:00/);
+  assert.doesNotMatch(html, /second response/); assert.match(html, /<time /); assert.match(html, /13:00|1:00/);
   assert.equal(html, render({ ...b, dimensions: { ...b.dimensions!, dimensions: [{ posteriorMean: 100, confidence: 1 }] },
     measurement: { ...b.measurement!, prompt_measurements: [] } }));
   for (const term of ["FIELD ID", "EVIDENCE COVERAGE", "SS_PAUSE_LOAD", "NO_PUBLISHABLE_SEMANTIC_FINDINGS", "RESPONSES MEASURED"])
