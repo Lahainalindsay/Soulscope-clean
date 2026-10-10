@@ -5,10 +5,15 @@
   "type": "module",
   "description": "Non-executable SoulScope canonical identifiers, registries, schemas, provenance, and version contracts.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./reflection-narrative": "./src/reflectionNarrative.ts",
+    "./schemas/reflection-narrative-v1": "./schemas/reflection-narrative-v1.schema.json"
   },
   "scripts": {
     "typecheck": "node ./tests/static-typecheck.mjs",
     "test": "node --test ./tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "ajv": "8.17.1"
   }
 }

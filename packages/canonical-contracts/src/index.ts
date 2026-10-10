@@ -14,6 +14,7 @@ export * from "./promptProtocol";
 export * from "./processingStages";
 export * from "./provenance";
 export * from "./resultContracts";
+export * from "./reflectionNarrative";
 export * from "./scanProcessing";
 export * from "./scientificStatus";
 export * from "./stateRegistry";

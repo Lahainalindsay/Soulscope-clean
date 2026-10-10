@@ -3,17 +3,27 @@ import Link from "next/link";
 import { FieldArt, Glyph } from "./field-art";
 import {
   CONSTELLATIONS,
-  PREVIEW_REFLECTION,
   displayValue,
   type ResultBundle,
 } from "@/lib/contracts";
+import { ReflectionOverview, ReflectionDetails } from "./reflection-narrative";
+import { readReflectionNarrative } from "../lib/reflection-narrative";
+import { storedReflection, constellationOutcome } from "../lib/result-presentation";
+import type { DemoResultV1 } from "../lib/demo-result";
+
 export function ResultsView({
   bundle = null,
-  preview = false,
+  demoResult = null,
 }: {
   bundle?: ResultBundle | null;
-  preview?: boolean;
+  demoResult?: DemoResultV1 | null;
 }) {
+  const preview = !bundle && demoResult?.kind === "ILLUSTRATIVE_DEMO";
+  const narrative = bundle
+    ? storedReflection(bundle.semantic, bundle.scan.id)
+    : preview && demoResult
+      ? readReflectionNarrative(demoResult.narrative, demoResult.source)
+      : null;
   const count = bundle?.measurement?.prompt_measurements.length ?? 0;
   const counts = bundle?.evidence?.status_counts;
   return (
@@ -72,7 +82,7 @@ export function ResultsView({
               <div>
                 <dt>INTERPRETATION</dt>
                 <dd>
-                  {preview ? "Illustrative preview" : "Not yet available"}
+                  {preview ? "Illustrative preview" : narrative?.status === "READY" ? "Available" : "Not available"}
                 </dd>
               </div>
             </dl>
@@ -90,7 +100,7 @@ export function ResultsView({
                   <span>{c.id}</span>
                   <p>{c.name}</p>
                 </div>
-                <span className="micro">Unresolved</span>
+                <span className="micro">{preview ? "Illustrative only" : constellationOutcome(bundle?.semantic ?? null, c.id)}</span>
               </div>
             ))}
           </section>
@@ -112,28 +122,12 @@ export function ResultsView({
               DECORATIVE FIELD ART · NOT A MEASURED SIGNATURE
             </span>
           </div>
-          <section className="panel reflection-main">
-            <p className="eyebrow">WHAT FEELS MOST PRESENT</p>
-            <h2>
-              {preview
-                ? "Space to hear your own priorities."
-                : bundle?.measurement
-                  ? "Your responses have been measured."
-                  : "Your scan is still taking shape."}
-            </h2>
-            <p className="reflection-copy">
-              {preview
-                ? PREVIEW_REFLECTION.summary
-                : bundle?.measurement
-                  ? "Your recording measurements are saved below. A personal interpretation cannot be offered yet because the constellation models are still awaiting validation."
-                  : "There are no saved measurements for this scan yet. If processing was interrupted, return to the recording page while your recordings are still open and resume."}
-            </p>
-            {!preview && (
-              <Link className="text-link" href="#recording-details">
-                Explore recording details ↓
-              </Link>
-            )}
-          </section>
+          <ReflectionOverview narrative={narrative} />
+          {!preview && bundle?.measurement && (
+            <Link className="text-link" href="#recording-details">
+              Explore recording details ↓
+            </Link>
+          )}
         </div>
         <aside className="result-right">
           <section className="panel field-meta">
@@ -160,13 +154,7 @@ export function ResultsView({
               <div>
                 <dt>STATUS</dt>
                 <dd>
-                  {preview
-                    ? "Design exploration"
-                    : bundle?.dimensions
-                      ? "Measurements & evidence saved"
-                      : bundle?.measurement
-                        ? "Partially processed"
-                        : bundle?.scan.lifecycle_state.replaceAll("_", " ")}
+                  {preview ? "Design exploration" : bundle?.scan.lifecycle_state.replaceAll("_", " ")}
                 </dd>
               </div>
             </dl>
@@ -185,12 +173,12 @@ export function ResultsView({
               <li>
                 <span>Dimension record</span>
                 <b>
-                  {bundle?.dimensions ? "Saved · unresolved" : "Not available"}
+                  {bundle?.dimensions ? bundle.dimensions.status.replaceAll("_", " ") : "Not available"}
                 </b>
               </li>
               <li>
                 <span>Personal interpretation</span>
-                <b>Not available</b>
+                <b>{preview ? "Illustrative only" : narrative?.status === "READY" ? "Available" : "Not available"}</b>
               </li>
               <li>
                 <span>Acoustic signature</span>
@@ -214,7 +202,7 @@ export function ResultsView({
             ) : (
               <p>
                 {preview
-                  ? "Keep what feels useful. Leave what does not. You are the authority on your experience."
+                  ? "Keep what feels useful. Leave what does not. Your experience remains yours to interpret."
                   : "Evidence will appear here after processing. Unavailable evidence is kept separate from zero or contradiction."}
               </p>
             )}
@@ -231,51 +219,12 @@ export function ResultsView({
           </section>
         </aside>
       </div>
-      {preview ? (
-        <>
-          <section className="section daily-section">
-            <p className="eyebrow">HOW THIS MAY SHOW UP IN DAILY LIFE</p>
-            <h2>
-              The small moments <em>in between.</em>
-            </h2>
-            <div className="daily-grid">
-              {PREVIEW_REFLECTION.daily.map((s, i) => (
-                <article className="panel" key={s}>
-                  <span className="daily-number">0{i + 1}</span>
-                  <p>{s}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-          <div className="two-columns">
-            <section className="panel">
-              <p className="eyebrow">WHAT MAY BE HAPPENING UNDERNEATH</p>
-              <p>{PREVIEW_REFLECTION.underneath}</p>
-            </section>
-            <section className="panel">
-              <p className="eyebrow">SOMETHING WORTH NOTICING</p>
-              <p>{PREVIEW_REFLECTION.noticing}</p>
-            </section>
-          </div>
-          <section className="question-card">
-            <p className="eyebrow">A QUESTION TO SIT WITH</p>
-            <h2>{PREVIEW_REFLECTION.question}</h2>
-            <p>No need to solve it all. Start with one small moment.</p>
-          </section>
-        </>
-      ) : (
-        <section className="panel unavailable-reflection">
-          <p className="eyebrow">YOUR REFLECTION</p>
-          <h2>There is more to build before we can offer an interpretation.</h2>
-          <p>
-            The daily-life reflections and question for balance will appear once
-            a completed, authorized semantic result supports them. They are not
-            generated from raw measurements in this test.
-          </p>
-          <Link href="/results" className="text-link">
-            Explore the reflection layout →
-          </Link>
-        </section>
+      <ReflectionDetails narrative={narrative} />
+      {!preview && typeof bundle?.semantic?.result_report?.reason === "string" && (
+        <details className="panel measurement-detail">
+          <summary>Result limits <span>View the saved reason</span></summary>
+          <p>{bundle.semantic.result_report.reason}</p>
+        </details>
       )}
       {bundle?.measurement && (
         <section id="recording-details" className="section recording-details">

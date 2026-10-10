@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 const config: NextConfig = {
+  transpilePackages: ["@soulscope/canonical-contracts"],
   turbopack: { root: path.resolve(process.cwd(), "..") },
   outputFileTracingRoot: path.resolve(process.cwd(), ".."),
   poweredByHeader: false,

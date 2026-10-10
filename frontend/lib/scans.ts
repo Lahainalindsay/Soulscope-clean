@@ -6,6 +6,7 @@ import type {
   Measurement,
   Evidence,
   Dimensions,
+  SemanticResultRecord,
 } from "./contracts";
 export async function loadHistory(): Promise<Scan[]> {
   await accessToken();
@@ -65,13 +66,13 @@ export async function loadResult(id: string): Promise<ResultBundle> {
         evidence.id,
       )) as Dimensions | null)
     : null;
-  const semantic = measurement
+  const semantic = (measurement
     ? await latest(
         "semantic_result_records",
         "measurement_record_id",
         measurement.id,
       )
-    : null;
+    : null) as SemanticResultRecord | null;
   return { scan, measurement, evidence, dimensions, semantic };
 }
 export async function sendScan(

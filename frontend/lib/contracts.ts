@@ -58,30 +58,32 @@ export type Evidence = {
   entries: unknown[];
 };
 export type Dimensions = { id: string; status: string; dimensions: unknown[] };
+/** Read-only persisted shape; consumer validation still checks untrusted JSON. */
+export type SemanticResultRecord = Readonly<{
+  id: string;
+  scan_id: string;
+  status: string;
+  semantic_schema_version: string;
+  evidence_ledger: readonly Readonly<{ evidence_id: string }>[];
+  decision_ledger: readonly Readonly<{ decisionId: string }>[];
+  states_or_blends: readonly Readonly<{ constellationId: string; outcomeType: string }>[];
+  result_report: Readonly<{
+    schemaVersion: string;
+    status: string;
+    reason?: string;
+    reflectionNarrative?: unknown;
+    selectedMeaningUnitIds?: readonly string[];
+  }> | null;
+}>;
 export type ResultBundle = {
   scan: Scan;
   measurement: Measurement | null;
   evidence: Evidence | null;
   dimensions: Dimensions | null;
-  semantic: Record<string, unknown> | null;
+  semantic: SemanticResultRecord | null;
 };
 export function displayValue(value: number | null | undefined, unit: string) {
   return typeof value === "number" && Number.isFinite(value)
     ? `${Number(value.toFixed(3))} ${unit}`
     : "Not available";
 }
-export const PREVIEW_REFLECTION = {
-  summary:
-    "There may be a pull between staying with what matters to you and making room for everything asking for your attention. One possibility is that a little more space between demands could help you hear your own priorities.",
-  daily: [
-    "You might finish one task while already carrying the next one in your mind.",
-    "When a conversation matters, you may need a moment to find the words that feel right.",
-    "A quieter transition between commitments could give you room to choose your next step.",
-  ],
-  underneath:
-    "One possibility is that competing demands leave less room to pause. If that does not fit your experience, you can set it aside.",
-  noticing:
-    "Notice whether giving yourself a moment before responding changes how much effort the next conversation takes.",
-  question:
-    "Where could you create a small pause today so your next choice comes from what you need, rather than what feels most urgent?",
-};

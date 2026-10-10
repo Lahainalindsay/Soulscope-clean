@@ -49,7 +49,12 @@ Not yet implemented:
 
 `docs/CANONICAL_AUTHORITY_LEDGER.md` is the single current authority index.
 
-Current governing source artifacts live under `docs/canonical/`:
+**SoulScope Canon Set v2.0 controls new implementation decisions.** See
+`docs/LANGUAGE_SYSTEM_V1.md` for its language contract. Existing source references
+and historical scientific versions are preserved; this patch does not re-version
+inference or validate its provisional models.
+
+Retained implementation source artifacts live under `docs/canonical/`:
 
 - SoulScope Canon v1.3
 - SoulScope Acoustic Parameter Registry v0.1

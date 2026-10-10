@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createAuthFetch } from "./auth-fetch";
 let client: SupabaseClient | null = null;
 export function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -6,7 +7,7 @@ export function getSupabase() {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
-  return (client ??= createClient(url, key));
+  return (client ??= createClient(url, key, { global: { fetch: createAuthFetch() } }));
 }
 export async function accessToken() {
   const db = getSupabase();

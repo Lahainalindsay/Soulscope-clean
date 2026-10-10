@@ -55,7 +55,7 @@ Three 30-second mono 16 kHz WAVs total roughly 2.9 MB, below Vercel's usual requ
 | --- | --- |
 | `/` | Home, product context, canonical prompts |
 | `/scan` | Consent, three recordings, playback, retry, review, submit |
-| `/results` | Illustrative visual/copy preview; never persisted as a result |
+| `/results` and `/results/demo` | Immutable illustrative Language System v1 preview; never persisted as a real scan |
 | `/results/[id]` | Owner-readable measurements/evidence/unresolved dimensions |
 | `/history` | Up to 100 recent owner-readable scans |
 | `/field` | Saved moment count and honest longitudinal empty state |
@@ -69,7 +69,7 @@ The browser uses the active canonical prompt set, creates an owner-scoped scan, 
 
 The server verifies the access token with Supabase Auth, checks scan ownership through RLS, checks canonical capture IDs/order/status, and validates the actual WAVs before privileged processing. The worker token never enters client code. The server invokes the existing measurement, evidence, dimension, and canonical completion endpoints in order. Completion requires the backend canonical-result migration. Retry discovers saved stages by their upstream immutable IDs and resumes without rerunning completed stages. Upstream error bodies are not echoed to the browser.
 
-A submitted measurement test remains `extracting` in the foundation scan lifecycle because the worker has not published/finalized a canonical result. The UI reports saved evidence separately from that lifecycle. No frontend code forces finalization.
+The server finalizes the immutable semantic chain with explicit calibration abstentions. The UI displays the saved lifecycle and supplied outcomes; no frontend code forces scientific publication or replaces an unresolved result with preview copy.
 
 Recordings are in page memory, not localStorage or public storage. Leaving the scan page stops the microphone and releases object URLs. After submitting, retry is possible while the page remains open. Abandoned sessions remain visible in history; deletion/cancellation management is future work.
 
@@ -77,9 +77,9 @@ Recordings are in page memory, not localStorage or public storage. Leaving the s
 
 Current backend outputs are descriptive provisional measurements, structural evidence, abstained/unresolved dimensions, and immutable completed semantic results with `CALIBRATION_REQUIRED`. There is no calibrated constellation scoring, state/pattern inference, interpretation engine, integrated longitudinal field, or canonical time-resolved acoustic renderer.
 
-The luminous SVG is decorative, fixed artwork. It is never driven by constellation scores, never presented as a measured Resonance Signature, and never persisted as a rendering record. Future production rendering must obey Canon v1.3's time-as-radius, acoustic-only provenance boundary. The requested reference is an aesthetic reference, not an inference contract.
+The luminous SVG is decorative, fixed artwork. It is never driven by constellation scores, never presented as a measured Resonance Signature, and never persisted as a rendering record. Future production rendering must obey Canon Set v2.0's time-as-radius, acoustic-only provenance boundary. The requested reference is an aesthetic reference, not an inference contract.
 
-The preview presents a human-language interpretation, three sentence-length daily-life possibilities, and a balance-oriented question. It also preserves the other canonical narrative section placeholders. These are isolated illustrative copy. Live unresolved results cannot receive the preview text.
+The preview presents a versioned synthetic observation, three overview sentences, three daily-life possibilities, alternatives and one question. Every sentence carries fixture source references. Live unresolved results cannot receive this illustrative narrative.
 
 ## Validation of this implementation
 
@@ -89,3 +89,11 @@ The preview presents a human-language interpretation, three sentence-length dail
 - Browser checks across all seven screens at 1440px and 390px: no horizontal overflow or JavaScript exceptions; rendered results and mobile recording screens visually reviewed.
 - Browser recording test using Chromium synthetic microphone input: three recordings, WAV conversion, playback, three-response review, and a safe 503 response when submission is unconfigured.
 - No hosted staging credentialed pipeline verification was possible in the implementation workspace; environment variables were absent.
+
+## Language System v1
+
+See `../docs/LANGUAGE_SYSTEM_V1.md`. The existing dashboard now renders validated,
+server-supplied narrative with source references; it never constructs psychological
+meaning from scores. Existing unavailable reports stay unavailable. The immutable
+demo fixture is isolated from saved scans. Install the shared contract test
+dependencies with `npm ci --prefix packages/canonical-contracts` from the root.

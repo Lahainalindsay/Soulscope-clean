@@ -3,42 +3,58 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 import { FieldArt } from "@/components/field-art";
+import { AccountForm } from "@/components/account-form";
+import {
+  accountError,
+  submitAccount,
+  type AccountMode,
+} from "@/lib/account-auth";
 export default function Account() {
   const [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
-    [mode, setMode] = useState<"signin" | "signup">("signin"),
+    [mode, setMode] = useState<AccountMode>("signin"),
     [user, setUser] = useState<string | null>(null),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const db = getSupabase();
   useEffect(() => {
     if (!db) return;
-    db.auth.getUser().then(({ data }) => setUser(data.user?.email ?? null));
-    const { data } = db.auth.onAuthStateChange((_e, s) =>
-      setUser(s?.user.email ?? null),
-    );
+    // Keep this callback synchronous: auth calls inside it can deadlock the SDK.
+    const { data } = db.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user.email ?? null);
+      if (event === "PASSWORD_RECOVERY") {
+        setMode("update");
+        setPassword("");
+        setMessage("");
+      }
+      if (event === "SIGNED_OUT") setMode("signin");
+    });
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    if (params.get("error_description")) {
+      setMessage(
+        "This email link is invalid or has expired. Request a new confirmation or password reset link.",
+      );
+      window.history.replaceState(null, "", window.location.pathname);
+    }
     return () => data.subscription.unsubscribe();
   }, [db]);
-  async function submit(event: React.FormEvent) {
-    event.preventDefault();
+  async function run(action: AccountMode | "resend") {
     if (!db) return;
     setBusy(true);
     setMessage("");
     try {
-      const { data, error } =
-        mode === "signin"
-          ? await db.auth.signInWithPassword({ email, password })
-          : await db.auth.signUp({
-              email,
-              password,
-              options: { emailRedirectTo: window.location.origin + "/account" },
-            });
-      if (error) throw error;
+      const notice = await submitAccount(
+        db.auth,
+        action,
+        email,
+        password,
+        window.location.origin + "/account",
+      );
       setPassword("");
-      if (!data.session)
-        setMessage("Check your email to confirm your account, then sign in.");
+      setMessage(notice);
+      if (action === "update") setMode("signin");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to sign in.");
+      setMessage(accountError(error));
     } finally {
       setBusy(false);
     }
@@ -52,11 +68,15 @@ export default function Account() {
       <div className="panel account-form">
         <p className="eyebrow">SOULSCOPE ACCOUNT</p>
         <h1>
-          {user
-            ? "Your space."
-            : mode === "signin"
-              ? "Welcome back."
-              : "Make room for you."}
+          {mode === "update"
+            ? "Choose a new password."
+            : mode === "reset"
+              ? "Reset your password."
+              : user
+                ? "Your space."
+                : mode === "signin"
+                  ? "Welcome back."
+                  : "Make room for you."}
         </h1>
         <p className="muted">
           {user
@@ -71,7 +91,7 @@ export default function Account() {
               Open preview →
             </Link>
           </div>
-        ) : user ? (
+        ) : user && mode !== "update" ? (
           <>
             <Link className="button primary" href="/scan">
               Begin a scan ↗
@@ -84,60 +104,39 @@ export default function Account() {
               disabled={busy}
               onClick={async () => {
                 setBusy(true);
-                const { error } = await db.auth.signOut();
-                setBusy(false);
-                if (error) setMessage(error.message);
+                try {
+                  const { error } = await db.auth.signOut();
+                  if (error) throw error;
+                  setMessage("");
+                } catch (error) {
+                  setMessage(accountError(error));
+                } finally {
+                  setBusy(false);
+                }
               }}
             >
               Sign out
             </button>
           </>
         ) : (
-          <form onSubmit={submit}>
-            <label>
-              Email
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </label>
-            <label>
-              Password
-              <input
-                type="password"
-                minLength={8}
-                required
-                autoComplete={
-                  mode === "signin" ? "current-password" : "new-password"
-                }
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
-            <button className="button primary" disabled={busy}>
-              {busy
-                ? "Connecting…"
-                : mode === "signin"
-                  ? "Sign in →"
-                  : "Create account →"}
-            </button>
-            <button
-              className="text-link"
-              type="button"
-              disabled={busy}
-              onClick={() => {
-                setMode(mode === "signin" ? "signup" : "signin");
-                setMessage("");
-              }}
-            >
-              {mode === "signin"
-                ? "New here? Create an account"
-                : "Already have an account? Sign in"}
-            </button>
-          </form>
+          <AccountForm
+            mode={mode}
+            email={email}
+            password={password}
+            busy={busy}
+            onEmail={setEmail}
+            onPassword={setPassword}
+            onMode={(next) => {
+              setMode(next);
+              setPassword("");
+              setMessage("");
+            }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void run(mode);
+            }}
+            onResend={() => void run("resend")}
+          />
         )}
         {message && (
           <p className="notice" role="status">

@@ -1,15 +1,23 @@
 # SoulScope Canonical Authority Ledger
 
 Status: CURRENT AUTHORITY INDEX
-Adopted for repository integration: 2026-08-14
+Current decision authority confirmed for Language System v1: 2026-10-09
 
-This ledger is the single current authority index for the SoulScope backend and scientific architecture in this repository. Historical Canon, Bible, and specification materials remain available only under `docs/archive/` for provenance.
+**SoulScope Canon Set v2.0 controls all new implementation decisions.** The
+owner-provided `SoulScope_Canon_Set_v2.0_CURRENT_2026-08-13.pdf` was read in full.
+The v1.3 Canon and companion documents below are retained implementation-source
+provenance only; they do not override v2.0. Historical result manifests and source
+references are not rewritten by this authority correction.
+
+See `docs/LANGUAGE_SYSTEM_V1.md` for the new narrative contract and its limits.
+
+This ledger records current owner authority and retained implementation provenance. Older source files may remain at their original paths for reproducibility; their location does not confer current authority.
 
 ## Authority Order
 
 1. Scientific safety, personal agency, privacy, and immutable Evidence to Decision to Result contracts.
-2. SoulScope Canon v1.3.
-3. Current canonical scientific/backend companion registries listed below.
+2. SoulScope Canon Set v2.0.
+3. Versioned registries and compatible specifications only where consistent with Canon Set v2.0.
 4. Current compatible implementation, validation, privacy, security, rendering, interface, and route-level specifications where they do not conflict with the Canon or companion registries.
 5. Executable implementation.
 
@@ -19,20 +27,21 @@ No lower layer may override a higher layer. Archived files are not current autho
 
 | Authority | Version | Path | Status |
 | --- | --- | --- | --- |
-| SoulScope Canon | v1.3 | `docs/canonical/The SoulScope Canon v1.3.pdf` | CURRENT GOVERNING CANON |
+| SoulScope Canon Set | v2.0 | Owner-provided `SoulScope_Canon_Set_v2.0_CURRENT_2026-08-13.pdf` | CURRENT GOVERNING CANON |
+| Earlier implementation Canon | v1.3 | `docs/canonical/The SoulScope Canon v1.3.pdf` | HISTORICAL IMPLEMENTATION PROVENANCE |
 
-## Current Scientific Backend Registries
+## Retained Scientific Backend Registry Sources
 
 | Authority | Version | Path | Status |
 | --- | --- | --- | --- |
-| SoulScope Acoustic Parameter Registry | v0.1 | `docs/canonical/SoulScope Acoustic Parameter Registry v0.1.pdf` | CURRENT |
-| SoulScope Evidence Marker Registry | v0.1 | `docs/canonical/SoulScope Evidence Marker Registry.pdf` | CURRENT |
-| SoulScope Constellation Dimension Registry | v0.1 | `docs/canonical/SoulScope Constellation Dimension Registry v0.1.pdf` | CURRENT |
-| SoulScope Inference Rule Registry | v0.1 | `docs/canonical/SoulScope Inference Rule Registry v0.1.pdf` | CURRENT |
-| SoulScope Constellation State Registry | v0.1 | `docs/canonical/SoulScope Constellation State Registry v0.1.pdf` | CURRENT |
-| SoulScope Cross-Constellation Interaction Registry | v0.1 | `docs/canonical/SoulScope Cross-Constellation Interaction Registry v0.1.pdf` | CURRENT |
-| SoulScope Whole-Scan Pattern Registry | v0.1 | `docs/canonical/SoulScope Whole-Scan Pattern Registry v0.1.pdf` | CURRENT, RESEARCH CANDIDATES CALIBRATION PENDING |
-| SoulScope Narrative Registry | v0.1 | `docs/canonical/SoulScope Narrative Registry.pdf` | CURRENT |
+| SoulScope Acoustic Parameter Registry | v0.1 | `docs/canonical/SoulScope Acoustic Parameter Registry v0.1.pdf` | IMPLEMENTATION SOURCE; SUBORDINATE TO v2.0 |
+| SoulScope Evidence Marker Registry | v0.1 | `docs/canonical/SoulScope Evidence Marker Registry.pdf` | IMPLEMENTATION SOURCE; SUBORDINATE TO v2.0 |
+| SoulScope Constellation Dimension Registry | v0.1 | `docs/canonical/SoulScope Constellation Dimension Registry v0.1.pdf` | IMPLEMENTATION SOURCE; SUBORDINATE TO v2.0 |
+| SoulScope Inference Rule Registry | v0.1 | `docs/canonical/SoulScope Inference Rule Registry v0.1.pdf` | IMPLEMENTATION SOURCE; SUBORDINATE TO v2.0 |
+| SoulScope Constellation State Registry | v0.1 | `docs/canonical/SoulScope Constellation State Registry v0.1.pdf` | IMPLEMENTATION SOURCE; SUBORDINATE TO v2.0 |
+| SoulScope Cross-Constellation Interaction Registry | v0.1 | `docs/canonical/SoulScope Cross-Constellation Interaction Registry v0.1.pdf` | IMPLEMENTATION SOURCE; SUBORDINATE TO v2.0 |
+| SoulScope Whole-Scan Pattern Registry | v0.1 | `docs/canonical/SoulScope Whole-Scan Pattern Registry v0.1.pdf` | IMPLEMENTATION SOURCE; CALIBRATION PENDING; SUBORDINATE TO v2.0 |
+| SoulScope Narrative Registry | v0.1 | `docs/canonical/SoulScope Narrative Registry.pdf` | IMPLEMENTATION SOURCE; SUBORDINATE TO v2.0 |
 
 ## Current Compatible Specifications
 

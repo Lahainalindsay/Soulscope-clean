@@ -18,12 +18,15 @@ const sourceBundle = [
   "src/scanProcessing.ts",
 ].map((file) => readText(file)).join("\n");
 
-test("authority chain points to Canon v1.3 and current registries", () => {
+test("Canon Set v2.0 controls new decisions while extraction-era provenance stays unchanged", () => {
   assert.match(readText("src/provenance.ts"), /docs\/CANONICAL_AUTHORITY_LEDGER\.md/);
   assert.match(readText("src/provenance.ts"), /The SoulScope Canon v1\.3\.pdf/);
   assert.match(readText("src/provenance.ts"), /SoulScope Whole-Scan Pattern Registry v0\.1\.pdf/);
   assert.match(readText("src/provenance.ts"), /SoulScope Narrative Registry\.pdf/);
   assert.match(readText("src/authority.ts"), /CURRENT_AUTHORITY_CHAIN/);
+  assert.match(readText("src/authority.ts"), /SoulScope_Canon_Set_v2\.0_CURRENT_2026-08-13\.pdf/);
+  assert.match(readText("src/authority.ts"), /governingCanon: CURRENT_CANON_SET.sourceFilename/);
+  assert.match(readText("src/authority.ts"), /LEGACY_IMPLEMENTATION_CANON_PATH = SOURCE_DOCUMENTS.canon/);
 });
 
 test("prompt protocol preserves current three-prompt semantics", () => {
