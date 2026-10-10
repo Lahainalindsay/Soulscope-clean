@@ -178,3 +178,17 @@ async def complete_measurement(
     return await run_in_threadpool(
         ResultService(settings.supabase_url, auth, rpc).complete_measurement, measurement_record_id
     )
+
+
+@app.post("/internal/verify-measurements")
+async def verify_measurements(
+    x_worker_token: Annotated[str | None, Header()] = None,
+) -> dict[str, Any]:
+    # Does not require database credentials or consume/store customer audio.
+    from .acoustics.verification import verify_measurement_runtime
+
+    authorize_worker(Settings.from_env(), x_worker_token)
+    result = await run_in_threadpool(verify_measurement_runtime)
+    if result["status"] != "PASS":
+        raise HTTPException(status_code=503, detail=result)
+    return result

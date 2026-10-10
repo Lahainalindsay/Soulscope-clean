@@ -12,6 +12,7 @@ import numpy as np
 from app.acoustics.extractor import extract_measurements
 from app.acoustics.frame_analysis import analyze_frames, summarize_speech_segments
 from app.acoustics.profile import FEATURES
+from app.acoustics.verification import verify_measurement_runtime
 from app.acoustics.registry import assert_known_runtime_feature, provisional_parameter
 from app.evidence.engine import evaluate_evidence
 from app.evidence.models import MeasurementRecordInput
@@ -99,6 +100,14 @@ class FullResponseMeasurementTests(unittest.TestCase):
                                             if not m["feature_id"].startswith("PROVISIONAL_FRAME_")]}
         previous = evaluate_evidence(MeasurementRecordInput(prompt_measurements=[legacy], **fields))
         self.assertEqual(richer, previous)
+
+    def test_deployment_verification_does_not_claim_success_without_native_libraries(self) -> None:
+        with patch("app.acoustics.frame_analysis.importlib.import_module", side_effect=ImportError):
+            proof = verify_measurement_runtime()
+        self.assertEqual(proof["status"], "FAIL")
+        self.assertFalse(proof["audioStored"])
+        self.assertFalse(proof["userDataAccessed"])
+        self.assertEqual(proof["psychologicalValidation"], "NOT_ESTABLISHED")
 
     @unittest.skipUnless(NATIVE, "Native dependencies unavailable in this environment; required on CI/deployment")
     def test_native_f0_tracks_fundamental_in_harmonic_signal(self) -> None:

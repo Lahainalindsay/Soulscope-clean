@@ -43,3 +43,11 @@ No suitable reference dataset or validated publication rules were found in eithe
 6. Keep recovery, reserve and relational availability abstained until compatible protocols exist. Do not infer diagnosis, identity, deception, cause or hidden truth. Preserve old sealed results and append new scientific versions when the model changes.
 
 A model cannot be declared accurate by adding more acoustic variables or by passing software tests. Native measurement checks and scientific validation are separate release gates.
+
+## Deployment verification
+
+`POST /internal/verify-measurements` uses the existing worker-token gate and only
+known synthetic signals; it has no audio upload, database access or persistence.
+It verifies native F0/HNR, late/high-frequency spectrum support, missingness and
+task gates in the deployed runtime. It returns 503 if a check fails. Success is
+measurement engineering verification, explicitly not psychological validation.
