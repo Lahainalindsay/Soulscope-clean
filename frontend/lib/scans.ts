@@ -24,7 +24,7 @@ export async function loadHistory(): Promise<Scan[]> {
   return data ?? [];
 }
 export async function loadResult(id: string): Promise<ResultBundle> {
-  await accessToken();
+  const token = await accessToken();
   const db = getSupabase()!;
   const { data: scan, error } = await db
     .from("scan_sessions")
@@ -73,7 +73,16 @@ export async function loadResult(id: string): Promise<ResultBundle> {
         measurement.id,
       )
     : null) as SemanticResultRecord | null;
-  return { scan, measurement, evidence, dimensions, semantic };
+  let recordingSummary: unknown = null;
+  if (semantic && scan.lifecycle_state === "finalized") {
+    const response = await fetch(`/api/results/${encodeURIComponent(id)}/summary`, {
+      headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: AbortSignal.timeout(30000),
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error ?? "Your summary could not be loaded. Please try again.");
+    recordingSummary = body;
+  }
+  return { scan, measurement, evidence, dimensions, semantic, recordingSummary };
 }
 export async function sendScan(
   audio: Blob[],

@@ -20,7 +20,7 @@ export function ReflectionOverview({ narrative }: { narrative: ReflectionNarrati
   );
 }
 
-export function ReflectionDetails({ narrative }: { narrative: ReflectionNarrativeV1 | null }) {
+export function ReflectionDetails({ narrative, showReferences = true }: { narrative: ReflectionNarrativeV1 | null; showReferences?: boolean }) {
   if (!narrative || narrative.status === "UNRESOLVED") {
     return (
       <section className="panel unavailable-reflection" aria-label="Reflection availability">
@@ -66,7 +66,7 @@ export function ReflectionDetails({ narrative }: { narrative: ReflectionNarrativ
         <h2>{narrative.questionToSitWith.text}</h2>
         <p>No need to solve it all. Start with one small moment.</p>
       </section>
-      <details className="panel measurement-detail">
+      {showReferences && <details className="panel measurement-detail">
         <summary>Evidence and language versions <span>View references</span></summary>
         <p>Language {narrative.languageVersion} · Canon {narrative.canonVersion}</p>
         <ul>
@@ -77,7 +77,7 @@ export function ReflectionDetails({ narrative }: { narrative: ReflectionNarrativ
             </li>
           ))}
         </ul>
-      </details>
+      </details>}
     </>
   );
 }

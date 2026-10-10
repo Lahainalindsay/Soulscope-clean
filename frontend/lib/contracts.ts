@@ -76,6 +76,7 @@ export type SemanticResultRecord = Readonly<{
   }> | null;
 }>;
 export type ResultBundle = {
+  recordingSummary?: unknown;
   scan: Scan;
   measurement: Measurement | null;
   evidence: Evidence | null;

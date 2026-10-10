@@ -97,3 +97,11 @@ server-supplied narrative with source references; it never constructs psychologi
 meaning from scores. Existing unavailable reports stay unavailable. The immutable
 demo fixture is isolated from saved scans. Install the shared contract test
 dependencies with `npm ci --prefix packages/canonical-contracts` from the root.
+
+## Recording descriptions and public information
+
+`GET /api/results/[id]/summary` produces a versioned `RecordingSummaryV1` on the server from the owned finalized scan's immutable semantic snapshot and linked measurement/evidence records. It describes the provisional quiet-audio detector only when all three captures have supported `EV_TIM_008` evidence, matching provenance, qualified measurements, and no recording-quality flags. It uses no dimensions, psychological states, confidence thresholds, or calibrated meaning units. It is a consumer projection, not a replacement or mutation of the sealed scientific result or `ReflectionNarrativeV1`.
+
+The main result renders supplied prose, date/time, and current voice-energy availability. `/results/[id]/details` retains acoustic records, limits, citations, and projection provenance. Missing voice energy remains unavailable; provisional RMS and zero-crossing estimates never become energy or psychological ratings. The existing Signature/art code is unchanged. Existing eligible scans gain a description without re-recording or modifying historical records.
+
+Public service information is at `/legal`, `/privacy`, `/terms`, `/faq`, and `/contact`. Operator/contact constants live in `lib/site.ts`. Privacy and terms describe current beta behavior and openly preserve unfinished retention/regional legal review. They do not promise automatic deletion. The sitemap contains only public informational pages; account, recording, history, field, and result routes carry noindex metadata. Authentication and RLS, not robots directives, protect records.

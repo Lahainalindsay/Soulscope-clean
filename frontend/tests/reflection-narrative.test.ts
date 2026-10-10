@@ -65,7 +65,7 @@ test("scores without supplied narrative never create interpretation or leak the 
     const saved = semantic("unresolved_abstained");
     const result = { ...saved, result_report: { schemaVersion: "0.1", status: "UNAVAILABLE", reason: "NO_PUBLISHABLE_SEMANTIC_FINDINGS" } };
     const html = renderToStaticMarkup(createElement(ResultsView, { bundle: bundle(score, result), demoResult: demo }));
-    assert.ok(html.includes("Unavailable meaning stays unresolved"));
+    assert.ok(html.includes("A supported summary is not available"));
     assert.ok(!html.includes("HOW THIS MAY SHOW UP IN DAILY LIFE"));
     assert.ok(!html.includes("A QUESTION TO SIT WITH"));
     assert.ok(!html.includes(demo.narrative.overview[0]?.text ?? "unexpected-fixture"));

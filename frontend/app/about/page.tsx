@@ -23,7 +23,7 @@ export default function About() {
           evidence records.
         </p>
         <p>
-          In this testing release, measurements and evidence are available when
+          In this beta release, supported recording descriptions and details are available when
           the backend is connected. Constellation interpretations remain
           unavailable while the scientific models are being validated. The
           design preview is illustrative copy, not a reading of your voice.
@@ -57,7 +57,7 @@ export default function About() {
           from raw audio and persist in your account.
         </p>
         <p>
-          Record only material you are comfortable using in a staging test.
+          Read our <Link href="/privacy">privacy notice</Link> before submitting a recording.
           SoulScope does not need names or identifying details about other
           people. Your scan history is visible through your signed-in account.
         </p>

@@ -2114,3 +2114,13 @@ pre {
     margin: 90px auto;
   }
 }
+
+/* Saved result: the existing artwork and panels, with technical records on a separate page. */
+.result-experience { max-width: 900px; margin-inline: auto; }
+.result-experience .result-art { max-width: 620px; margin: 0 auto 2rem; }
+.result-experience > .panel { margin-block: 1.5rem; }
+.result-experience .daily-grid { grid-template-columns: 1fr; }
+.result-experience time { color: var(--muted); }
+.footer-links { display: flex; flex-wrap: wrap; gap: 1rem; }
+.reading-page .faq-answer { margin-block: 1rem; }
+.reading-page address { font-style: normal; overflow-wrap: anywhere; }

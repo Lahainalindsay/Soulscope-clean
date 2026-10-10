@@ -29,7 +29,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <>
             <nav aria-label="Main navigation">
               <Link href="/#how-it-works">HOW IT WORKS</Link>
-              <Link href="/about#privacy">PRIVACY</Link>
+              <Link href="/privacy">PRIVACY</Link>
             </nav>
             <div className="header-actions">
               <Link className="account-link" href="/account">
@@ -71,7 +71,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </p>
         <div>
           <span>A moment of reflection. A little more perspective.</span>
-          <Link href="/about#privacy">Privacy & your voice</Link>
+          <nav className="footer-links" aria-label="Service information">
+            <Link href="/legal">Legal</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/faq">FAQ</Link><Link href="/contact">Contact</Link>
+          </nav>
         </div>
       </footer>
     </>

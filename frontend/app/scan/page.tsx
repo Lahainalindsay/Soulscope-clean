@@ -362,8 +362,8 @@ export default function ScanPage() {
                 </button>
               )}
               <p className="micro">
-                This test returns recording measurements and evidence.
-                Interpretations are still awaiting validated models.
+                This beta offers supported recording observations when audio qualifies.
+                Psychological interpretations remain in development.
               </p>
               {scanId && (
                 <Link href={`/results/${scanId}`} className="text-link">
