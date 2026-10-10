@@ -12,7 +12,7 @@ export type NarrativeSectionId = (typeof NARRATIVE_SECTION_IDS)[number];
 
 export const NARRATIVE_SECTIONS = Object.freeze([
   Object.freeze({ id: "what_feels_most_present", label: "What feels most present", order: 1 }),
-  Object.freeze({ id: "how_this_may_show_up_in_daily_life", label: "How this may show up in daily life", order: 2 }),
+  Object.freeze({ id: "how_this_may_show_up_in_daily_life", label: "How this feels daily", order: 2 }),
   Object.freeze({ id: "what_may_be_happening_underneath", label: "What may be happening underneath", order: 3 }),
   Object.freeze({ id: "something_worth_noticing", label: "Something worth noticing", order: 4 }),
   Object.freeze({ id: "a_question_to_sit_with", label: "A question to sit with", order: 5 }),
