@@ -119,3 +119,4 @@ class FullResponseMeasurementTests(unittest.TestCase):
         self.assertIsNotNone(result["values"]["HNR_MEAN"])
         self.assertEqual(result["nativeMethods"]["praat"], "0.4.6")
         self.assertNotIn("fallback", result["nativeMethods"]["vad"])
+        self.assertEqual(verify_measurement_runtime()["status"], "PASS")
