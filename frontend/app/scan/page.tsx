@@ -7,6 +7,7 @@ import { canonicalizeAudio, validateCanonicalWav } from "@/lib/audio";
 import { sendScan } from "@/lib/scans";
 import { getSupabase } from "@/lib/supabase";
 import { Glyph } from "@/components/field-art";
+import { FEELING_CHOICES, type FeelingChoice } from "@/lib/recording-reflection";
 type Clip = { blob: Blob; url: string; seconds: number };
 export default function ScanPage() {
   const router = useRouter();
@@ -18,7 +19,8 @@ export default function ScanPage() {
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [scanId, setScanId] = useState<string | null>(null),
-    [signedIn, setSignedIn] = useState(false);
+    [signedIn, setSignedIn] = useState(false),
+    [felt, setFelt] = useState<FeelingChoice | null>(null);
   const recorder = useRef<MediaRecorder | null>(null),
     stream = useRef<MediaStream | null>(null),
     timer = useRef<ReturnType<typeof setInterval> | null>(null),
@@ -144,6 +146,9 @@ export default function ScanPage() {
         scanId,
         setScanId,
       );
+      if (felt) {
+        try { localStorage.setItem(`soulscope:feeling:v1:${id}`, felt); } catch { /* Browsers may block local storage; the scan is still saved. */ }
+      }
       router.push(`/results/${id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "The scan could not finish.");
@@ -333,6 +338,15 @@ export default function ScanPage() {
                   </div>
                 ))}
               </div>
+              <section className="scan-feeling" aria-label="Optional feeling word">
+                <p className="eyebrow">OPTIONAL · IN YOUR OWN TERMS</p>
+                <h3>What felt present as you spoke?</h3>
+                <p>Choose a word if one fits. Your answer helps the reflection speak to your experience; the voice alone cannot name it.</p>
+                <div className="feeling-options">
+                  {FEELING_CHOICES.map(feeling => <button type="button" key={feeling} aria-pressed={felt === feeling}
+                    disabled={busy} onClick={() => setFelt(felt === feeling ? null : feeling)}>{feeling}</button>)}
+                </div>
+              </section>
               {!configured ? (
                 <div className="notice">
                   The account connection has not been configured. Your

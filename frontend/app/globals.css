@@ -2122,6 +2122,20 @@ pre {
 .result-experience .daily-grid { grid-template-columns: 1fr; }
 .result-experience time { color: var(--muted); }
 .recording-chapters > summary { cursor: pointer; padding: .5rem 0; }
+.reflection-lead { color: var(--text); font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(25px, 3vw, 35px); line-height: 1.25; margin: 1.6rem auto; max-width: 680px; }
+.reflection-main .reflection-copy { max-width: 690px; margin-inline: auto; }
+.feeling-checkin { text-align: center; }
+.feeling-checkin > p:not(.eyebrow) { color: var(--muted); max-width: 600px; margin-inline: auto; }
+.scan-feeling { border-top: 1px solid var(--line); margin: 2rem 0; padding-top: 2rem; }
+.scan-feeling > p:not(.eyebrow) { color: var(--muted); }
+.scan-feeling .feeling-options { justify-content: flex-start; margin-left: 0; }
+.feeling-options { display: flex; justify-content: center; flex-wrap: wrap; gap: .7rem; margin: 1.5rem auto 0; max-width: 690px; }
+.feeling-options button { background: #0b1518; border: 1px solid var(--line); border-radius: 3rem; color: var(--text); padding: .55rem 1rem; text-transform: capitalize; }
+.feeling-options button:hover, .feeling-options button[aria-pressed="true"] { border-color: var(--cyan); color: var(--cyan); background: #0b2428; }
+.remove-feeling { margin-top: 1.25rem; }
+.reading-insight { text-align: center; }
+.reading-insight p:last-child { font: 25px/1.4 "Cormorant Garamond", Georgia, serif; max-width: 690px; margin: 0 auto; }
+.sample-context { text-align: center; font-size: .85rem; }
 .recording-chapters > summary span { display: block; margin-top: .5rem; color: var(--muted); font-size: .85rem; }
 .reflection-chapters { display: grid; gap: 1.4rem; margin-top: 1.8rem; }
 .reflection-chapters section + section { border-top: 1px solid var(--line); padding-top: 1.4rem; }

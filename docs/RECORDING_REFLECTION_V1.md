@@ -11,14 +11,18 @@ observations instead of leading only with unavailable psychological meaning:
 - One specific observation about the person's three responses.
 - A short overview of within-recording similarities and differences.
 - Optional response-level detail.
-- Three clearly optional invitations for noticing one's own experience during
-  the day, followed by one non-leading question.
+- An optional feeling word supplied by the person before or after the scan;
+  the server places that word beside the recording observation in a human
+  reading and asks one specific, open question. Without a chosen word, the
+  result stays with a voice observation.
 - A disclosure of the recording's limits and the distinction from personal
   psychological interpretation.
 
-The invitations are activities to try, not claims about the user's habits or
-daily life. Prompt categories never establish feelings. Identical or nearly
+The feeling is explicitly user reported, never inferred by the voice features.
+Prompt categories never establish feelings. Identical or nearly
 identical measurements do not become neutral, healthy, stable or recovered states.
+The older SoulScope repository informed the result's human writing structure;
+its score bands, meaning graph and decision pipeline were not imported.
 
 ## Source and publication boundary
 
@@ -31,10 +35,13 @@ READY narrative takes precedence if one becomes eligible in a future version.
 `/api/results/[id]/reflection` verifies Supabase Auth, scan ownership, finalized
 lifecycle and the exact immutable result/measurement/evidence links. It uses the
 owner's JWT and RLS, not a service key. It does not read audio, transcribe words,
-send data to an LLM/provider, or write database records.
+send data to an LLM/provider, or write database records. A POST accepts one
+enumerated feeling word in its body; it never appears in the request URL.
+The chosen word is saved in local browser storage for that scan and can be
+changed. It is not durable across devices and is not added to the sealed result.
 
-`recording-reflection.v1` / `recording-language.1.0.1` is reproducible from the
-linked immutable sources. Each observation records its capture, prompt, feature
+`recording-reflection.v1` / `recording-language.1.1.0` is reproducible from the
+linked immutable sources and optional enumerated self-report. Each observation records its capture, prompt, feature
 IDs, method and selected citations. Failed families remain withheld. The browser
 checks the projection's shape and source IDs and renders supplied text; no
 comparison or scoring runs in the component. Regenerating a consumer projection
@@ -54,14 +61,16 @@ semantic and Signature use.
 Cross-response pause ordering uses each capture's pause proportion, allowing
 actual recorded durations to differ without comparing unequal totals as if
 they were equal windows. Ordering uses 0.1 percentage-point display resolution;
-pitch comparisons use 0.1-semitone display resolution. These are presentation
-precision rules, not statistical significance or scientific publication gates.
+pitch comparisons use 0.1-semitone display resolution. Main prose only singles
+out a timing difference of at least 2 percentage points or a pitch-span
+difference of at least 1 semitone, so tiny tracker differences stay in details.
+These are editorial salience rules, not statistical significance or scientific publication gates.
 The capture protocol remains three 30-second windows; actual saved durations
 are neither padded nor relabeled.
 
-Language 1.0.1 keeps numerical estimates in the expandable response details and
-uses plain comparison language in the overview. The consumer also accepts 1.0.0
-projections; the editorial change does not change observation selection.
+Language 1.1.0 keeps numerical estimates in expandable response details and
+gives the person a concise reading when they provide a feeling word. It accepts
+1.0.0 and 1.0.1 projections; observation selection has not changed.
 
 Worker 0.2.0 saved scans retain their explicitly energy-based quiet-audio
 description and source Evidence Ledger memberships. Quiet audio is not renamed

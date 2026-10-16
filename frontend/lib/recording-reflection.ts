@@ -9,9 +9,13 @@ export type RecordingObservation = Readonly<{
   description: string; method: string;
 }>;
 export type ObservationSentence = Readonly<{ text: string; observationRefs: readonly string[] }>;
+export const FEELING_CHOICES = ["uneasy", "heavy", "hopeful", "tender", "frustrated", "steady", "mixed", "hard to name"] as const;
+export type FeelingChoice = typeof FEELING_CHOICES[number];
+export const isFeelingChoice = (value: unknown): value is FeelingChoice =>
+  typeof value === "string" && (FEELING_CHOICES as readonly string[]).includes(value);
 export type RecordingReflectionV1 = Readonly<{
   schemaVersion: "recording-reflection.v1";
-  languageVersion: "recording-language.1.0.0" | "recording-language.1.0.1";
+  languageVersion: "recording-language.1.0.0" | "recording-language.1.0.1" | "recording-language.1.1.0";
   canonVersion: "2.0";
   sourceResultId: string; sourceMeasurementId: string; sourceEvidenceLedgerId: string; scanId: string;
   scope: "RECORDING_OBSERVATION"; status: "AVAILABLE" | "LIMITED";
@@ -19,6 +23,8 @@ export type RecordingReflectionV1 = Readonly<{
   prompts: readonly Readonly<{ promptId: string; label: string; observations: readonly ObservationSentence[] }>[];
   invitations: readonly Readonly<{ title: string; text: string }>[];
   questionToSitWith: string | null;
+  feltReading?: Readonly<{ reportedFeeling: FeelingChoice; title: string; opening: string;
+    reflection: string; worthNoticing: string; question: string; observationRefs: readonly string[] }>;
   limits: readonly string[];
   observationLedger: readonly RecordingObservation[];
   selection: Readonly<{ selected: readonly string[]; withheld: readonly string[]; psychologicalInference: false }>;
@@ -32,7 +38,7 @@ const promptIds = ["P1_OPEN_REFERENCE", "P2_TROUBLING_CONTEXT", "P3_FUTURE_CONTE
 export function readRecordingReflection(value: unknown, source: {
   resultId: string; scanId: string; measurementId: string; evidenceLedgerId: string;
 }): RecordingReflectionV1 | null {
-  if (!row(value) || value.schemaVersion !== "recording-reflection.v1" || !["recording-language.1.0.0", "recording-language.1.0.1"].includes(String(value.languageVersion))
+  if (!row(value) || value.schemaVersion !== "recording-reflection.v1" || !["recording-language.1.0.0", "recording-language.1.0.1", "recording-language.1.1.0"].includes(String(value.languageVersion))
     || value.canonVersion !== "2.0" || value.scope !== "RECORDING_OBSERVATION"
     || value.sourceResultId !== source.resultId || value.scanId !== source.scanId
     || value.sourceMeasurementId !== source.measurementId || value.sourceEvidenceLedgerId !== source.evidenceLedgerId
@@ -77,6 +83,16 @@ export function readRecordingReflection(value: unknown, source: {
     prose.push(value.questionToSitWith);
   } else if (ids.length || value.selection.selected.length || value.questionToSitWith !== null
     || value.prompts.length || value.invitations.length) return null;
+  if (value.feltReading !== undefined) {
+    const reading = value.feltReading;
+    if (value.languageVersion !== "recording-language.1.1.0" || value.status !== "AVAILABLE" || !row(reading)
+      || !isFeelingChoice(reading.reportedFeeling) || !text(reading.title, 150)
+      || !text(reading.opening) || !text(reading.reflection) || !text(reading.worthNoticing)
+      || !text(reading.question) || !reading.question.endsWith("?") || reading.question.split("?").length !== 2
+      || !strings(reading.observationRefs, 12) || !reading.observationRefs.length
+      || !reading.observationRefs.every(id => (value.selection as { selected: string[] }).selected.includes(id))) return null;
+    prose.push(reading.title, reading.opening, reading.reflection, reading.worthNoticing, reading.question);
+  }
   if (prose.some(prohibitedResultLanguage)) return null;
   return freezeJson(structuredClone(value)) as RecordingReflectionV1;
 }

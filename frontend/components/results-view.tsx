@@ -36,7 +36,7 @@ export function ResultsView({ bundle = null, demoResult = null, recordingDemo = 
     </div>
     {preview && <p className="preview-notice">This is a design preview. The artwork and reflections are illustrative and are not based on a recording.</p>}
     <div className="result-art"><FieldArt /><span className="art-caption">ILLUSTRATIVE ART · SIGNATURE IN DEVELOPMENT</span></div>
-    {narrative?.status !== "READY" && recording ? <RecordingReflection reflection={recording} />
+    {narrative?.status !== "READY" && recording ? <RecordingReflection key={recording.scanId} reflection={recording} interactive={!!bundle} />
       : <ReflectionOverview narrative={narrative} />}
     {bundle?.recordingReflectionError && <p className="notice" role="alert">{bundle.recordingReflectionError}</p>}
     {narrative?.status === "READY" && <ReflectionDetails narrative={narrative} showReferences={false} />}

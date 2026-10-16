@@ -36,10 +36,11 @@ export default function Home() {
           <h2>A little more space to understand yourself.</h2>
         </div>
         <p>
-          No mood questionnaire. No perfect words to find. You speak naturally
+          No perfect words to find. You speak naturally
           in response to three short prompts. SoulScope examines the acoustic
-          features of those responses and gives you a private record to return
-          to. What you make of it remains yours.
+          features of those responses. If you choose a feeling word, the
+          reflection places your own experience alongside what the voice showed.
+          What you make of it remains yours.
         </p>
       </section>
 

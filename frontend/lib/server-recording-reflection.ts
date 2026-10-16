@@ -1,4 +1,4 @@
-import type { ObservationSentence, RecordingObservation, RecordingReflectionV1 } from "./recording-reflection";
+import { isFeelingChoice, type FeelingChoice, type ObservationSentence, type RecordingObservation, type RecordingReflectionV1 } from "./recording-reflection";
 import { describeRecording } from "./server-result-summary";
 import { ProcessingError } from "./server-processing";
 
@@ -8,19 +8,32 @@ const numeric = (v: unknown): v is number => typeof v === "number" && Number.isF
 const ids = ["P1_OPEN_REFERENCE", "P2_TROUBLING_CONTEXT", "P3_FUTURE_CONTEXT"];
 const labels = ["Self statement", "Difficult topic", "Future goal"];
 const order = ["first", "second", "third"];
+const subjects = ["the opening", "something troubling", "the future"];
+const feltAs: Record<FeelingChoice, { title: string; sense: string; question: string }> = {
+  uneasy: { title: "A moment that felt uneasy.", sense: "a sense of unease", question: "Did the unease belong to the subject, to saying it aloud, or to something else?" },
+  heavy: { title: "A moment that felt heavy.", sense: "a sense of heaviness", question: "What part of this moment carried the most weight for you?" },
+  hopeful: { title: "A moment that held hope.", sense: "a sense of hope", question: "Where did that hope feel most present as you spoke?" },
+  tender: { title: "A tender moment.", sense: "a sense of tenderness", question: "What part of that moment deserves a little gentleness?" },
+  frustrated: { title: "A moment of frustration.", sense: "frustration", question: "What were you wanting to be different as you spoke?" },
+  steady: { title: "A moment that felt steady.", sense: "a sense of steadiness", question: "Did that steadiness come easily, or did it take something to hold?" },
+  mixed: { title: "More than one feeling at once.", sense: "mixed feelings", question: "Which feelings seemed to share space in those responses?" },
+  "hard to name": { title: "A feeling still taking shape.", sense: "something you could not quite name", question: "What is one word that almost fits, even if it is incomplete?" },
+};
 const seconds = (ms: number) => (ms / 1000).toFixed(1);
 const sentence = (text: string, refs: readonly string[]): ObservationSentence => ({ text, observationRefs: [...refs] });
 
-/** Engineering description only. No normative, emotional or significance cutoffs.
- * Changes are compared at displayed resolution, never converted into states.
+/** Bounded acoustic description plus optional user-reported feeling.
+ * No voice-derived emotion, normative state, or statistical significance claim.
  */
-export function buildRecordingReflection(semantic: Row, measurement: Row, evidence: Row): RecordingReflectionV1 {
+export function buildRecordingReflection(semantic: Row, measurement: Row, evidence: Row, reportedFeeling?: FeelingChoice): RecordingReflectionV1 {
+  if (reportedFeeling !== undefined && !isFeelingChoice(reportedFeeling))
+    throw new ProcessingError("Choose one of the available feeling words.", 400);
   if (typeof semantic.id !== "string" || typeof semantic.scan_id !== "string" || typeof measurement.id !== "string"
     || typeof evidence.id !== "string" || measurement.scan_id !== semantic.scan_id || evidence.scan_id !== semantic.scan_id
     || semantic.measurement_record_id !== measurement.id || semantic.evidence_ledger_id !== evidence.id
     || evidence.measurement_record_id !== measurement.id) throw new ProcessingError("The saved result sources do not match.", 409);
   const base = {
-    schemaVersion: "recording-reflection.v1" as const, languageVersion: "recording-language.1.0.1" as const,
+    schemaVersion: "recording-reflection.v1" as const, languageVersion: "recording-language.1.1.0" as const,
     canonVersion: "2.0" as const, sourceResultId: semantic.id, scanId: semantic.scan_id,
     sourceMeasurementId: measurement.id, sourceEvidenceLedgerId: evidence.id,
     scope: "RECORDING_OBSERVATION" as const,
@@ -139,17 +152,17 @@ export function buildRecordingReflection(semantic: Row, measurement: Row, eviden
       const values = timings.map(t => Math.round(t!.share * 1000)); // 0.1 percentage-point display resolution, not significance.
       const max = Math.max(...values), min = Math.min(...values);
       const top = values.flatMap((v, i) => v === max ? [i] : []);
-      focus = top.length === 1 && max > min ? top[0] : null;
-      title = focus === null ? "The spacing in your responses." : `More space in your ${order[focus]} response.`;
+      // Narrative salience floor: a few milliseconds should not become a story.
+      // This is an editorial display rule, never a significance or emotion cutoff.
+      focus = top.length === 1 && max - min >= 20 ? top[0] : null;
+      title = focus === null ? "Three responses, one moment." : focus === 1
+        ? "The difficult part had a different rhythm." : `A different rhythm in your ${order[focus]} response.`;
       strongest = sentence(focus !== null
-        ? `Your ${order[focus]} response left more space between stretches of speech than the other two.`
+        ? `When you spoke about ${subjects[focus]}, there was more space between stretches of speech than in your other responses.`
         : max === 0 ? "No pauses between stretches of speech were detected at the displayed resolution."
           : "Detected pause proportions did not single out one response at the displayed precision.", timingRefs);
-      overview.push(sentence("This comparison follows the pauses within each response, leaving out the quiet before you started and after you finished.", timingRefs));
       const first = values[0], last = values[2];
-      overview.push(sentence(last === first
-        ? "The first and final responses had the same detected pause proportion at the displayed precision."
-        : `The final response gave ${last > first ? "more" : "less"} room to pauses than the first.`, [timings[0]!.ref, timings[2]!.ref]));
+      if (Math.abs(last - first) >= 20) overview.push(sentence(`When you turned toward the future, there was ${last > first ? "more" : "less"} space between phrases than at the beginning.`, [timings[0]!.ref, timings[2]!.ref]));
     } else {
       title = "The movement in your voice.";
       strongest = sentence("Your recordings captured how pitch moved through each response.", pitchRefs);
@@ -157,17 +170,27 @@ export function buildRecordingReflection(semantic: Row, measurement: Row, eviden
     if (pitchAvailable) {
       const spans = pitch.map(p => p!.span), broadest = Math.max(...spans);
       const widest = spans.flatMap((span, i) => span === broadest ? [order[i]] : []);
-      overview.push(sentence(widest.length === 3
-        ? "Your detected pitch span was the same across the three responses at the displayed precision."
-        : `Your pitch moved across its widest span in the ${widest.join(" and ")} ${widest.length === 1 ? "response" : "responses"}.`, pitchRefs));
-      if (!timingAvailable) overview.push(sentence("These spans describe pitch variation in the voiced stretches the tracker could follow.", pitchRefs));
+      if (widest.length !== 3 && broadest - Math.min(...spans) >= 1)
+        overview.push(sentence(`Your voice moved across its widest detected pitch span in the ${widest.join(" and ")} ${widest.length === 1 ? "response" : "responses"}.`, pitchRefs));
     }
-    overview.push(sentence("You can decide whether any of these differences connects with how the moment felt to you.", selectedRefs));
+    overview.push(sentence("These details describe how the recording sounded. What the moment felt like belongs to you.", selectedRefs));
     const prompts = rows.map((r, i) => ({ promptId: String(r.promptId), label: labels[i], observations: [
       ...(timingAvailable ? [sentence(`In ${seconds(Number(r.durationMs))} seconds of recording, ${seconds(timings[i]!.speech)} seconds of speech and ${seconds(timings[i]!.pause)} seconds of internal pauses were detected.`, [timings[i]!.ref])] : []),
       ...(pitchAvailable ? [sentence(`Detected pitch span: ${pitch[i]!.span.toFixed(1)} semitones across the middle 60% of pitch values.`, [pitch[i]!.ref])] : []),
     ] }));
-    return { ...base, status: "AVAILABLE", title, strongestObservation: strongest, overview, prompts, invitations,
+    const feltReading = reportedFeeling ? {
+      reportedFeeling, title: feltAs[reportedFeeling].title,
+      opening: `You named ${feltAs[reportedFeeling].sense} in this moment.`,
+      reflection: focus !== null
+        ? `When you spoke about ${subjects[focus]}, the pace shifted: more space between stretches of speech than in the other responses.${pitchAvailable && pitch[focus]!.span === Math.max(...pitch.map(p => p!.span)) && pitch[focus]!.span - Math.min(...pitch.map(p => p!.span)) >= 1 ? " Your pitch also moved through a wider range there." : ""} That may feel connected to what you named, or the feeling may have lived somewhere else in the moment. The voice gives you a place to return to, not an explanation of why.`
+        : `${timingAvailable ? "No one response stood apart in its detected timing. " : "The timing did not support a comparison. "}${pitchAvailable ? "Your voice moved through a measured pitch range as you spoke. " : ""}These details do not explain the feeling you named.`,
+      worthNoticing: focus !== null
+        ? "If you listen back, notice what the space between phrases brings to mind beyond the words themselves."
+        : "What you felt belongs to this moment even if the voice alone cannot name it.",
+      question: feltAs[reportedFeeling].question,
+      observationRefs: selectedRefs,
+    } : undefined;
+    return { ...base, status: "AVAILABLE", title, strongestObservation: strongest, overview, prompts, invitations, feltReading,
       questionToSitWith: focus === null ? "What did you notice in yourself as you moved through the three responses?"
         : `What, if anything, felt different to you during your ${order[focus]} response?`,
       limits, observationLedger: selected,
@@ -179,7 +202,14 @@ export function buildRecordingReflection(semantic: Row, measurement: Row, eviden
   if (legacy.status !== "AVAILABLE") return limited("QUALIFIED_RECORDING_OBSERVATIONS_UNAVAILABLE");
   const legacyLedger = rows.map((r, i) => ({ id: legacy.evidenceRefs[i], promptId: ids[i], captureId: String(r.captureId),
     featureIds: ["SS_PAUSE_LOAD"], description: "Qualified energy-based quiet-audio proportion.", method: "energy_vad_silence_ratio; not speech segmentation" }));
-  return { ...base, status: "AVAILABLE", title: "Where your recording grew quieter.",
+  const feltReading = reportedFeeling ? {
+    reportedFeeling, title: feltAs[reportedFeeling].title,
+    opening: `You named ${feltAs[reportedFeeling].sense} in this moment.`,
+    reflection: "The recording contains stretches of quieter sound. They might be softer speech, a pause, or a change in how the microphone picked up your voice. Their presence does not tell us what caused the feeling you named.",
+    worthNoticing: "What you felt belongs to this moment, even when the sound cannot explain it.",
+    question: feltAs[reportedFeeling].question, observationRefs: legacy.evidenceRefs,
+  } : undefined;
+  return { ...base, status: "AVAILABLE", title: "Where your recording grew quieter.", feltReading,
     strongestObservation: sentence(legacy.strongestObservation, legacy.evidenceRefs),
     overview: [sentence(legacy.overview[0], legacy.evidenceRefs),
       sentence("Quieter stretches can come from a natural pause, softer speech, or the way the microphone picked up sound.", legacy.evidenceRefs),
