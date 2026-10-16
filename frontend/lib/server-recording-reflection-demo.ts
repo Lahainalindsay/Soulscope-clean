@@ -2,7 +2,7 @@ import { buildRecordingReflection } from "./server-recording-reflection";
 import { freezeJson } from "./reflection-narrative";
 
 /** Synthetic source records, never user data. Server-only sample of the actual
- * descriptive path; the illustrative feeling is explicitly supplied by the fictional speaker.
+ * descriptive path; no emotion/state score or imagined personal story.
  */
 const ids = ["P1_OPEN_REFERENCE", "P2_TROUBLING_CONTEXT", "P3_FUTURE_CONTEXT"];
 const worker = "soulscope-measurement-worker-0.3.0";
@@ -39,5 +39,5 @@ const semantic = { id: "demo-recording-result", scan_id: "demo-recording", measu
 
 export const DEMO_RECORDING_REFLECTION = freezeJson({
   kind: "ILLUSTRATIVE_RECORDING_DEMO" as const,
-  reflection: buildRecordingReflection(semantic, measurement, evidence, "uneasy"),
+  reflection: buildRecordingReflection(semantic, measurement, evidence),
 });

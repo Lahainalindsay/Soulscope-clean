@@ -1,0 +1,7 @@
+# Personal reading direction
+
+The public `/results` preview contains three **fictional editorial examples**. They show the intended experience: one coherent reading of the moment, followed by cognition, connection, outward expression, ordinary-life examples, and a useful reflection. They are not selected by scores, a recording, or a user's chosen feeling. The saved scan path remains separate.
+
+The reading should say something a person can recognize or disagree with, including a specific tension they may have missed. Write in direct second person without universal flattery, diagnostic language, predictions, or a mechanically repeated score phrase. The daily-life examples should be concrete enough to test against experience. The closing reflection should fit this moment instead of always prescribing gratitude or optimism.
+
+This writing direction is not a claim that current acoustic measurements identify inner states, thoughts, relationships, or intentions. Canon Set v2.0's evidence and publication gates remain in force. The current production worker saves provisional acoustic descriptions; the meaning model abstains. Before a real scan can publish these sections, each claim needs an eligible meaning source and calibrated support, evidence IDs, explicit uncertainty rules, a validated narrative schema, and testing against actual participants' reports. Content from speech, if adopted, needs a separately consented collection and validation design. The older SoulScope score-band pipeline is not imported.

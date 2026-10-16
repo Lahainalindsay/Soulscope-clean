@@ -9,13 +9,16 @@ import type { DemoResultV1 } from "../lib/demo-result";
 import { RecordingReflection } from "./recording-reflection";
 import { readRecordingReflection } from "../lib/recording-reflection";
 import type { RecordingReflectionV1 } from "../lib/recording-reflection";
+import { PersonalReadingPreview } from "./personal-reading-preview";
 
-export function ResultsView({ bundle = null, demoResult = null, recordingDemo = null }: {
+export function ResultsView({ bundle = null, demoResult = null, recordingDemo = null, personalDemo = false }: {
   bundle?: ResultBundle | null; demoResult?: DemoResultV1 | null;
   recordingDemo?: { kind: "ILLUSTRATIVE_RECORDING_DEMO"; reflection: RecordingReflectionV1 } | null;
+  personalDemo?: boolean;
 }) {
+  const personalPreview = !bundle && personalDemo;
   const sample = !bundle && recordingDemo?.kind === "ILLUSTRATIVE_RECORDING_DEMO" ? recordingDemo.reflection : null;
-  const preview = !bundle && (demoResult?.kind === "ILLUSTRATIVE_DEMO" || !!sample);
+  const preview = personalPreview || (!bundle && (demoResult?.kind === "ILLUSTRATIVE_DEMO" || !!sample));
   const narrative = bundle ? storedReflection(bundle.semantic, bundle.scan.id)
     : preview && demoResult ? readReflectionNarrative(demoResult.narrative, demoResult.source) : null;
   const recording = bundle?.semantic && bundle.measurement && bundle.evidence && bundle.scan.lifecycle_state === "finalized"
@@ -36,7 +39,8 @@ export function ResultsView({ bundle = null, demoResult = null, recordingDemo = 
     </div>
     {preview && <p className="preview-notice">This is a design preview. The artwork and reflections are illustrative and are not based on a recording.</p>}
     <div className="result-art"><FieldArt /><span className="art-caption">ILLUSTRATIVE ART · SIGNATURE IN DEVELOPMENT</span></div>
-    {narrative?.status !== "READY" && recording ? <RecordingReflection key={recording.scanId} reflection={recording} interactive={!!bundle} />
+    {personalPreview ? <PersonalReadingPreview />
+      : narrative?.status !== "READY" && recording ? <RecordingReflection reflection={recording} />
       : <ReflectionOverview narrative={narrative} />}
     {bundle?.recordingReflectionError && <p className="notice" role="alert">{bundle.recordingReflectionError}</p>}
     {narrative?.status === "READY" && <ReflectionDetails narrative={narrative} showReferences={false} />}

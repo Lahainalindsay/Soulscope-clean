@@ -8,7 +8,7 @@ import { readRecordingReflection } from "../lib/recording-reflection";
 import { ResultsView } from "../components/results-view";
 import { RecordingReflection } from "../components/recording-reflection";
 import { DEMO_RESULT_V1 } from "../lib/demo-result";
-import { GET as reflectionGET, POST as reflectionPOST } from "../app/api/results/[id]/reflection/route";
+import { GET as reflectionGET } from "../app/api/results/[id]/reflection/route";
 import { DEMO_RECORDING_REFLECTION } from "../lib/server-recording-reflection-demo";
 import type { ResultBundle } from "../lib/contracts";
 
@@ -52,11 +52,11 @@ function read(v: unknown) { return readRecordingReflection(v, { resultId: "resul
 
 test("current worker produces an individualized recording reflection with traceable comparisons and no meaning promotion", () => {
   const s = recordingSources(), before = JSON.stringify(s), r = build(s);
-  assert.equal(r.status, "AVAILABLE"); assert.match(r.title, /difficult part/);
+  assert.equal(r.status, "AVAILABLE"); assert.match(r.title, /second response/);
   assert.match(r.prompts[1].observations[0].text, /6.0 seconds of internal pauses/);
-  assert.match(r.overview[1].text, /widest detected pitch span in the second response/);
+  assert.match(r.overview[2].text, /widest span in the second response/);
   assert.doesNotMatch(r.overview.map(s => s.text).join(" "), /semitones|seconds|[0-9]/);
-  assert.equal(r.invitations.length, 3); assert.equal(r.overview.length, 3);
+  assert.equal(r.invitations.length, 3); assert.equal(r.overview.length, 4);
   assert.equal(r.selection.psychologicalInference, false);
   assert.equal(r.observationLedger.length, 6); assert.ok(read(r)); assert.ok(Object.isFrozen(read(r)));
   assert.equal(JSON.stringify(s), before); assert.equal(s.semantic.status, "unresolved_abstained");
@@ -66,31 +66,14 @@ test("current worker produces an individualized recording reflection with tracea
 test("a different recording changes the observation; ties and tiny differences do not become emotional stories", () => {
   assert.match(build(recordingSources([6000, 1000, 3000])).title, /first response/);
   assert.match(build(recordingSources([1000, 3000, 6000])).title, /third response/);
-  assert.match(build(recordingSources([1000, 1000, 1000])).title, /Three responses/);
-  assert.match(build(recordingSources([1000, 1001, 1000])).title, /Three responses/);
-  assert.match(build(recordingSources([1000, 1500, 1000])).title, /Three responses/);
+  assert.match(build(recordingSources([1000, 1000, 1000])).title, /spacing/);
+  assert.match(build(recordingSources([1000, 1001, 1000])).title, /spacing/);
   assert.match(build(recordingSources([0, 0, 0])).strongestObservation.text, /No pauses/);
   for (const pauses of [[1000, 6000, 3000], [3000, 1000, 6000], [0, 0, 0]]) {
     const r = build(recordingSources(pauses));
     assert.doesNotMatch(JSON.stringify(r), /optimism|recovery|anxious|resilient|dysregulated|calm person|emotional state/i);
     assert.ok(read(r));
   }
-});
-test("a feeling reading names only what the speaker supplied and keeps voice evidence separate", () => {
-  const s = recordingSources();
-  const without = build(s);
-  const uneasy = buildRecordingReflection(s.semantic, s.measurement, s.evidence, "uneasy");
-  const hopeful = buildRecordingReflection(s.semantic, s.measurement, s.evidence, "hopeful");
-  assert.equal(without.feltReading, undefined);
-  assert.match(uneasy.feltReading!.opening, /sense of unease/);
-  assert.match(hopeful.feltReading!.opening, /sense of hope/);
-  assert.equal(uneasy.strongestObservation.text, hopeful.strongestObservation.text);
-  assert.equal(uneasy.selection.psychologicalInference, false);
-  assert.ok(uneasy.feltReading!.observationRefs.every(id => uneasy.selection.selected.includes(id)));
-  assert.ok(read(uneasy)); assert.ok(read(hopeful));
-  assert.equal(read({ ...uneasy, feltReading: { ...uneasy.feltReading, reportedFeeling: "anxious" } }), null);
-  assert.equal(read({ ...uneasy, feltReading: { ...uneasy.feltReading, observationRefs: ["invented"] } }), null);
-  assert.throws(() => buildRecordingReflection(s.semantic, s.measurement, s.evidence, "anxious" as never), /available feeling/);
 });
 test("missing native analysis cannot be replaced by zero or treated as a quiet response", () => {
   const s = recordingSources();
@@ -111,7 +94,7 @@ test("partial, broken or unqualified timing is withheld while independent pitch 
   ];
   for (const edit of edits) {
     const s = recordingSources(); edit(s); const r = build(s);
-    assert.equal(r.status, "AVAILABLE"); assert.doesNotMatch(r.title, /different rhythm/i);
+    assert.equal(r.status, "AVAILABLE"); assert.doesNotMatch(r.title, /more space/i);
     assert.ok(r.observationLedger.every(o => !o.id.endsWith(":timing"))); assert.ok(read(r));
   }
 });
@@ -145,10 +128,10 @@ test("saved main result shows the supplied recording reflection without importin
     ...s, dimensions: null, recordingReflection: build(s) };
   const render = (b: ResultBundle) => renderToStaticMarkup(createElement(ResultsView, { bundle: b }));
   const html = render(bundle);
-  assert.match(html, /difficult part had a different rhythm/); assert.match(html, /THE PART ONLY YOU CAN NAME/);
+  assert.match(html, /More space in your second response/); assert.match(html, /AN INVITATION FOR TODAY/);
   assert.match(html, /A QUESTION TO SIT WITH/); assert.doesNotMatch(html, /Your reflection is not available yet/);
   assert.equal(html, render({ ...bundle, dimensions: { id: "d", status: "resolved", dimensions: [{ value: 100 }] } }));
-  assert.doesNotMatch(render({ ...bundle, recordingReflection: { ...build(s), sourceResultId: "other" } }), /difficult part had a different rhythm/);
+  assert.doesNotMatch(render({ ...bundle, recordingReflection: { ...build(s), sourceResultId: "other" } }), /More space in your second response/);
   for (const path of ["../components/recording-reflection.tsx", "../components/results-view.tsx", "../lib/recording-reflection.ts"])
     assert.doesNotMatch(readFileSync(new URL(path, import.meta.url), "utf8"), /buildRecordingReflection|server-recording-reflection|Math\.max|posteriorMean/);
 });
@@ -159,12 +142,27 @@ test("reflection renders text safely and does not execute supplied markup", () =
 });
 test("public sample uses the real recording projection and never leaks into a saved result", () => {
   const sample = renderToStaticMarkup(createElement(ResultsView, { recordingDemo: DEMO_RECORDING_REFLECTION }));
-  assert.match(sample, /design preview/); assert.match(sample, /A moment that felt uneasy/);
+  assert.match(sample, /design preview/); assert.match(sample, /More space in your second response/);
   const s = recordingSources();
   const bundle: ResultBundle = { scan: { id: "scan", created_at: s.measurement.created_at, lifecycle_state: "finalized" },
     ...s, dimensions: null };
   const html = renderToStaticMarkup(createElement(ResultsView, { bundle, recordingDemo: DEMO_RECORDING_REFLECTION }));
-  assert.doesNotMatch(html, /A moment that felt uneasy|design preview/);
+  assert.doesNotMatch(html, /More space in your second response|design preview/);
+});
+
+test("personal reading examples are clearly fictional and cannot replace an owner's scan", () => {
+  const preview = renderToStaticMarkup(createElement(ResultsView, { personalDemo: true }));
+  assert.match(preview, /THE FEEL OF THIS MOMENT/);
+  assert.match(preview, /How your mind is moving/);
+  assert.match(preview, /With other people/);
+  assert.match(preview, /What you put into the world/);
+  assert.match(preview, /fictional examples/);
+  const s = recordingSources();
+  const bundle: ResultBundle = { scan: { id: "scan", created_at: s.measurement.created_at, lifecycle_state: "finalized" },
+    ...s, dimensions: null, recordingReflection: build(s) };
+  const saved = renderToStaticMarkup(createElement(ResultsView, { bundle, personalDemo: true }));
+  assert.doesNotMatch(saved, /There is room to move|fictional examples|THE FEEL OF THIS MOMENT/);
+  assert.match(saved, /More space in your second response/);
 });
 
 test("a publishable supplied meaning narrative retains precedence over a recording description", () => {
@@ -177,7 +175,7 @@ test("a publishable supplied meaning narrative retains precedence over a recordi
         reflectionNarrative: { ...demo.narrative, sourceResultId: s.semantic.id } } } };
   const html = renderToStaticMarkup(createElement(ResultsView, { bundle }));
   assert.match(html, /HOW THIS MAY SHOW UP IN DAILY LIFE/);
-  assert.doesNotMatch(html, /difficult part had a different rhythm/);
+  assert.doesNotMatch(html, /More space in your second response/);
 });
 
 test("reflection route requires owner authentication, uses read-only requests and returns private validated prose", async () => {
@@ -206,14 +204,7 @@ test("reflection route requires owner authentication, uses read-only requests an
     assert.equal(response.status, 200); assert.equal(response.headers.get("Cache-Control"), "private, no-store");
     assert.equal(response.headers.get("Vary"), "Authorization");
     const body = await response.json(); assert.equal(body.status, "AVAILABLE");
-    assert.match(body.title, /difficult part/); assert.equal(calls.length, 5);
-    const personalized = await reflectionPOST(new Request("https://site.example", { method: "POST",
-      headers: { Authorization: "Bearer owner-token", "Content-Type": "application/json" }, body: JSON.stringify({ feeling: "uneasy" }) }), { params });
-    assert.equal(personalized.status, 200);
-    assert.match((await personalized.json()).feltReading.opening, /sense of unease/);
-    const invalid = await reflectionPOST(new Request("https://site.example", { method: "POST",
-      headers: { Authorization: "Bearer owner-token", "Content-Type": "application/json" }, body: JSON.stringify({ feeling: "anxious" }) }), { params });
-    assert.equal(invalid.status, 400); assert.equal(calls.length, 10);
+    assert.match(body.title, /second response/); assert.equal(calls.length, 5);
     assert.ok(calls.every(url => url.startsWith("https://db.example/")));
   } finally {
     globalThis.fetch = original.fetch;

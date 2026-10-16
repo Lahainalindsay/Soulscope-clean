@@ -2122,20 +2122,6 @@ pre {
 .result-experience .daily-grid { grid-template-columns: 1fr; }
 .result-experience time { color: var(--muted); }
 .recording-chapters > summary { cursor: pointer; padding: .5rem 0; }
-.reflection-lead { color: var(--text); font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(25px, 3vw, 35px); line-height: 1.25; margin: 1.6rem auto; max-width: 680px; }
-.reflection-main .reflection-copy { max-width: 690px; margin-inline: auto; }
-.feeling-checkin { text-align: center; }
-.feeling-checkin > p:not(.eyebrow) { color: var(--muted); max-width: 600px; margin-inline: auto; }
-.scan-feeling { border-top: 1px solid var(--line); margin: 2rem 0; padding-top: 2rem; }
-.scan-feeling > p:not(.eyebrow) { color: var(--muted); }
-.scan-feeling .feeling-options { justify-content: flex-start; margin-left: 0; }
-.feeling-options { display: flex; justify-content: center; flex-wrap: wrap; gap: .7rem; margin: 1.5rem auto 0; max-width: 690px; }
-.feeling-options button { background: #0b1518; border: 1px solid var(--line); border-radius: 3rem; color: var(--text); padding: .55rem 1rem; text-transform: capitalize; }
-.feeling-options button:hover, .feeling-options button[aria-pressed="true"] { border-color: var(--cyan); color: var(--cyan); background: #0b2428; }
-.remove-feeling { margin-top: 1.25rem; }
-.reading-insight { text-align: center; }
-.reading-insight p:last-child { font: 25px/1.4 "Cormorant Garamond", Georgia, serif; max-width: 690px; margin: 0 auto; }
-.sample-context { text-align: center; font-size: .85rem; }
 .recording-chapters > summary span { display: block; margin-top: .5rem; color: var(--muted); font-size: .85rem; }
 .reflection-chapters { display: grid; gap: 1.4rem; margin-top: 1.8rem; }
 .reflection-chapters section + section { border-top: 1px solid var(--line); padding-top: 1.4rem; }
@@ -2145,3 +2131,26 @@ pre {
 .footer-links { display: flex; flex-wrap: wrap; gap: 1rem; }
 .reading-page .faq-answer { margin-block: 1rem; }
 .reading-page address { font-style: normal; overflow-wrap: anywhere; }
+
+/* Fictional editorial readings on the public results preview. */
+.reading-switcher { text-align: center; margin: 0 auto 2.2rem; }
+.reading-switcher .eyebrow { margin-bottom: .8rem; }
+.reading-options { display: flex; flex-wrap: wrap; justify-content: center; gap: .7rem; }
+.reading-options button { background: #0b1518; border: 1px solid var(--line); border-radius: 3rem; color: var(--text); padding: .65rem 1.15rem; cursor: pointer; }
+.reading-options button:hover, .reading-options button[aria-pressed="true"] { border-color: var(--cyan); color: var(--cyan); background: #0b2428; }
+.personal-overall { text-align: center; padding: clamp(28px, 5vw, 58px); border-color: #315159; }
+.personal-overall h2 { font: 400 clamp(36px, 6vw, 64px)/1.05 "Cormorant Garamond", Georgia, serif; margin: 0 auto 1.3rem; }
+.personal-overall > p:last-child { font-size: clamp(17px, 2.4vw, 21px); line-height: 1.75; color: #c5d5d7; max-width: 730px; margin: auto; }
+.personal-domains, .personal-daily { margin-top: 4rem; }
+.personal-domains > h2, .personal-daily > h2 { font: 400 clamp(34px, 5vw, 50px)/1.15 "Cormorant Garamond", Georgia, serif; margin: 0 0 1.5rem; }
+.personal-domain-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.personal-domain-grid article { min-width: 0; }
+.personal-domain-grid article > span { color: var(--cyan); font-size: 10px; letter-spacing: .15em; }
+.personal-domain-grid h3 { font: 400 29px/1.1 "Cormorant Garamond", Georgia, serif; margin: 1.3rem 0; }
+.personal-domain-grid p { color: #bbced0; font-size: 14px; line-height: 1.8; }
+.personal-daily .daily-grid { margin-top: 1.4rem; }
+.personal-daily .daily-grid p { font-size: 16px; }
+.personal-reflection { text-align: center; margin: 3rem 0 0; padding: clamp(25px, 5vw, 55px); }
+.personal-reflection > p:last-child { max-width: 650px; margin: auto; font: 400 clamp(23px, 3.5vw, 33px)/1.4 "Cormorant Garamond", Georgia, serif; }
+.personal-preview-note { text-align: center; color: var(--muted); font-size: 11px; line-height: 1.6; max-width: 630px; margin: 2rem auto; }
+@media (max-width: 700px) { .personal-domain-grid { grid-template-columns: 1fr; } }
