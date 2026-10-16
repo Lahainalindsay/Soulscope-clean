@@ -93,7 +93,7 @@ class ReflectionService:
 
     @classmethod
     def configured(cls, supabase_url: str, auth: ServiceAuth) -> ReflectionService | None:
-        key = os.environ.get("OPENAI_API_KEY", "")
+        key = os.environ.get("OPENAI_API", "")
         return cls(supabase_url, auth, key) if key else None
 
     def db(self, method: str, table: str, *, params: dict[str, str] | None = None,

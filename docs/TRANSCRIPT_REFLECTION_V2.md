@@ -12,7 +12,7 @@ SoulScope Canon Set v2.0 remains the authority for acoustic meaning. This path i
 
 ## Activation and limits
 
-The backend needs `OPENAI_API_KEY` on its Vercel project. The frontend checks the protected worker availability endpoint; it does not show the opt-in checkbox until that key exists. Set a budget and verify provider terms and deletion settings before activation. The browser receives neither the API key nor the service-role key.
+The backend needs `OPENAI_API` on its Vercel project. The frontend checks the protected worker availability endpoint; it does not show the opt-in checkbox until that key exists. Set a budget and verify provider terms and deletion settings before activation. The browser receives neither the API key nor the service-role key.
 
 The runtime uses `gpt-4o-mini-transcribe` for transcription and `gpt-4o` with strict JSON Schema for writing. Each capture is sent separately. Transcription can be wrong; citation checks establish transcript membership rather than audio truth. A fluent sentence may overinterpret a real quote. Before calling the reading accurate, evaluate consented participant ratings and human reviews by claim, device, language, content and recording quality. Do not use feedback ratings as automatic psychological labels. The current protocol does not guarantee material for every domain in every scan.
 
