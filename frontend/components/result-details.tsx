@@ -87,6 +87,7 @@ export function ResultDetails({ bundle }: { bundle: ResultBundle }) {
         </section>
       )}
 
+    <details className="panel measurement-detail"><summary>Recording reflection sources</summary><pre>{JSON.stringify(bundle.recordingReflection, null, 2)}</pre></details>
     <details className="panel measurement-detail"><summary>Recording summary provenance</summary><pre>{JSON.stringify(bundle.recordingSummary, null, 2)}</pre></details>
   </div>;
 }

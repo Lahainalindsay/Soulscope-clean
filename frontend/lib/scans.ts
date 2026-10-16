@@ -74,6 +74,19 @@ export async function loadResult(id: string, includeRecordingDetails = false): P
       )
     : null) as SemanticResultRecord | null;
   let recordingSummary: unknown = null;
+  let recordingReflection: unknown = null;
+  let recordingReflectionError: string | undefined;
+  if (semantic && scan.lifecycle_state === "finalized") {
+    try {
+      const response = await fetch(`/api/results/${encodeURIComponent(id)}/reflection`, {
+        headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: AbortSignal.timeout(30000),
+      });
+      if (!response.ok) throw new Error("reflection unavailable");
+      recordingReflection = await response.json();
+    } catch {
+      recordingReflectionError = "Your saved records are open, but the recording reflection could not load. Refresh the page to try again.";
+    }
+  }
   if (includeRecordingDetails && semantic && scan.lifecycle_state === "finalized") {
     const response = await fetch(`/api/results/${encodeURIComponent(id)}/summary`, {
       headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: AbortSignal.timeout(30000),
@@ -82,7 +95,7 @@ export async function loadResult(id: string, includeRecordingDetails = false): P
     if (!response.ok) throw new Error(body.error ?? "Your summary could not be loaded. Please try again.");
     recordingSummary = body;
   }
-  return { scan, measurement, evidence, dimensions, semantic, recordingSummary };
+  return { scan, measurement, evidence, dimensions, semantic, recordingSummary, recordingReflection, recordingReflectionError };
 }
 export async function sendScan(
   audio: Blob[],

@@ -77,11 +77,11 @@ export default function Home() {
         </div>
         <div>
           <p>
-            SoulScope is being built toward a personal reflection, a resonance
-            map, and a view of how your patterns change over time. Today you can
-            save a scan and explore its measured features. The personal
-            interpretation shown in the sample is a design preview while the
-            scientific models are validated.
+            Your result begins with what can be observed in your own recording:
+            how your responses differed, a short reflection, and a question to
+            take with you. Deeper personal interpretations and comparisons over
+            time are still being validated. Explore the sample to see how a
+            recording can become a starting point for self-observation.
           </p>
           <Link className="landing-inline-link" href="/results">
             Explore the sample reflection <span aria-hidden="true">↗</span>

@@ -64,6 +64,8 @@ export type SemanticResultRecord = Readonly<{
   scan_id: string;
   status: string;
   semantic_schema_version: string;
+  measurement_record_id?: string;
+  evidence_ledger_id?: string;
   evidence_ledger: readonly Readonly<{ evidence_id: string }>[];
   decision_ledger: readonly Readonly<{ decisionId: string }>[];
   states_or_blends: readonly Readonly<{ constellationId: string; outcomeType: string }>[];
@@ -76,6 +78,8 @@ export type SemanticResultRecord = Readonly<{
   }> | null;
 }>;
 export type ResultBundle = {
+  recordingReflection?: unknown;
+  recordingReflectionError?: string;
   recordingSummary?: unknown;
   scan: Scan;
   measurement: Measurement | null;

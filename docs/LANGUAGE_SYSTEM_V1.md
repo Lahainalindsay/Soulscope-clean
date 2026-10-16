@@ -69,3 +69,11 @@ the immutable narrative decision reference. Existing result JSON stays unchanged
 The frontend gives this supplied projection precedence over a recording summary.
 The fuller research acoustic profile does not activate psychological publication.
 See `docs/MEASUREMENT_AND_MEANING_V1.md` for the scientific calibration gaps.
+
+## Recording reflection consumer
+
+The primary saved result can additionally render a server-produced bounded
+recording description when personal meaning is unresolved. This does not upgrade
+the sealed `ReflectionNarrativeV1` or publish a psychological state. Optional
+noticing invitations are explicitly activities, not inferred daily-life traits.
+See `docs/RECORDING_REFLECTION_V1.md` for source, version and quality boundaries.

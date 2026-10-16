@@ -46,6 +46,10 @@ test("ties, equal readings, and zero are described without inventing high/low gr
   assert.match(summary(sources([0.5, 0.1, 0.5])).strongestObservation, /first and third/);
   assert.match(summary(sources([0.1, 0.2, 0.3])).strongestObservation, /third response/);
 });
+test("the compatible current worker keeps legacy recording observations available", () => {
+  const s = sources(); s.measurement.extractor_version = "soulscope-measurement-worker-0.3.0";
+  assert.equal(summary(s).status, "AVAILABLE");
+});
 test("incomplete, rejected, confounded, unknown-version, and noncanonical sources fail closed", () => {
   const edits = [
     (s: ReturnType<typeof sources>) => { s.semantic.status = "invalid"; },

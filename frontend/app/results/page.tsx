@@ -1,5 +1,5 @@
 import { ResultsView } from "@/components/results-view";
-import { DEMO_RESULT_V1 } from "@/lib/demo-result";
+import { DEMO_RECORDING_REFLECTION } from "@/lib/server-recording-reflection-demo";
 export default function ResultsPreview() {
-  return <ResultsView demoResult={DEMO_RESULT_V1} />;
+  return <ResultsView recordingDemo={DEMO_RECORDING_REFLECTION} />;
 }

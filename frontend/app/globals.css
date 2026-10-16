@@ -2121,6 +2121,13 @@ pre {
 .result-experience > .panel { margin-block: 1.5rem; }
 .result-experience .daily-grid { grid-template-columns: 1fr; }
 .result-experience time { color: var(--muted); }
+.recording-chapters > summary { cursor: pointer; padding: .5rem 0; }
+.recording-chapters > summary span { display: block; margin-top: .5rem; color: var(--muted); font-size: .85rem; }
+.reflection-chapters { display: grid; gap: 1.4rem; margin-top: 1.8rem; }
+.reflection-chapters section + section { border-top: 1px solid var(--line); padding-top: 1.4rem; }
+.reflection-chapters p { line-height: 1.75; }
+.reflection-limits > summary { cursor: pointer; }
+.reflection-limits p { color: var(--muted); line-height: 1.75; margin-top: 1rem; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 1rem; }
 .reading-page .faq-answer { margin-block: 1rem; }
 .reading-page address { font-style: normal; overflow-wrap: anywhere; }

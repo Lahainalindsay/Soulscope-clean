@@ -24,7 +24,7 @@ export function describeRecording(semantic: Row, measurement: Row, evidence: Row
     decision: { kind: "RAW_RECORDING_DESCRIPTION", psychologicalInference: false, reason },
   });
   if (!["resolved", "unresolved_abstained"].includes(String(semantic.status)) || measurement.measurement_status !== "qualified"
-    || measurement.extractor_version !== "soulscope-measurement-worker-0.2.0"
+    || !["soulscope-measurement-worker-0.2.0", "soulscope-measurement-worker-0.3.0"].includes(String(measurement.extractor_version))
     || measurement.protocol_version !== "1.3" || evidence.status !== "complete") return unavailable("SOURCE_NOT_QUALIFIED_OR_COMPATIBLE");
   const quality = measurement.quality_summary;
   if (!object(quality) || !Array.isArray(quality.rejectionReasons) || quality.rejectionReasons.length
@@ -74,7 +74,7 @@ export function describeRecording(semantic: Row, measurement: Row, evidence: Row
   };
 }
 
-export async function loadAuthorizedSummary(request: Request, scanId: string, config: { supabaseUrl: string; publicKey: string }, fetcher: typeof fetch = fetch) {
+export async function loadAuthorizedRecordingSources(request: Request, scanId: string, config: { supabaseUrl: string; publicKey: string }, fetcher: typeof fetch = fetch) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(scanId)) throw new ProcessingError("Invalid scan.");
   const authorization = request.headers.get("authorization");
   if (!authorization?.startsWith("Bearer ")) throw new ProcessingError("Please sign in to view your result.", 401);
@@ -96,5 +96,10 @@ export async function loadAuthorizedSummary(request: Request, scanId: string, co
     read(`/rest/v1/evidence_ledgers?id=eq.${encodeURIComponent(result.evidence_ledger_id)}&scan_id=eq.${scanId}&select=*`),
   ]);
   if (!object(measurements[0]) || !object(ledgers[0])) throw new ProcessingError("The saved result sources are unavailable.", 409);
-  return describeRecording(result, measurements[0], ledgers[0]);
+  return { semantic: result, measurement: measurements[0], evidence: ledgers[0] };
+}
+
+export async function loadAuthorizedSummary(request: Request, scanId: string, config: { supabaseUrl: string; publicKey: string }, fetcher: typeof fetch = fetch) {
+  const sources = await loadAuthorizedRecordingSources(request, scanId, config, fetcher);
+  return describeRecording(sources.semantic, sources.measurement, sources.evidence);
 }
