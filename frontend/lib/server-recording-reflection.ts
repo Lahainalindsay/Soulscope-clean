@@ -20,7 +20,7 @@ export function buildRecordingReflection(semantic: Row, measurement: Row, eviden
     || semantic.measurement_record_id !== measurement.id || semantic.evidence_ledger_id !== evidence.id
     || evidence.measurement_record_id !== measurement.id) throw new ProcessingError("The saved result sources do not match.", 409);
   const base = {
-    schemaVersion: "recording-reflection.v1" as const, languageVersion: "recording-language.1.0.0" as const,
+    schemaVersion: "recording-reflection.v1" as const, languageVersion: "recording-language.1.0.1" as const,
     canonVersion: "2.0" as const, sourceResultId: semantic.id, scanId: semantic.scan_id,
     sourceMeasurementId: measurement.id, sourceEvidenceLedgerId: evidence.id,
     scope: "RECORDING_OBSERVATION" as const,
@@ -142,14 +142,14 @@ export function buildRecordingReflection(semantic: Row, measurement: Row, eviden
       focus = top.length === 1 && max > min ? top[0] : null;
       title = focus === null ? "The spacing in your responses." : `More space in your ${order[focus]} response.`;
       strongest = sentence(focus !== null
-        ? `Your ${order[focus]} response had the largest share of detected pause time between stretches of speech.`
+        ? `Your ${order[focus]} response left more space between stretches of speech than the other two.`
         : max === 0 ? "No pauses between stretches of speech were detected at the displayed resolution."
           : "Detected pause proportions did not single out one response at the displayed precision.", timingRefs);
-      overview.push(sentence(`Across the first, second, and third responses, detected internal pauses added up to ${seconds(timings[0]!.pause)}, ${seconds(timings[1]!.pause)}, and ${seconds(timings[2]!.pause)} seconds respectively.`, timingRefs));
+      overview.push(sentence("This comparison follows the pauses within each response, leaving out the quiet before you started and after you finished.", timingRefs));
       const first = values[0], last = values[2];
       overview.push(sentence(last === first
         ? "The first and final responses had the same detected pause proportion at the displayed precision."
-        : `The final response devoted a ${last > first ? "larger" : "smaller"} share of its recording to detected internal pauses than the first; the reason for that difference remains open.`, [timings[0]!.ref, timings[2]!.ref]));
+        : `The final response gave ${last > first ? "more" : "less"} room to pauses than the first.`, [timings[0]!.ref, timings[2]!.ref]));
     } else {
       title = "The movement in your voice.";
       strongest = sentence("Your recordings captured how pitch moved through each response.", pitchRefs);
@@ -159,10 +159,10 @@ export function buildRecordingReflection(semantic: Row, measurement: Row, eviden
       const widest = spans.flatMap((span, i) => span === broadest ? [order[i]] : []);
       overview.push(sentence(widest.length === 3
         ? "Your detected pitch span was the same across the three responses at the displayed precision."
-        : `Your ${widest.join(" and ")} ${widest.length === 1 ? "response had" : "responses shared"} the widest detected pitch span in this recording.`, pitchRefs));
+        : `Your pitch moved across its widest span in the ${widest.join(" and ")} ${widest.length === 1 ? "response" : "responses"}.`, pitchRefs));
       if (!timingAvailable) overview.push(sentence("These spans describe pitch variation in the voiced stretches the tracker could follow.", pitchRefs));
     }
-    overview.push(sentence("You can use these differences as a starting point for reflection, while deciding for yourself whether they connect to anything you experienced.", selectedRefs));
+    overview.push(sentence("You can decide whether any of these differences connects with how the moment felt to you.", selectedRefs));
     const prompts = rows.map((r, i) => ({ promptId: String(r.promptId), label: labels[i], observations: [
       ...(timingAvailable ? [sentence(`In ${seconds(Number(r.durationMs))} seconds of recording, ${seconds(timings[i]!.speech)} seconds of speech and ${seconds(timings[i]!.pause)} seconds of internal pauses were detected.`, [timings[i]!.ref])] : []),
       ...(pitchAvailable ? [sentence(`Detected pitch span: ${pitch[i]!.span.toFixed(1)} semitones across the middle 60% of pitch values.`, [pitch[i]!.ref])] : []),

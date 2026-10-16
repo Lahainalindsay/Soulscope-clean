@@ -53,8 +53,9 @@ function read(v: unknown) { return readRecordingReflection(v, { resultId: "resul
 test("current worker produces an individualized recording reflection with traceable comparisons and no meaning promotion", () => {
   const s = recordingSources(), before = JSON.stringify(s), r = build(s);
   assert.equal(r.status, "AVAILABLE"); assert.match(r.title, /second response/);
-  assert.match(r.overview[0].text, /1.0, 6.0, and 3.0 seconds/);
-  assert.match(r.overview[2].text, /second response had the widest detected pitch span/);
+  assert.match(r.prompts[1].observations[0].text, /6.0 seconds of internal pauses/);
+  assert.match(r.overview[2].text, /widest span in the second response/);
+  assert.doesNotMatch(r.overview.map(s => s.text).join(" "), /semitones|seconds|[0-9]/);
   assert.equal(r.invitations.length, 3); assert.equal(r.overview.length, 4);
   assert.equal(r.selection.psychologicalInference, false);
   assert.equal(r.observationLedger.length, 6); assert.ok(read(r)); assert.ok(Object.isFrozen(read(r)));

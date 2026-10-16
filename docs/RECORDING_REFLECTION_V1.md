@@ -33,7 +33,7 @@ lifecycle and the exact immutable result/measurement/evidence links. It uses the
 owner's JWT and RLS, not a service key. It does not read audio, transcribe words,
 send data to an LLM/provider, or write database records.
 
-`recording-reflection.v1` / `recording-language.1.0.0` is reproducible from the
+`recording-reflection.v1` / `recording-language.1.0.1` is reproducible from the
 linked immutable sources. Each observation records its capture, prompt, feature
 IDs, method and selected citations. Failed families remain withheld. The browser
 checks the projection's shape and source IDs and renders supplied text; no
@@ -58,6 +58,10 @@ pitch comparisons use 0.1-semitone display resolution. These are presentation
 precision rules, not statistical significance or scientific publication gates.
 The capture protocol remains three 30-second windows; actual saved durations
 are neither padded nor relabeled.
+
+Language 1.0.1 keeps numerical estimates in the expandable response details and
+uses plain comparison language in the overview. The consumer also accepts 1.0.0
+projections; the editorial change does not change observation selection.
 
 Worker 0.2.0 saved scans retain their explicitly energy-based quiet-audio
 description and source Evidence Ledger memberships. Quiet audio is not renamed

@@ -11,7 +11,7 @@ export type RecordingObservation = Readonly<{
 export type ObservationSentence = Readonly<{ text: string; observationRefs: readonly string[] }>;
 export type RecordingReflectionV1 = Readonly<{
   schemaVersion: "recording-reflection.v1";
-  languageVersion: "recording-language.1.0.0";
+  languageVersion: "recording-language.1.0.0" | "recording-language.1.0.1";
   canonVersion: "2.0";
   sourceResultId: string; sourceMeasurementId: string; sourceEvidenceLedgerId: string; scanId: string;
   scope: "RECORDING_OBSERVATION"; status: "AVAILABLE" | "LIMITED";
@@ -32,7 +32,7 @@ const promptIds = ["P1_OPEN_REFERENCE", "P2_TROUBLING_CONTEXT", "P3_FUTURE_CONTE
 export function readRecordingReflection(value: unknown, source: {
   resultId: string; scanId: string; measurementId: string; evidenceLedgerId: string;
 }): RecordingReflectionV1 | null {
-  if (!row(value) || value.schemaVersion !== "recording-reflection.v1" || value.languageVersion !== "recording-language.1.0.0"
+  if (!row(value) || value.schemaVersion !== "recording-reflection.v1" || !["recording-language.1.0.0", "recording-language.1.0.1"].includes(String(value.languageVersion))
     || value.canonVersion !== "2.0" || value.scope !== "RECORDING_OBSERVATION"
     || value.sourceResultId !== source.resultId || value.scanId !== source.scanId
     || value.sourceMeasurementId !== source.measurementId || value.sourceEvidenceLedgerId !== source.evidenceLedgerId
