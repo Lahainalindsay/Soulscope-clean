@@ -23,11 +23,18 @@ export function TranscriptReflection({ reading }: { reading: ReflectionV2 }) {
     else { setRating(value); setError(""); }
   }
   return <>
-    <p className="preview-notice">An interpretation of what you said in this scan. Only the words you spoke support this reading; it may miss what you meant.</p>
+    <p className="preview-notice">{reading.mode === "VOICE_AND_WORDS"
+      ? "An experimental reflection on how your voice sounded and what you shared. You decide how well it fits."
+      : "A reflection on what you shared in this recording. You decide how well it fits."}</p>
     {chapters.map(([name, title]) => reading.sections[name].length ? <section className="panel personal-reading-section" key={name}>
       <p className="eyebrow">{title}</p>
       {reading.sections[name].map((line, i) => <p key={i}>{line.text}</p>)}
     </section> : null)}
+    {reading.voiceObservations.length > 0 && <details className="panel personal-reading-section">
+      <summary>What we heard in your voice</summary>
+      {reading.voiceObservations.map((observation) => <p key={observation.id}>{observation.delivery}</p>)}
+      <p>These are listening impressions. Recording conditions and speaking style can affect them.</p>
+    </details>}
     <section className="panel reading-feedback" aria-label="Reading feedback">
       <p className="eyebrow">DID THIS FEEL LIKE YOU?</p>
       <div className="reading-options">{([ ["accurate", "Accurate"], ["partly", "Partly"], ["missed_me", "Missed me"] ] as const)

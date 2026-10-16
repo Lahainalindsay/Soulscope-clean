@@ -342,8 +342,8 @@ export default function ScanPage() {
               {transcriptionAvailable ? <label className="consent">
                 <input type="checkbox" checked={transcriptionConsent} disabled={busy || !!scanId}
                   onChange={(e) => setTranscriptionConsent(e.target.checked)} />
-                <span>I also agree to send these three recordings to OpenAI for transcription and a personal reflection based on what I say. SoulScope stores the transcripts privately with my account. This is optional; without it, I receive the recording-only result. The reading may miss my meaning, and I can rate it afterward. <Link href="/privacy">Read the privacy notice</Link>.</span>
-              </label> : <p className="micro">Personal readings from your spoken words are not available right now. Your recording-only result is available.</p>}
+                <span>I also agree to send these three recordings to OpenAI for direct voice analysis, transcription, and a reflection on how I sound and what I share. The listening observations, transcripts, and reading are saved privately with my account. This experimental reading may miss how I feel; I can rate it afterward. This is optional. <Link href="/privacy">Read the privacy notice</Link>.</span>
+              </label> : <p className="micro">Personal voice readings are not available right now. Your recording details are available.</p>}
               {!configured ? (
                 <div className="notice">
                   The account connection has not been configured. Your

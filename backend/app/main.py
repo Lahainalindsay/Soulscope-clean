@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
 from hmac import compare_digest
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import IO, Annotated, Any
 
+import httpx
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from starlette.concurrency import run_in_threadpool
 
@@ -36,9 +38,10 @@ def health() -> dict[str, str]:
 def reflection_availability(x_worker_token: Annotated[str | None, Header()] = None) -> dict[str, bool]:
     settings = require_service_settings()
     authorize_worker(settings, x_worker_token)
-    return {"available": bool(ReflectionService.configured(
+    service = ReflectionService.configured(
         settings.supabase_url, ServiceAuth(settings.supabase_service_role_key)
-    ))}
+    )
+    return {"available": service.available() if service else False}
 
 
 def build_private_audio_storage() -> PrivateAudioStorage:
@@ -187,7 +190,12 @@ async def process_reflection(
     service = ReflectionService.configured(settings.supabase_url, ServiceAuth(settings.supabase_service_role_key))
     if service is None:
         return {"status": "PROVIDER_NOT_CONFIGURED"}
-    return await run_in_threadpool(service.process, scan_id, semantic_result_id)
+    try:
+        return await run_in_threadpool(service.process, scan_id, semantic_result_id)
+    except (httpx.HTTPError, ValueError, KeyError, TypeError, OSError) as exc:
+        status = exc.response.status_code if isinstance(exc, httpx.HTTPStatusError) else None
+        logging.getLogger(__name__).warning("reflection_processing_unavailable scan_id=%s error_type=%s provider_status=%s", scan_id, type(exc).__name__, status)
+        return {"status": "PROVIDER_UNAVAILABLE"}
 
 
 @app.post("/internal/complete-measurement")

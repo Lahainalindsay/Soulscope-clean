@@ -1,19 +1,23 @@
-# Opt-in transcript reflection v2
+# Voice-led reflection v2
 
-SoulScope Canon Set v2.0 remains the authority for acoustic meaning. This path is a separately labeled interpretation of the **words the user spoke**; it does not turn provisional acoustic measurements into psychological states, Dimension scores, Constellation states or a Signature. The sealed v1 semantic result remains unchanged and unresolved. Older scans cannot be silently transcribed or reinterpreted.
+The same saved v2 reading path now supports `mode: VOICE_AND_WORDS`. The sealed Canon v1 semantic result remains unchanged. This is an experimental, participant-rated perception of vocal expression combined with spoken content, not a calibrated psychological publication.
 
-## Flow
+## One producer, two inputs
 
-1. A separate unchecked checkbox on the review step records consent version `transcript-reflection-v1` with the scan. Without it, processing remains acoustic-only.
-2. After acoustic quality qualification, the Python worker sends each of the three WAV captures to the hosted OpenAI transcription API. It saves the returned text privately under the scan owner and capture ID. Provider errors do not corrupt the acoustic pipeline.
-3. Once the canonical result is finalized, the internal worker-token endpoint builds a v2 content reflection from the three saved transcripts. It never sends feature scores to the language model. Short speech, missing capture text or poor audio yields `UNRESOLVED`. Missing configuration leaves the option unavailable.
-4. JSON has overview, cognition, relationships, expression and question arrays. Each sentence carries exact quoted spans and zero-based Unicode codepoint offsets into a capture transcript. Unsupported domains can be empty. Python, a database insert trigger and the owner-authenticated consumer independently check exact quote membership. Quote matching prevents fabricated *citations*, not incorrect interpretation; participant evaluation is still required.
-5. The owner sees the saved v2 reading through `/api/results/[id]/reflection`. When no valid v2 reading is present, the existing recording description is retained. Feedback is stored as accurate / partly / missed me, with owner-scoped RLS.
+1. The unchecked scan consent explicitly covers hosted direct listening, transcription and reading. It records both existing transcription consent and an owner-scoped `voice_reflection_consents` row, version `voice-reflection-v1`. Existing scans require an explicit checkbox on their result before new direct-listening processing. No legacy recording is silently upgraded.
+2. Acoustic extraction remains the existing Python worker. It retains voice measurements and quality gates. After finalization the reflection producer reads only the scan's private WAV artifacts, verifies SHA-256, mono 16 kHz PCM format, duration and prompt linkage, and sends the actual audio bytes to `gpt-audio-1.5` with `modalities: [text]` and `store: false`. This is direct audio input, not a transcript pretending to be audio analysis.
+3. The listener describes audible delivery and possible everyday vocal impressions across all three recordings. It cannot diagnose, infer personality or hidden motives, assign scores, or turn pitch into an emotion. The saved `voice_observation_records` snapshot includes full-capture artifact provenance, not invented timestamps. Perceptual accuracy still needs participant evaluation.
+4. `gpt-4o` writes overview, cognition, relationships, expression and a question from the listening snapshot and transcript. Each sentence cites `audioRefs`, exact transcript `sourceSpans`, or both. Overview and any expression section must include voice evidence. Cognition and relationships require words. Unsupported sections are empty. The writing direction reuses the original SoulScope idea of contrasting responses and giving one coherent reflection; none of its missing-value defaults, weighted emotion formulas, score bands, or parallel decision engines are imported.
+5. Source validation happens in Python, the database insert trigger and the owner-authenticated frontend consumer. Invalid generations get up to two bounded rewrites. Provider failure does not save a fabricated reading. A retry resumes saved listening evidence and can recover missing transcripts from the same private audio; it does not ask the user to record again. Feedback remains accurate / partly / missed me.
 
-## Activation and limits
+## Activation and operations
 
-The backend needs `OPENAI_API` on its Vercel project. The frontend checks the protected worker availability endpoint; it does not show the opt-in checkbox until that key exists. Set a budget and verify provider terms and deletion settings before activation. The browser receives neither the API key nor the service-role key.
+The backend Vercel project uses `OPENAI_API`. Availability checks both configuration and access to the audio model. The browser receives no provider key or service-role key. Audio/transcript content is not logged. Provider failures log only scan ID, error type and HTTP status.
 
-The runtime uses `gpt-4o-mini-transcribe` for transcription and `gpt-4o` with strict JSON Schema for writing. Each capture is sent separately. Transcription can be wrong; citation checks establish transcript membership rather than audio truth. A fluent sentence may overinterpret a real quote. Before calling the reading accurate, evaluate consented participant ratings and human reviews by claim, device, language, content and recording quality. Do not use feedback ratings as automatic psychological labels. The current protocol does not guarantee material for every domain in every scan.
+The additive migration is `20261016220032_voice_led_reflection.sql`. New tables use RLS, explicit grants and source-validation triggers. Ordinary clients can give their own consent and read their own listening observations, but cannot write observations or readings. The original v1 and earlier saved v2 results are not rewritten. The new mode stays within the existing v2 result and feedback tables.
 
-The additive migration is `20261016123817_transcript_grounded_reflection_v2.sql`; it was applied to SoulScope Clean staging through Supabase on October 16, 2026. Three new tables use RLS and explicit grants. No existing result was rewritten.
+## Evaluation boundary
+
+Software tests verify audio transport, checksum/capture integrity, consent, source membership, ownership and rendering. They cannot prove an emotion or interpretation is true. The beta reading asks participants to rate their own consented scan; it must not be marketed as a validated emotional assessment. Before promoting acoustic meaning into the Canon path, use participant-held-out evaluation, independent ratings, speech/device/language confounds and published abstention criteria. A citation to sound establishes which recording was considered, not that a psychological interpretation follows from it.
+
+Official audio input format: https://developers.openai.com/api/docs/guides/audio-chat-completions

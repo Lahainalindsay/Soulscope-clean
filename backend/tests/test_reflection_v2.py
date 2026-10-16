@@ -56,12 +56,14 @@ def test_short_transcripts_abstain_without_contacting_model() -> None:
         def db(self, method, table, *, params=None, payload=None):  # type: ignore[override]
             if method == "POST":
                 assert table == "reflection_results_v2" and payload["status"] == "UNRESOLVED"
-                return [{"id": "saved"}]
+                return [{"id": "saved", "status": "UNRESOLVED"}]
             if table == "scan_sessions":
                 return [{"user_id": "owner", "lifecycle_state": "finalized", "transcription_consent": True,
                          "transcription_consent_version": "transcript-reflection-v1"}]
             if table == "reflection_results_v2":
                 return []
+            if table == "voice_reflection_consents":
+                return [{"scan_id": "scan"}]
             if table == "semantic_result_records":
                 return [{"status": "unresolved_abstained", "measurement_record_id": "m"}]
             if table == "measurement_records":

@@ -5,7 +5,7 @@ export async function GET() {
   if (!base || !token) return Response.json({ available: false }, { headers: { "Cache-Control": "no-store" } });
   try {
     const res = await fetch(`${base.replace(/\/$/, "")}/internal/reflection-availability`, {
-      headers: { "x-worker-token": token }, cache: "no-store", signal: AbortSignal.timeout(5000),
+      headers: { "x-worker-token": token }, cache: "no-store", signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) throw new Error("not ready");
     const body = await res.json();

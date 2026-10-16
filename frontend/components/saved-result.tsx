@@ -54,5 +54,5 @@ export default function SavedResult({
         <h1>Gathering your saved records…</h1>
       </div>
     );
-  return details ? <ResultDetails bundle={bundle} /> : <ResultsView bundle={bundle} />;
+  return details ? <ResultDetails bundle={bundle} /> : <ResultsView bundle={bundle} onRefresh={() => setAttempt((n) => n + 1)} />;
 }

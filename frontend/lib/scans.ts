@@ -148,6 +148,14 @@ export async function sendScan(
     id = scan.id;
     onId(id!);
   }
+  if (transcriptionConsent) {
+    const { data: owner } = await db.auth.getUser();
+    if (!owner.user) throw new Error("Please sign in again.");
+    const { error: voiceConsentError } = await db.from("voice_reflection_consents").upsert({
+      scan_id: id, user_id: owner.user.id, version: "voice-reflection-v1",
+    }, { onConflict: "scan_id", ignoreDuplicates: true });
+    if (voiceConsentError) throw new Error("Your voice-analysis consent could not be saved. Please retry.");
+  }
   const { data: scan, error: stateError } = await db
     .from("scan_sessions")
     .select("lifecycle_state,prompt_set_id")

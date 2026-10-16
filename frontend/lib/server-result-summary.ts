@@ -96,7 +96,7 @@ export async function loadAuthorizedRecordingSources(request: Request, scanId: s
     read(`/rest/v1/evidence_ledgers?id=eq.${encodeURIComponent(result.evidence_ledger_id)}&scan_id=eq.${scanId}&select=*`),
   ]);
   if (!object(measurements[0]) || !object(ledgers[0])) throw new ProcessingError("The saved result sources are unavailable.", 409);
-  return { semantic: result, measurement: measurements[0], evidence: ledgers[0] };
+  return { semantic: result, measurement: measurements[0], evidence: ledgers[0], userId: user.id };
 }
 
 export async function loadAuthorizedSummary(request: Request, scanId: string, config: { supabaseUrl: string; publicKey: string }, fetcher: typeof fetch = fetch) {
