@@ -18,6 +18,7 @@ from .evidence.writer import EvidenceWriter
 from .logging import configure_logging
 from .processing.measurement_writer import MeasurementWriter
 from .processing.worker import PromptAudioInput, ScanWorker
+from .reflection.service import ReflectionService
 from .results.service import ResultService
 from .storage.base import PrivateAudioStorage
 from .storage.local import LocalPrivateAudioStorage
@@ -29,6 +30,15 @@ app = FastAPI(title="SoulScope Backend", version="0.1.0")
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "soulscope-backend", "mode": "canonical-calibration-gated"}
+
+
+@app.get("/internal/reflection-availability")
+def reflection_availability(x_worker_token: Annotated[str | None, Header()] = None) -> dict[str, bool]:
+    settings = require_service_settings()
+    authorize_worker(settings, x_worker_token)
+    return {"available": bool(ReflectionService.configured(
+        settings.supabase_url, ServiceAuth(settings.supabase_service_role_key)
+    ))}
 
 
 def build_private_audio_storage() -> PrivateAudioStorage:
@@ -164,6 +174,20 @@ async def process_result(
     return await run_in_threadpool(
         ResultService(settings.supabase_url, auth, rpc).finalize_dimensions, dimension_result_id
     )
+
+
+@app.post("/internal/process-reflection")
+async def process_reflection(
+    scan_id: Annotated[str, Form()],
+    semantic_result_id: Annotated[str, Form()],
+    x_worker_token: Annotated[str | None, Header()] = None,
+) -> dict[str, str]:
+    settings = require_service_settings()
+    authorize_worker(settings, x_worker_token)
+    service = ReflectionService.configured(settings.supabase_url, ServiceAuth(settings.supabase_service_role_key))
+    if service is None:
+        return {"status": "PROVIDER_NOT_CONFIGURED"}
+    return await run_in_threadpool(service.process, scan_id, semantic_result_id)
 
 
 @app.post("/internal/complete-measurement")

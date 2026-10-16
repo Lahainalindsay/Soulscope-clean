@@ -76,7 +76,7 @@ export async function processUpload(
   if (typeof id !== "string" || !uuid.test(id))
     throw new ProcessingError("Invalid scan.");
   const scans = await read(
-    `/rest/v1/scan_sessions?id=eq.${id}&user_id=eq.${user.id}&select=id,lifecycle_state`,
+    `/rest/v1/scan_sessions?id=eq.${id}&user_id=eq.${user.id}&select=id,lifecycle_state,transcription_consent`,
   );
   if (scans.length !== 1)
     throw new ProcessingError(
@@ -208,6 +208,18 @@ export async function processUpload(
   }
   if (!semanticId || !uuid.test(semanticId) || !["unresolved_abstained", "invalid"].includes(semanticStatus ?? ""))
     throw new ProcessingError("The completed result was not saved. Please retry.", 502);
+  // The worker verifies persisted consent independently. A model/provider
+  // failure cannot rewrite the sealed acoustic result or fail the scan.
+  if (scans[0].transcription_consent === true) {
+    const reflectionForm = new FormData();
+    reflectionForm.set("scan_id", id);
+    reflectionForm.set("semantic_result_id", semanticId);
+    try {
+      await invoke("/internal/process-reflection", reflectionForm);
+    } catch {
+      // The owner can still open the existing recording result.
+    }
+  }
   return {
     scan_id: id,
     semantic_result_id: semanticId,

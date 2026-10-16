@@ -2,6 +2,7 @@ import { loadAuthorizedRecordingSources } from "@/lib/server-result-summary";
 import { buildRecordingReflection } from "@/lib/server-recording-reflection";
 import { readRecordingReflection } from "@/lib/recording-reflection";
 import { ProcessingError } from "@/lib/server-processing";
+import { readReflectionV2 } from "@/lib/reflection-v2";
 
 export const runtime = "nodejs";
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -11,6 +12,22 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!supabaseUrl || !publicKey) return Response.json({ error: "Account access is unavailable." }, { status: 503, headers });
   try {
     const sources = await loadAuthorizedRecordingSources(request, (await params).id, { supabaseUrl, publicKey });
+    const token = request.headers.get("authorization");
+    const privateRows = async (path: string): Promise<unknown[]> => {
+      const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+        headers: { apikey: publicKey, Authorization: token ?? "" }, cache: "no-store",
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!response.ok) throw new ProcessingError("Your reading could not be opened.", 502);
+      return await response.json();
+    };
+    const scanId = String(sources.semantic.scan_id);
+    const rows = await privateRows(`reflection_results_v2?scan_id=eq.${encodeURIComponent(scanId)}&select=id,semantic_result_id,status,narrative&limit=1`);
+    if (rows.length) {
+      const transcriptRows = await privateRows(`capture_transcripts?scan_id=eq.${encodeURIComponent(scanId)}&select=capture_id,text`);
+      const reading = readReflectionV2(rows[0], transcriptRows, String(sources.semantic.id));
+      if (reading) return Response.json(reading, { headers });
+    }
     const projection = buildRecordingReflection(sources.semantic, sources.measurement, sources.evidence);
     const validated = readRecordingReflection(projection, {
       resultId: String(sources.semantic.id), scanId: String(sources.semantic.scan_id),

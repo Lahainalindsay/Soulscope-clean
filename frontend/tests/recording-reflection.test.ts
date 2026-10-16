@@ -195,6 +195,7 @@ test("reflection route requires owner authentication, uses read-only requests an
     if (url.includes("semantic_result_records?")) return Response.json([s.semantic]);
     if (url.includes("measurement_records?")) return Response.json([s.measurement]);
     if (url.includes("evidence_ledgers?")) return Response.json([s.evidence]);
+    if (url.includes("reflection_results_v2?")) return Response.json([]);
     throw new Error("Unexpected network destination");
   };
   try {
@@ -204,7 +205,7 @@ test("reflection route requires owner authentication, uses read-only requests an
     assert.equal(response.status, 200); assert.equal(response.headers.get("Cache-Control"), "private, no-store");
     assert.equal(response.headers.get("Vary"), "Authorization");
     const body = await response.json(); assert.equal(body.status, "AVAILABLE");
-    assert.match(body.title, /second response/); assert.equal(calls.length, 5);
+    assert.match(body.title, /second response/); assert.equal(calls.length, 6);
     assert.ok(calls.every(url => url.startsWith("https://db.example/")));
   } finally {
     globalThis.fetch = original.fetch;

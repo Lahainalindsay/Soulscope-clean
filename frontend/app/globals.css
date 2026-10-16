@@ -2154,3 +2154,7 @@ pre {
 .personal-reflection > p:last-child { max-width: 650px; margin: auto; font: 400 clamp(23px, 3.5vw, 33px)/1.4 "Cormorant Garamond", Georgia, serif; }
 .personal-preview-note { text-align: center; color: var(--muted); font-size: 11px; line-height: 1.6; max-width: 630px; margin: 2rem auto; }
 @media (max-width: 700px) { .personal-domain-grid { grid-template-columns: 1fr; } }
+.personal-reading-section { margin-block: 1rem; padding: clamp(26px, 5vw, 46px); }
+.personal-reading-section p:not(.eyebrow) { color: #c5d5d7; font: 400 clamp(22px, 3vw, 30px)/1.4 "Cormorant Garamond", Georgia, serif; }
+.reading-feedback { text-align: center; margin-top: 2rem; }
+.reading-feedback p:last-child { color: var(--muted); margin-top: 1rem; }

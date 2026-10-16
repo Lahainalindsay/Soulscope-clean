@@ -28,7 +28,7 @@ export async function loadResult(id: string, includeRecordingDetails = false): P
   const db = getSupabase()!;
   const { data: scan, error } = await db
     .from("scan_sessions")
-    .select("id,created_at,lifecycle_state")
+    .select("id,created_at,lifecycle_state,transcription_consent")
     .eq("id", id)
     .neq("lifecycle_state", "deleted")
     .maybeSingle();
@@ -101,6 +101,7 @@ export async function sendScan(
   audio: Blob[],
   existingId: string | null,
   onId: (id: string) => void,
+  transcriptionConsent = false,
 ) {
   const token = await accessToken();
   const db = getSupabase()!;
@@ -137,7 +138,10 @@ export async function sendScan(
     if (userError || !user.user) throw new Error("Please sign in again.");
     const { data: scan, error: scanError } = await db
       .from("scan_sessions")
-      .insert({ user_id: user.user.id, prompt_set_id: set.id })
+      .insert({ user_id: user.user.id, prompt_set_id: set.id,
+        transcription_consent: transcriptionConsent,
+        transcription_consent_version: transcriptionConsent ? "transcript-reflection-v1" : null,
+        transcription_consented_at: transcriptionConsent ? new Date().toISOString() : null })
       .select("id")
       .single();
     if (scanError) throw new Error("The scan could not be created.");

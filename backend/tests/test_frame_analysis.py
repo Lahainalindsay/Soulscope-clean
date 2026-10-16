@@ -118,5 +118,5 @@ class FullResponseMeasurementTests(unittest.TestCase):
         self.assertGreater(result["values"]["F0_VALID_RATIO"], .9)
         self.assertIsNotNone(result["values"]["HNR_MEAN"])
         self.assertEqual(result["nativeMethods"]["praat"], "0.4.6")
-        self.assertNotIn("fallback", result["nativeMethods"]["vad"])
+        self.assertEqual(result["nativeMethods"]["vad"], "webrtcvad-2.0.14-mode2-no-energy-fallback")
         self.assertEqual(verify_measurement_runtime()["status"], "PASS")

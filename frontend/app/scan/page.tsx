@@ -12,6 +12,8 @@ export default function ScanPage() {
   const router = useRouter();
   const [step, setStep] = useState(0),
     [consent, setConsent] = useState(false),
+    [transcriptionConsent, setTranscriptionConsent] = useState(false),
+    [transcriptionAvailable, setTranscriptionAvailable] = useState(false),
     [recording, setRecording] = useState(false),
     [seconds, setSeconds] = useState(30),
     [clips, setClips] = useState<(Clip | null)[]>([null, null, null]),
@@ -32,6 +34,9 @@ export default function ScanPage() {
     db?.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
     const subscription = db?.auth.onAuthStateChange((_e, s) => setSignedIn(!!s))
       .data.subscription;
+    fetch("/api/reflection-availability", { cache: "no-store" })
+      .then(r => r.json()).then(v => { if (mounted.current) setTranscriptionAvailable(v.available === true); })
+      .catch(() => {});
     return () => {
       mounted.current = false;
       subscription?.unsubscribe();
@@ -143,6 +148,7 @@ export default function ScanPage() {
         clips.map((c) => c!.blob),
         scanId,
         setScanId,
+        transcriptionConsent && transcriptionAvailable,
       );
       router.push(`/results/${id}`);
     } catch (e) {
@@ -333,6 +339,11 @@ export default function ScanPage() {
                   </div>
                 ))}
               </div>
+              {transcriptionAvailable ? <label className="consent">
+                <input type="checkbox" checked={transcriptionConsent} disabled={busy || !!scanId}
+                  onChange={(e) => setTranscriptionConsent(e.target.checked)} />
+                <span>I also agree to send these three recordings to OpenAI for transcription and a personal reflection based on what I say. SoulScope stores the transcripts privately with my account. This is optional; without it, I receive the recording-only result. The reading may miss my meaning, and I can rate it afterward. <Link href="/privacy">Read the privacy notice</Link>.</span>
+              </label> : <p className="micro">Personal readings from your spoken words are not available right now. Your recording-only result is available.</p>}
               {!configured ? (
                 <div className="notice">
                   The account connection has not been configured. Your

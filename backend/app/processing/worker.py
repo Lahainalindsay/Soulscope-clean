@@ -4,9 +4,13 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
+import httpx
+
 from ..acoustics.extractor import extract_measurements
+from ..auth import ServiceAuth
 from ..config import Settings
 from ..logging import safe_log_context
+from ..reflection.service import ReflectionService
 from ..storage.base import PrivateAudioStorage
 from ..storage.local import LocalPrivateAudioStorage
 from .measurement_writer import MeasurementWriter
@@ -51,6 +55,7 @@ class ScanWorker:
 
         logger.info("scan_processing_started", extra=safe_log_context(scan_id=scan_id))
         prompt_measurements: list[dict[str, object]] = []
+        audio_paths: list[tuple[str, Path]] = []
         for prompt in sorted(prompts, key=lambda item: item.prompt_id):
             stored = self.storage.store_canonical_wav(
                 prompt.source_path,
@@ -75,6 +80,7 @@ class ScanWorker:
                     self.settings.silence_rms_threshold,
                 )
             )
+            audio_paths.append((prompt.capture_id, stored.path))
             logger.info(
                 "capture_measurements_extracted",
                 extra=safe_log_context(
@@ -91,6 +97,26 @@ class ScanWorker:
             evaluate_prompt_quality(measurement, self.settings) for measurement in prompt_measurements
         ]
         aggregate = aggregate_quality(quality_results)
+        # Transcription is separately consented and is never required for the
+        # existing acoustic pipeline to finish. A failed capture cannot invent text.
+        transcriber = ReflectionService.configured(
+            self.settings.supabase_url, ServiceAuth(self.settings.supabase_service_role_key)
+        )
+        if aggregate.status == "qualified" and transcriber:
+            try:
+                allowed = bool(transcriber.consent(scan_id))
+            except (ValueError, OSError, RuntimeError, httpx.HTTPError) as exc:
+                allowed = False
+                logger.warning("transcription_consent_lookup_unavailable", extra=safe_log_context(
+                    scan_id=scan_id, error_type=type(exc).__name__
+                ))
+            for capture_id, path in (audio_paths if allowed else []):
+                try:
+                    transcriber.transcribe_capture(scan_id, capture_id, path)
+                except (ValueError, TypeError, OSError, RuntimeError, httpx.HTTPError) as exc:
+                    logger.warning("capture_transcription_unavailable", extra=safe_log_context(
+                        scan_id=scan_id, capture_id=capture_id, error_type=type(exc).__name__
+                    ))
         quality_summary = {
             "status": aggregate.status,
             "semanticEligibility": aggregate.semantic_eligibility,

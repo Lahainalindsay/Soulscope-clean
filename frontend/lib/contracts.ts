@@ -50,7 +50,7 @@ export type Measurement = {
     }[];
   }[];
 };
-export type Scan = { id: string; created_at: string; lifecycle_state: string };
+export type Scan = { id: string; created_at: string; lifecycle_state: string; transcription_consent?: boolean };
 export type Evidence = {
   id: string;
   status: string;
