@@ -9,6 +9,7 @@ export * from "./evidenceLedger";
 export * from "./interactionRegistry";
 export * from "./narrativeSections";
 export * from "./narrativePolicy";
+export * from "./narrativeContracts";
 export * from "./patternRegistry";
 export * from "./promptProtocol";
 export * from "./processingStages";
