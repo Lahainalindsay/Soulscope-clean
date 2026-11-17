@@ -1,3 +1,4 @@
+import { workerHeaders } from "../../../../../lib/worker-headers";
 import { loadAuthorizedRecordingSources } from "@/lib/server-result-summary";
 import { buildRecordingReflection } from "@/lib/server-recording-reflection";
 import { readRecordingReflection } from "@/lib/recording-reflection";
@@ -80,7 +81,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     form.set("scan_id", id);
     form.set("semantic_result_id", String(sources.semantic.id));
     const response = await fetch(`${backend.replace(/\/$/, "")}/internal/process-reflection`, {
-      method: "POST", headers: { "x-worker-token": workerToken }, body: form,
+      method: "POST", headers: workerHeaders(workerToken), body: form,
       cache: "no-store", signal: AbortSignal.timeout(270000),
     });
     if (!response.ok) throw new ProcessingError("The reading could not be prepared. Please try again.", 502);

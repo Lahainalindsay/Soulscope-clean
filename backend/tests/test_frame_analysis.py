@@ -12,8 +12,8 @@ import numpy as np
 from app.acoustics.extractor import extract_measurements
 from app.acoustics.frame_analysis import analyze_frames, summarize_speech_segments
 from app.acoustics.profile import FEATURES
-from app.acoustics.verification import verify_measurement_runtime
 from app.acoustics.registry import assert_known_runtime_feature, provisional_parameter
+from app.acoustics.verification import verify_measurement_runtime
 from app.evidence.engine import evaluate_evidence
 from app.evidence.models import MeasurementRecordInput
 
@@ -91,10 +91,10 @@ class FullResponseMeasurementTests(unittest.TestCase):
 
     def test_new_profile_does_not_change_existing_scientific_evidence(self) -> None:
         prompt = extract_measurements(fixture_path("P1_OPEN_REFERENCE.wav"), "capture", "P1_OPEN_REFERENCE", .01)
-        fields = dict(measurement_record_id="record", scan_id="scan", processing_run_id="run",
-                      measurement_schema_version="0.1", protocol_version="1.3", extractor_version="test",
-                      quality_rules_version="0.1", measurement_status="qualified", prompt_contrasts=[],
-                      quality_summary={}, extractor_provenance={}, semantic_eligibility=True, renderer_eligibility=True)
+        fields = {"measurement_record_id": "record", "scan_id": "scan", "processing_run_id": "run",
+                      "measurement_schema_version": "0.1", "protocol_version": "1.3", "extractor_version": "test",
+                      "quality_rules_version": "0.1", "measurement_status": "qualified", "prompt_contrasts": [],
+                      "quality_summary": {}, "extractor_provenance": {}, "semantic_eligibility": True, "renderer_eligibility": True}
         richer = evaluate_evidence(MeasurementRecordInput(prompt_measurements=[prompt], **fields))
         legacy = {**prompt, "measurements": [m for m in prompt["measurements"]
                                             if not m["feature_id"].startswith("PROVISIONAL_FRAME_")]}

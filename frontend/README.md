@@ -31,6 +31,7 @@ Copy `frontend/.env.example` to `frontend/.env.local` and supply:
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser + server | Publishable key; legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` is supported |
 | `SOULSCOPE_BACKEND_URL` | Server only | HTTPS address of the deployed Python/FastAPI worker |
 | `SOULSCOPE_WORKER_INTERNAL_TOKEN` | Server only | Same nonempty internal token configured on that worker |
+| `SOULSCOPE_VERCEL_WORKER_BYPASS_SECRET` | Server only | Automation bypass secret from the backend Vercel project when Deployment Protection applies |
 
 Never place the Supabase service-role key in the frontend. The Python worker retains its existing service credentials. Browser queries and server ownership checks use the user's access token and the existing RLS policies.
 

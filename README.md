@@ -2,11 +2,14 @@
 
 SoulScope Clean is the production rebuild of SoulScope.
 
-The old `~/soulscope` repository is preserved as the research archive. This repository starts from the verified architecture only and will copy or rewrite implementation pieces one at a time after review.
+The original [SoulScope repository](https://github.com/Lahainalindsay/SoulScope) is the upstream source for product behavior, visual design, and reusable implementation. Review its current default branch when porting features. Record the upstream commit and adapt the feature to the current contracts here. For example, the renderer at upstream `dee7140` uses Constellation and Dimension scores. Its geometry utilities can be evaluated separately for an acoustic-only renderer.
 
 ## Current Status
 
 Current implementation:
+
+- Vercel frontend and FastAPI worker connected to hosted Supabase
+- immutable finalized scan records with explicit abstention and opt-in voice- and transcript-grounded reflections when the provider is available
 
 - Next.js frontend: guided microphone capture, playback, canonical WAV conversion, authenticated staging submission, owner-scoped results/history, and an explicitly illustrative design preview
 - current Canonical Authority Ledger
@@ -34,14 +37,11 @@ Current implementation:
 
 Not yet implemented:
 
-- deployed backend service or worker runtime
-- executed production database migration
 - calibrated audio processing jobs
 - calibrated acoustic extraction with Parselmouth/SciPy/VAD production methods
 - calibrated Dimension scoring
 - constellation decisions
-- canonical result generation
-- narrative or story generation
+- calibrated semantic interpretations
 - production Resonance Signature renderer
 - hosted staging credentialed pipeline validation
 

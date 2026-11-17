@@ -1,3 +1,4 @@
+import { workerHeaders } from "../../../lib/worker-headers";
 export const runtime = "nodejs";
 export async function GET() {
   const base = process.env.SOULSCOPE_BACKEND_URL;
@@ -5,12 +6,18 @@ export async function GET() {
   if (!base || !token) return Response.json({ available: false }, { headers: { "Cache-Control": "no-store" } });
   try {
     const res = await fetch(`${base.replace(/\/$/, "")}/internal/reflection-availability`, {
-      headers: { "x-worker-token": token }, cache: "no-store", signal: AbortSignal.timeout(10000),
+      headers: workerHeaders(token), cache: "no-store", signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) throw new Error("not ready");
+    if (!res.ok) {
+      console.warn("Reflection worker availability check failed", { status: res.status });
+      return Response.json({ available: false }, { headers: { "Cache-Control": "no-store" } });
+    }
     const body = await res.json();
     return Response.json({ available: body.available === true }, { headers: { "Cache-Control": "no-store" } });
-  } catch {
+  } catch (error) {
+    console.warn("Reflection worker availability check failed", {
+      error: error instanceof Error ? error.name : "UnknownError",
+    });
     return Response.json({ available: false }, { headers: { "Cache-Control": "no-store" } });
   }
 }

@@ -1,3 +1,4 @@
+import { workerHeaders } from "./worker-headers";
 import { validateCanonicalWav } from "./audio";
 export class ProcessingError extends Error {
   constructor(
@@ -135,7 +136,7 @@ export async function processUpload(
   const invoke = async (path: string, body: FormData) => {
     const res = await fetcher(`${config.workerUrl.replace(/\/$/, "")}${path}`, {
       method: "POST",
-      headers: { "x-worker-token": config.workerToken },
+      headers: workerHeaders(config.workerToken),
       body,
       signal: AbortSignal.timeout(180000),
     });
