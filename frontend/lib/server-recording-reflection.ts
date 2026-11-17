@@ -1,5 +1,6 @@
 import type { ObservationSentence, RecordingObservation, RecordingReflectionV1 } from "./recording-reflection";
 import { describeRecording } from "./server-result-summary";
+import { MAX_CAPTURE_SECONDS } from "./audio";
 import { ProcessingError } from "./server-processing";
 
 type Row = Record<string, unknown>;
@@ -47,7 +48,7 @@ export function buildRecordingReflection(semantic: Row, measurement: Row, eviden
   const raw = measurement.prompt_measurements;
   if (!Array.isArray(raw) || raw.length !== 3 || !raw.every(object)) return limited("INCOMPLETE_PROTOCOL");
   const records = ids.map(id => raw.find(r => r.promptId === id));
-  if (records.some(r => !r || typeof r.captureId !== "string" || !numeric(r.durationMs) || r.durationMs <= 0 || r.durationMs > 30000 || !Array.isArray(r.measurements))
+  if (records.some(r => !r || typeof r.captureId !== "string" || !numeric(r.durationMs) || r.durationMs <= 0 || r.durationMs > MAX_CAPTURE_SECONDS * 1000 || !Array.isArray(r.measurements))
     || new Set(records.map(r => r!.captureId)).size !== 3) return limited("INCOMPLETE_PROTOCOL");
   const rows = records as Row[];
   const ledger: RecordingObservation[] = [];
