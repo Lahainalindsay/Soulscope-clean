@@ -63,6 +63,18 @@ test("current worker produces an individualized recording reflection with tracea
   for (const claim of [r.strongestObservation, ...r.overview, ...r.prompts.flatMap(p => p.observations)])
     assert.ok(claim.observationRefs.every(id => r.selection.selected.includes(id)));
 });
+test("valid microphone captures slightly longer than the 30-second timer keep their measured results", () => {
+  const s = recordingSources();
+  const capture = s.measurement.prompt_measurements[0];
+  capture.durationMs = 30172;
+  for (const measurement of capture.measurements) measurement.segment_end_ms = capture.durationMs;
+  capture.acousticProfile.segments.at(-1)!.end_ms = capture.durationMs;
+  const result = build(s);
+  assert.equal(result.status, "AVAILABLE");
+  assert.equal(result.observationLedger.length, 6);
+  assert.match(result.prompts[0].observations[0].text, /30.2 seconds of recording/);
+});
+
 test("a different recording changes the observation; ties and tiny differences do not become emotional stories", () => {
   assert.match(build(recordingSources([6000, 1000, 3000])).title, /first response/);
   assert.match(build(recordingSources([1000, 3000, 6000])).title, /third response/);
@@ -135,6 +147,23 @@ test("saved main result shows the supplied recording reflection without importin
   for (const path of ["../components/recording-reflection.tsx", "../components/results-view.tsx", "../lib/recording-reflection.ts"])
     assert.doesNotMatch(readFileSync(new URL(path, import.meta.url), "utf8"), /buildRecordingReflection|server-recording-reflection|Math\.max|posteriorMean/);
 });
+test("saved measurements stay visible whether an AI reading is pending or already saved", () => {
+  const s = recordingSources();
+  const bundle: ResultBundle = { scan: { id: "scan", created_at: s.measurement.created_at,
+    lifecycle_state: "finalized", transcription_consent: true }, ...s, dimensions: null, measuredReflection: build(s) };
+  const render = (b: ResultBundle) => renderToStaticMarkup(createElement(ResultsView, { bundle: b, onRefresh: () => {} }));
+  const pending = render(bundle);
+  assert.match(pending, /More space in your second response/);
+  assert.match(pending, /Prepare my voice reading/);
+
+  const ready = render({ ...bundle, recordingReflection: { kind: "TRANSCRIPT_REFLECTION_V2",
+    sections: { overview: [{ text: "Optional AI output." }], cognition: [], relationships: [], expression: [], question: [] },
+    voiceObservations: [] } });
+  assert.match(ready, /More space in your second response[\s\S]*Optional AI voice and transcript reading/);
+  assert.match(ready, /Optional AI output/);
+  assert.doesNotMatch(ready, /Prepare my voice reading/);
+});
+
 test("reflection renders text safely and does not execute supplied markup", () => {
   const r = build();
   const html = renderToStaticMarkup(createElement(RecordingReflection, { reflection: { ...r, title: "<script>alert(1)</script>" } }));
@@ -207,6 +236,15 @@ test("reflection route requires owner authentication, uses read-only requests an
     const body = await response.json(); assert.equal(body.status, "AVAILABLE");
     assert.match(body.title, /second response/); assert.equal(calls.length, 6);
     assert.ok(calls.every(url => url.startsWith("https://db.example/")));
+    calls.length = 0;
+    const measured = await reflectionGET(new Request("https://site.example?view=measurements", {
+      headers: { Authorization: "Bearer owner-token" },
+    }), { params });
+    assert.equal(measured.status, 200);
+    assert.deepEqual(await measured.json(), body);
+    assert.equal(calls.length, 5);
+    assert.ok(calls.every(url => !url.includes("reflection_results_v2") && !url.includes("capture_transcripts")));
+
   } finally {
     globalThis.fetch = original.fetch;
     if (original.url === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL; else process.env.NEXT_PUBLIC_SUPABASE_URL = original.url;

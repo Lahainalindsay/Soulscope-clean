@@ -47,7 +47,7 @@ export function ResultsView({ bundle = null, demoResult = null, recordingDemo = 
   const narrative = bundle ? storedReflection(bundle.semantic, bundle.scan.id)
     : preview && demoResult ? readReflectionNarrative(demoResult.narrative, demoResult.source) : null;
   const recording = bundle?.semantic && bundle.measurement && bundle.evidence && bundle.scan.lifecycle_state === "finalized"
-    ? readRecordingReflection(bundle.recordingReflection, { resultId: bundle.semantic.id, scanId: bundle.scan.id,
+    ? readRecordingReflection(bundle.measuredReflection ?? bundle.recordingReflection, { resultId: bundle.semantic.id, scanId: bundle.scan.id,
         measurementId: bundle.measurement.id, evidenceLedgerId: bundle.evidence.id })
     : sample ? readRecordingReflection(sample, { resultId: sample.sourceResultId, scanId: sample.scanId,
         measurementId: sample.sourceMeasurementId, evidenceLedgerId: sample.sourceEvidenceLedgerId }) : null;
@@ -68,9 +68,15 @@ export function ResultsView({ bundle = null, demoResult = null, recordingDemo = 
     </div>
     {preview && <p className="preview-notice">This is a design preview. The artwork and reflections are illustrative and are not based on a recording.</p>}
     <div className="result-art"><FieldArt /><span className="art-caption">ILLUSTRATIVE ART · SIGNATURE IN DEVELOPMENT</span></div>
-    {personalPreview ? <PersonalReadingPreview /> : reading ? <TranscriptReflection reading={reading} /> : needsReading ? null
-      : narrative?.status !== "READY" && recording ? <RecordingReflection reflection={recording} />
+    {personalPreview ? <PersonalReadingPreview />
+      : narrative?.status === "READY" ? <ReflectionOverview narrative={narrative} />
+      : recording ? <RecordingReflection reflection={recording} />
       : <ReflectionOverview narrative={narrative} />}
+    {bundle?.measurementReflectionError && <p className="notice" role="alert">{bundle.measurementReflectionError}</p>}
+    {reading && <details className="panel recording-chapters">
+      <summary>Optional AI voice and transcript reading</summary>
+      <TranscriptReflection reading={reading} />
+    </details>}
     {bundle && needsReading && <section className="panel reflection-main" aria-label="Prepare your voice reading">
       <p className="eyebrow">YOUR VOICE READING</p>
       <h2>There is more to hear.</h2>

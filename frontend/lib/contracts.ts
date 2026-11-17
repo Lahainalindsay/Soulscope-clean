@@ -78,6 +78,8 @@ export type SemanticResultRecord = Readonly<{
   }> | null;
 }>;
 export type ResultBundle = {
+  measuredReflection?: unknown;
+  measurementReflectionError?: string;
   recordingReflection?: unknown;
   recordingReflectionError?: string;
   recordingSummary?: unknown;

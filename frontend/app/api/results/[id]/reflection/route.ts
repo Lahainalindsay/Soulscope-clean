@@ -7,6 +7,16 @@ import { readReflectionV2 } from "@/lib/reflection-v2";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
+function recordingResponse(sources: Awaited<ReturnType<typeof loadAuthorizedRecordingSources>>, headers: HeadersInit) {
+  const projection = buildRecordingReflection(sources.semantic, sources.measurement, sources.evidence);
+  const validated = readRecordingReflection(projection, {
+    resultId: String(sources.semantic.id), scanId: String(sources.semantic.scan_id),
+    measurementId: String(sources.measurement.id), evidenceLedgerId: String(sources.evidence.id),
+  });
+  if (!validated) throw new ProcessingError("Your recording reflection could not be prepared.", 502);
+  return Response.json(validated, { headers });
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const headers = { "Cache-Control": "private, no-store", "Vary": "Authorization" };
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,6 +24,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!supabaseUrl || !publicKey) return Response.json({ error: "Account access is unavailable." }, { status: 503, headers });
   try {
     const sources = await loadAuthorizedRecordingSources(request, (await params).id, { supabaseUrl, publicKey });
+    if (new URL(request.url).searchParams.get("view") === "measurements")
+      return recordingResponse(sources, headers);
     const token = request.headers.get("authorization");
     const privateRows = async (path: string): Promise<unknown[]> => {
       const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
@@ -33,13 +45,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       const reading = readReflectionV2(rows[0], transcriptRows, String(sources.semantic.id), voiceRows[0]);
       if (reading) return Response.json(reading, { headers });
     }
-    const projection = buildRecordingReflection(sources.semantic, sources.measurement, sources.evidence);
-    const validated = readRecordingReflection(projection, {
-      resultId: String(sources.semantic.id), scanId: String(sources.semantic.scan_id),
-      measurementId: String(sources.measurement.id), evidenceLedgerId: String(sources.evidence.id),
-    });
-    if (!validated) throw new ProcessingError("Your recording reflection could not be prepared.", 502);
-    return Response.json(validated, { headers });
+    return recordingResponse(sources, headers);
   } catch (error) {
     return Response.json({ error: error instanceof ProcessingError ? error.message : "Your recording reflection could not be opened. Please try again." },
       { status: error instanceof ProcessingError ? error.status : 502, headers });

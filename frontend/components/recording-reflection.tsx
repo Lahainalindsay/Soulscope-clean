@@ -3,8 +3,8 @@ import type { RecordingReflectionV1 } from "../lib/recording-reflection";
 /** Prose-only consumer. The server owns observation selection and comparison. */
 export function RecordingReflection({ reflection }: { reflection: RecordingReflectionV1 }) {
   return <>
-    <section className="panel reflection-main" aria-label="Your recording reflection">
-      <p className="eyebrow">{reflection.status === "AVAILABLE" ? "FROM YOUR RECORDING" : "YOUR RECORDING"}</p>
+    <section className="panel reflection-main" aria-label="What your voice measurements show">
+      <p className="eyebrow">{reflection.status === "AVAILABLE" ? "MEASURED FROM YOUR RECORDING" : "RECORDING MEASUREMENTS"}</p>
       <h2>{reflection.title}</h2>
       <p className="reflection-copy">{reflection.strongestObservation.text}</p>
       <p className="reflection-copy">{reflection.overview.map(s => s.text).join(" ")}</p>

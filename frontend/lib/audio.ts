@@ -28,6 +28,8 @@ export function encodeWav(
   });
   return buffer;
 }
+export const MAX_CAPTURE_SECONDS = 35;
+
 export function validateCanonicalWav(buffer: ArrayBuffer): number {
   if (buffer.byteLength < 44 || buffer.byteLength > 3_000_000)
     throw new Error("Recording size is invalid.");
@@ -55,8 +57,8 @@ export function validateCanonicalWav(buffer: ArrayBuffer): number {
   )
     throw new Error("Recording is truncated.");
   const seconds = (buffer.byteLength - 44) / 32000;
-  if (seconds < 5 || seconds > 35)
-    throw new Error("Please record between 5 and 35 seconds for each prompt.");
+  if (seconds < 5 || seconds > MAX_CAPTURE_SECONDS)
+    throw new Error(`Please record between 5 and ${MAX_CAPTURE_SECONDS} seconds for each prompt.`);
   return seconds;
 }
 export async function canonicalizeAudio(blob: Blob): Promise<Blob> {

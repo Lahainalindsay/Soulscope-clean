@@ -74,18 +74,27 @@ export async function loadResult(id: string, includeRecordingDetails = false): P
       )
     : null) as SemanticResultRecord | null;
   let recordingSummary: unknown = null;
+  let measuredReflection: unknown = null;
+  let measurementReflectionError: string | undefined;
   let recordingReflection: unknown = null;
   let recordingReflectionError: string | undefined;
   if (semantic && scan.lifecycle_state === "finalized") {
-    try {
-      const response = await fetch(`/api/results/${encodeURIComponent(id)}/reflection`, {
+    const endpoint = `/api/results/${encodeURIComponent(id)}/reflection`;
+    const loadReflection = async (url: string) => {
+      const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: AbortSignal.timeout(30000),
       });
       if (!response.ok) throw new Error("reflection unavailable");
-      recordingReflection = await response.json();
-    } catch {
-      recordingReflectionError = "Your saved records are open, but the recording reflection could not load. Refresh the page to try again.";
-    }
+      return await response.json();
+    };
+    const [measurements, reading] = await Promise.allSettled([
+      loadReflection(`${endpoint}?view=measurements`),
+      scan.transcription_consent ? loadReflection(endpoint) : Promise.resolve(null),
+    ]);
+    if (measurements.status === "fulfilled") measuredReflection = measurements.value;
+    else measurementReflectionError = "Your saved measurements could not be summarized. Refresh the page to try again.";
+    if (reading.status === "fulfilled") recordingReflection = reading.value;
+    else recordingReflectionError = "Your optional voice reading could not load. Refresh the page to try again.";
   }
   if (includeRecordingDetails && semantic && scan.lifecycle_state === "finalized") {
     const response = await fetch(`/api/results/${encodeURIComponent(id)}/summary`, {
@@ -95,7 +104,7 @@ export async function loadResult(id: string, includeRecordingDetails = false): P
     if (!response.ok) throw new Error(body.error ?? "Your summary could not be loaded. Please try again.");
     recordingSummary = body;
   }
-  return { scan, measurement, evidence, dimensions, semantic, recordingSummary, recordingReflection, recordingReflectionError };
+  return { scan, measurement, evidence, dimensions, semantic, recordingSummary, measuredReflection, measurementReflectionError, recordingReflection, recordingReflectionError };
 }
 export async function sendScan(
   audio: Blob[],
