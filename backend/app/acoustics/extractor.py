@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..config import EXTRACTOR_VERSION
-from .frame_analysis import profile_measurements
 from .formants import formant_measurements_unavailable
+from .frame_analysis import profile_measurements
 from .pitch import estimate_pitch_hz
 from .registry import NON_CANONICAL_REGISTRY_VERSION, registry_version_for
 from .spectral import estimate_spectral_centroid_hz

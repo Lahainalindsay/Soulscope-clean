@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 import numpy as np
-from scipy.signal import lfilter
+from scipy.signal import lfilter  # type: ignore[import-untyped]
 
 from .frame_analysis import analyze_frames, summarize_speech_segments
 

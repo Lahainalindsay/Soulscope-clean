@@ -10,7 +10,7 @@ import math
 from typing import Any
 
 import numpy as np
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks  # type: ignore[import-untyped]
 
 from .profile import FEATURES, PROFILE_FEATURE_VERSION, PROFILE_VERSION
 
@@ -152,7 +152,7 @@ def _praat(x: Any, sr: int, values: dict[str, Any], reasons: dict[str, str],
         idx = _nearest_indices(pitch_times, times)
         mask = (contour[idx] > 0) & np.isfinite(hn) & (hn > -200)
         _put("HNR_MEAN", np.mean(hn[mask]) if np.any(mask) else None,
-             values, reasons, support, len(hn), np.count_nonzero(mask), scope="F0_VOICED_FRAMES")
+             values, reasons, support, len(hn), int(np.count_nonzero(mask)), scope="F0_VOICED_FRAMES")
         formant = sound.to_formant_burg(time_step=.01, max_number_of_formants=5,
                                       maximum_formant=min(5500.0, sr / 2), window_length=.025)
         for n in (1, 2, 3):

@@ -75,7 +75,8 @@ def align_source_spans(draft: Any, transcripts: dict[str, str]) -> dict[str, Any
             for span in line["sourceSpans"]:
                 if not isinstance(span, dict):
                     return None
-                source = transcripts.get(span.get("captureId"))
+                capture_id = span.get("captureId")
+                source = transcripts.get(capture_id) if isinstance(capture_id, str) else None
                 quote = span.get("quote")
                 if not source or not isinstance(quote, str) or len(quote) < 4:
                     return None
@@ -89,7 +90,7 @@ def align_source_spans(draft: Any, transcripts: dict[str, str]) -> dict[str, Any
 def model_schema(with_voice: bool = False) -> dict[str, Any]:
     span = {"type": "object", "additionalProperties": False, "required": ["captureId", "quote"],
             "properties": {"captureId": {"type": "string"}, "quote": {"type": "string"}}}
-    sentence = {"type": "object", "additionalProperties": False, "required": ["text", "sourceSpans"],
+    sentence: dict[str, Any] = {"type": "object", "additionalProperties": False, "required": ["text", "sourceSpans"],
                 "properties": {"text": {"type": "string"}, "sourceSpans": {"type": "array", "items": span}}}
     if with_voice:
         sentence["required"].append("audioRefs")
@@ -144,8 +145,11 @@ class ReflectionService:
             with httpx.Client(timeout=4) as client:
                 response = client.get(f"https://api.openai.com/v1/models/{VOICE_MODEL}",
                     headers={"Authorization": f"Bearer {self.api_key}"})
+            if not response.is_success:
+                logger.warning("reflection_provider_unavailable status=%s", response.status_code)
             return response.is_success
-        except httpx.HTTPError:
+        except httpx.HTTPError as exc:
+            logger.warning("reflection_provider_unreachable error=%s", type(exc).__name__)
             return False
 
     def db(self, method: str, table: str, *, params: dict[str, str] | None = None,
@@ -228,8 +232,9 @@ class ReflectionService:
             valid_ids = len(captures) == 3 and len(rows) == 3 and {str(c["id"]) for c in captures} == set(transcripts)
             if not valid_ids:
                 return {"status": "TRANSCRIPTION_UNAVAILABLE"}
+        narrative: dict[str, Any] | None
         if quality.get("measurement_status") != "qualified" or summary.get("warnings") or summary.get("rejectionReasons") or not valid_ids or sum(len(t.split()) for t in transcripts.values()) < 30:
-            narrative: dict[str, Any] = {"schemaVersion": VERSION, "status": "UNRESOLVED",
+            narrative = {"schemaVersion": VERSION, "status": "UNRESOLVED",
                 "reason": "INSUFFICIENT_SPEECH_OR_QUALITY", "sections": {name: [] for name in SECTIONS}}
         else:
             saved_voice = self.db("GET", "voice_observation_records", params={"scan_id": f"eq.{scan_id}", "select": "*"})
@@ -298,7 +303,7 @@ class ReflectionService:
                             " Voice-backed sentences may instead use an empty sourceSpans array with valid audioRefs. "
                             "Overview and any expression section must cite audioRefs. Do not add start/end offsets yourself."
                         )})
-            if not validate_narrative(narrative, transcripts, voice_record):
+            if narrative is None or not validate_narrative(narrative, transcripts, voice_record):
                 logger.warning("reflection_source_validation_failed scan_id=%s", scan_id)
                 return {"status": "VALIDATION_FAILED"}
             narrative["mode"] = "VOICE_AND_WORDS"
